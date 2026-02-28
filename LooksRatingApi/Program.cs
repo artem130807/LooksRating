@@ -1,5 +1,12 @@
 using LooksRatingApi;
 using LooksRatingApi.Contracts;
+using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Contracts.ReviewContracts;
+using LooksRatingApi.Contracts.TheBestWeekContracts;
+using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.Contracts.UserSessionContracts;
+using LooksRatingApi.Contracts.UserTicketContracts;
+using LooksRatingApi.Repositories;
 using LooksRatingApi.Services;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +20,12 @@ builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddSingleton<ILoadingCityService, LoadingCityService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserSessionRepository, UserSessionRepository>();
+builder.Services.AddScoped<IUserTicketRepository, UserTicketRepository>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IPhotoUserRepository, PhotoUserRepository>();
+builder.Services.AddScoped<ITheBestWeekRepository, TheBestWeekRepository>();
 builder.Services.AddMemoryCache();
 var app = builder.Build();
 
