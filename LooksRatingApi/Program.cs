@@ -18,8 +18,10 @@ builder.Services.AddDb(configuration);
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddScoped<ICityService, CityService>();
 builder.Services.AddSingleton<ILoadingCityService, LoadingCityService>();
+builder.Services.AddSingleton<ILoadingBadWordService, LoadingBadWordService>();
+builder.Services.AddScoped<ICityService, CityService>();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserSessionRepository, UserSessionRepository>();
 builder.Services.AddScoped<IUserTicketRepository, UserTicketRepository>();

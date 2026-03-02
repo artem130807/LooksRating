@@ -21,7 +21,7 @@ namespace LooksRatingApi.Configurations
             builder.HasOne(r => r.User)
                    .WithMany(u => u.Reviews)
                    .HasForeignKey(r => r.UserId)
-                   .OnDelete(DeleteBehavior.Cascade);
+                   .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(r => r.PhotoUser)
                    .WithMany()

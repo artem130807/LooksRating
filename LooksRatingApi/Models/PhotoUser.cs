@@ -13,5 +13,6 @@ namespace LooksRatingApi.Models
         public int RatingCount { get; set; }
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
+        
     }
 }

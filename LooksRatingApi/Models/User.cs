@@ -14,11 +14,14 @@ namespace LooksRatingApi.Models
         public string? TelegramUsername { get; set; }
         public int? Age { get; set; }
         public GenderEnum Gender { get; set; }
-        public CityVo City {get; set;}
+        public CityVo City { get; set; }
+        public int TimesInTop { get; set; }
+
         public Guid PhotoUserId { get; set; }
         public PhotoUser PhotoUser { get; set; } = null!;
         public ICollection<UserTicket> UserTickets { get; set; } = new List<UserTicket>();
         public ICollection<TheBestWeek> TheBestWeeks { get; set; } = new List<TheBestWeek>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
+        public ICollection<PhotoSeason> PhotoSeasons { get; set; } = new List<PhotoSeason>();
     }
 }

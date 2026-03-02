@@ -14,10 +14,15 @@ namespace LooksRatingApi.Configurations
         {
             builder.ToTable("TheBestWeek");
             builder.HasKey(b => b.Id);
-
+            builder.ComplexProperty(c => c.City, c =>
+            {
+                c.IsRequired();
+                c.Property(e => e.Value)
+                 .HasColumnName("City")
+                 .HasMaxLength(255);
+            });
             builder.Property(b => b.CreatedDate)
                    .IsRequired();
-
             builder.HasMany(b => b.PhotoUsers)
                    .WithOne()
                    .OnDelete(DeleteBehavior.Restrict);

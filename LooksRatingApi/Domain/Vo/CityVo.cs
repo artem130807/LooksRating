@@ -9,12 +9,12 @@ namespace LooksRatingApi.Domain.Vo
 {
     public class CityVo : ValueObject
     {
-        public string City {get;}
+        public string Value {get;}
 
         [JsonConstructor]
         private CityVo(string city)
         {
-            City = city;
+            Value = city;
         }
         private CityVo(){}
         public static Result<CityVo> Create(string city)
@@ -25,7 +25,7 @@ namespace LooksRatingApi.Domain.Vo
         }
         protected override IEnumerable<object> GetEqualityComponents()
         {
-            yield return City;
+            yield return Value;
         }
     }
 }

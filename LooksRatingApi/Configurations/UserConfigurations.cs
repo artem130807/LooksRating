@@ -29,12 +29,15 @@ namespace LooksRatingApi.Configurations
             builder.Property(x => x.Gender)
                    .IsRequired();
 
+            builder.Property(x => x.TimesInTop)
+                   .HasDefaultValue(0);
+
             builder.ComplexProperty(c => c.City, c =>
             {
                 c.IsRequired();
-                c.Property(e => e.City)
-                .HasColumnName("City")  
-                .HasMaxLength(255); 
+                c.Property(e => e.Value)
+                 .HasColumnName("City")
+                 .HasMaxLength(255);
             });
 
 

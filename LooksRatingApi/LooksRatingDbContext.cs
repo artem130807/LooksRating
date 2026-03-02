@@ -16,7 +16,10 @@ namespace LooksRatingApi
         public DbSet<UserSession> UserSessions {get; set;}
         public DbSet<TheBestWeek> TheBestWeeks {get; set;}
         public DbSet<UserTicket> UserTickets {get; set;}
-
+        public DbSet<ListSeasons> ListSeasons {get; set;}
+        public DbSet<Season> Seasons {get; set;}
+        public DbSet<PhotoSeason> PhotoSeasons {get; set;}
+        public DbSet<TopPhotoSeason> TopPhotoSeasons {get; set;}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new UserConfigurations());
@@ -25,6 +28,10 @@ namespace LooksRatingApi
             modelBuilder.ApplyConfiguration(new UserSessionConfigurations());
             modelBuilder.ApplyConfiguration(new TheBestWeekConfigurations());
             modelBuilder.ApplyConfiguration(new UserTicketConfigurations());
+            modelBuilder.ApplyConfiguration(new SeasonConfigurations());
+            modelBuilder.ApplyConfiguration(new ListSeasonsConfigurations());
+            modelBuilder.ApplyConfiguration(new PhotoSeasonConfigurations());
+            modelBuilder.ApplyConfiguration(new TopPhotoSeasonConfigurations());
         }
     }
 }
