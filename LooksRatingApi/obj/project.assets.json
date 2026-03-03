@@ -5770,19 +5770,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\shade\\.nuget\\packages\\": {}
+    "C:\\Users\\79176\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\shade\\Desktop\\LooksRating-main\\LooksRatingApi\\LooksRatingApi.csproj",
+      "projectUniqueName": "E:\\AAAAA1111222C#\\LooksRating\\LooksRatingApi\\LooksRatingApi.csproj",
       "projectName": "LooksRatingApi",
-      "projectPath": "C:\\Users\\shade\\Desktop\\LooksRating-main\\LooksRatingApi\\LooksRatingApi.csproj",
-      "packagesPath": "C:\\Users\\shade\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\shade\\Desktop\\LooksRating-main\\LooksRatingApi\\obj\\",
+      "projectPath": "E:\\AAAAA1111222C#\\LooksRating\\LooksRatingApi\\LooksRatingApi.csproj",
+      "packagesPath": "C:\\Users\\79176\\.nuget\\packages\\",
+      "outputPath": "E:\\AAAAA1111222C#\\LooksRating\\LooksRatingApi\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\shade\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\79176\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -5910,7 +5915,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.307/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
       }
     }
   },
@@ -5919,7 +5924,7 @@
       "code": "NU1608",
       "level": "Warning",
       "warningLevel": 1,
-      "message": "Версия обнаруженного пакета нарушает ограничение зависимости: MediatR.Extensions.Microsoft.DependencyInjection 11.1.0 требуется MediatR (>= 11.0.0 && < 12.0.0), но в результате разрешения получена версия MediatR 14.0.0.",
+      "message": "Detected package version outside of dependency constraint: MediatR.Extensions.Microsoft.DependencyInjection 11.1.0 requires MediatR (>= 11.0.0 && < 12.0.0) but version MediatR 14.0.0 was resolved.",
       "libraryId": "MediatR",
       "targetGraphs": [
         "net9.0"
