@@ -1,0 +1,77 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using LooksRatingApi.Contracts.SeasonContracts;
+using LooksRatingApi.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace LooksRatingApi.Repositories
+{
+    public class SeasonRepository : ISeasonRepository
+    {
+        private readonly LooksRatingDbContext _context;
+
+        public SeasonRepository(LooksRatingDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task Create(Season season)
+        {
+            _context.Seasons.Add(season);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task Delete(Guid id)
+        {
+            await _context.Seasons
+                .Where(s => s.Id == id)
+                .ExecuteDeleteAsync();
+        }
+
+        public async Task Update(Season season)
+        {
+            _context.Seasons.Update(season);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<Season?> GetById(Guid id)
+        {
+            return await _context.Seasons
+                .Include(s => s.PhotoSeasons)
+                .FirstOrDefaultAsync(s => s.Id == id);
+        }
+
+        public async Task<Season?> GetByNumber(int number)
+        {
+            return await _context.Seasons
+                .Include(s => s.PhotoSeasons)
+                .FirstOrDefaultAsync(s => s.Number == number);
+        }
+
+        public async Task<Season?> GetCurrent()
+        {
+            return await _context.Seasons
+                .Include(s => s.PhotoSeasons)
+                .Where(s => !s.IsClosed)
+                .OrderByDescending(s => s.CreatedDate)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Season>> GetSeasons(bool includeClosed = true)
+        {
+            var query = _context.Seasons.AsQueryable();
+
+            if (!includeClosed)
+            {
+                query = query.Where(s => !s.IsClosed);
+            }
+
+            return await query
+                .OrderByDescending(s => s.CreatedDate)
+                .ToListAsync();
+        }
+    }
+}
+
