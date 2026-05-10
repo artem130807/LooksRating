@@ -218,3 +218,5 @@ E:\AAAAA1111222C#\LooksRating\LooksRatingApi\obj\Debug\net9.0\LooksRatingApi.pdb
 E:\AAAAA1111222C#\LooksRating\LooksRatingApi\obj\Debug\net9.0\LooksRatingApi.genruntimeconfig.cache
 E:\AAAAA1111222C#\LooksRating\LooksRatingApi\obj\Debug\net9.0\ref\LooksRatingApi.dll
 E:\AAAAA1111222C#\LooksRating\LooksRatingApi\bin\Debug\net9.0\Data\bad_word.json
+E:\AAAAA1111222C#\LooksRating\LooksRatingApi\bin\Debug\net9.0\Npgsql.dll
+E:\AAAAA1111222C#\LooksRating\LooksRatingApi\bin\Debug\net9.0\Npgsql.EntityFrameworkCore.PostgreSQL.dll

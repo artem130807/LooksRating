@@ -12,7 +12,7 @@ namespace LooksRatingApi
         {
             services.AddDbContext<LooksRatingDbContext>(service =>
             {
-                service.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
+                service.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
             });
         }
     }

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LooksRatingApi.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,8 +15,8 @@ namespace LooksRatingApi.Migrations
                 name: "ListSeasons",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -27,12 +27,12 @@ namespace LooksRatingApi.Migrations
                 name: "Season",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Number = table.Column<int>(type: "int", nullable: false),
-                    IsClosed = table.Column<bool>(type: "bit", nullable: false),
-                    ListSeasonsId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "character varying(128)", maxLength: 128, nullable: false),
+                    Number = table.Column<int>(type: "integer", nullable: false),
+                    IsClosed = table.Column<bool>(type: "boolean", nullable: false),
+                    ListSeasonsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,14 +49,14 @@ namespace LooksRatingApi.Migrations
                 name: "PhotoSeason",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TelegramFileId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Rank = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Rating = table.Column<decimal>(type: "decimal(4,2)", nullable: false),
-                    RatingCount = table.Column<int>(type: "int", nullable: false),
-                    SeasonId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SnapshotAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TelegramFileId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Rank = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    Rating = table.Column<decimal>(type: "numeric(4,2)", nullable: false),
+                    RatingCount = table.Column<int>(type: "integer", nullable: false),
+                    SeasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SnapshotAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -73,11 +73,11 @@ namespace LooksRatingApi.Migrations
                 name: "TopPhotoSeason",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    GenderEnum = table.Column<int>(type: "int", nullable: false),
-                    PhotoSeasonId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Place = table.Column<int>(type: "int", nullable: false),
-                    City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    GenderEnum = table.Column<int>(type: "integer", nullable: false),
+                    PhotoSeasonId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Place = table.Column<int>(type: "integer", nullable: false),
+                    City = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -94,12 +94,12 @@ namespace LooksRatingApi.Migrations
                 name: "PhotoUser",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TelegramFileId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    Rating = table.Column<decimal>(type: "decimal(4,2)", nullable: false),
-                    RatingCount = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    TheBestWeekId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TelegramFileId = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    Rating = table.Column<decimal>(type: "numeric(4,2)", nullable: false),
+                    RatingCount = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TheBestWeekId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -110,14 +110,14 @@ namespace LooksRatingApi.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TelegramId = table.Column<long>(type: "bigint", nullable: false),
-                    TelegramUsername = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: true),
-                    Age = table.Column<int>(type: "int", nullable: true),
-                    Gender = table.Column<int>(type: "int", nullable: false),
-                    TimesInTop = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
-                    PhotoUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    TelegramUsername = table.Column<string>(type: "character varying(32)", maxLength: 32, nullable: true),
+                    Age = table.Column<int>(type: "integer", nullable: true),
+                    Gender = table.Column<int>(type: "integer", nullable: false),
+                    TimesInTop = table.Column<int>(type: "integer", nullable: false, defaultValue: 0),
+                    PhotoUserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    City = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -134,10 +134,10 @@ namespace LooksRatingApi.Migrations
                 name: "Review",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Rating = table.Column<int>(type: "int", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PhotoUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Rating = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PhotoUserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -160,11 +160,11 @@ namespace LooksRatingApi.Migrations
                 name: "TheBestWeek",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    GenderEnumed = table.Column<int>(type: "int", nullable: false),
-                    CreatedDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    City = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    GenderEnumed = table.Column<int>(type: "integer", nullable: false),
+                    CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    City = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -180,11 +180,11 @@ namespace LooksRatingApi.Migrations
                 name: "UserSession",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     TelegramId = table.Column<long>(type: "bigint", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    State = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    UpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    State = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -201,10 +201,10 @@ namespace LooksRatingApi.Migrations
                 name: "UserTicket",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    OccuredAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    OccuredAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {

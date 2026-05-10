@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "hIGG9p7dD8w=",
+  "dgSpecHash": "85BVqnjq7QU=",
   "success": true,
   "projectFilePath": "E:\\AAAAA1111222C#\\LooksRating\\LooksRatingApi\\LooksRatingApi.csproj",
   "expectedPackageFiles": [
@@ -65,6 +65,8 @@
     "C:\\Users\\79176\\.nuget\\packages\\microsoft.win32.systemevents\\6.0.0\\microsoft.win32.systemevents.6.0.0.nupkg.sha512",
     "C:\\Users\\79176\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\79176\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512",
+    "C:\\Users\\79176\\.nuget\\packages\\npgsql\\9.0.3\\npgsql.9.0.3.nupkg.sha512",
+    "C:\\Users\\79176\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\9.0.4\\npgsql.entityframeworkcore.postgresql.9.0.4.nupkg.sha512",
     "C:\\Users\\79176\\.nuget\\packages\\serilog\\4.3.0\\serilog.4.3.0.nupkg.sha512",
     "C:\\Users\\79176\\.nuget\\packages\\serilog.aspnetcore\\10.0.0\\serilog.aspnetcore.10.0.0.nupkg.sha512",
     "C:\\Users\\79176\\.nuget\\packages\\serilog.extensions.hosting\\10.0.0\\serilog.extensions.hosting.10.0.0.nupkg.sha512",
@@ -112,7 +114,7 @@
     {
       "code": "NU1608",
       "level": "Warning",
-      "message": "Detected package version outside of dependency constraint: MediatR.Extensions.Microsoft.DependencyInjection 11.1.0 requires MediatR (>= 11.0.0 && < 12.0.0) but version MediatR 14.0.0 was resolved.",
+      "message": "Версия обнаруженного пакета нарушает ограничение зависимости: MediatR.Extensions.Microsoft.DependencyInjection 11.1.0 требуется MediatR (>= 11.0.0 && < 12.0.0), но в результате разрешения получена версия MediatR 14.0.0.",
       "projectPath": "E:\\AAAAA1111222C#\\LooksRating\\LooksRatingApi\\LooksRatingApi.csproj",
       "warningLevel": 1,
       "filePath": "E:\\AAAAA1111222C#\\LooksRating\\LooksRatingApi\\LooksRatingApi.csproj",
