@@ -26,6 +26,14 @@ namespace LooksRatingApi.Configurations
                    .WithMany(u => u.UserTickets)
                    .HasForeignKey(t => t.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(t => t.PhotoUser)
+                   .WithMany(p => p.UserTickets)
+                   .HasForeignKey(t => t.PhotoUserId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(t => new { t.UserId, t.PhotoUserId })
+                   .IsUnique();
         }
     }
 }

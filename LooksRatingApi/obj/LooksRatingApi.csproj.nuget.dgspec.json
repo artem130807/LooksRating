@@ -50,6 +50,14 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "AspNetCore.HealthChecks.NpgSql": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
+            "AspNetCore.HealthChecks.Redis": {
+              "target": "Package",
+              "version": "[9.0.0, )"
+            },
             "AutoMapper.Extensions.Microsoft.DependencyInjection": {
               "target": "Package",
               "version": "[12.0.1, )"
@@ -68,7 +76,7 @@
             },
             "MediatR": {
               "target": "Package",
-              "version": "[14.0.0, )"
+              "version": "[11.1.0, )"
             },
             "MediatR.Extensions.Microsoft.DependencyInjection": {
               "target": "Package",
@@ -102,13 +110,33 @@
               "target": "Package",
               "version": "[9.0.1, )"
             },
+            "Microsoft.Extensions.Caching.StackExchangeRedis": {
+              "target": "Package",
+              "version": "[10.0.7, )"
+            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.4, )"
             },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[10.0.2, )"
+            },
             "Npgsql.EntityFrameworkCore.PostgreSQL": {
               "target": "Package",
               "version": "[9.0.4, )"
+            },
+            "Quartz": {
+              "target": "Package",
+              "version": "[3.18.1, )"
+            },
+            "Quartz.Extensions.Hosting": {
+              "target": "Package",
+              "version": "[3.18.1, )"
+            },
+            "Quartz.Serialization.Json": {
+              "target": "Package",
+              "version": "[3.18.1, )"
             },
             "Serilog.AspNetCore": {
               "target": "Package",
@@ -122,9 +150,13 @@
               "target": "Package",
               "version": "[7.0.0, )"
             },
-            "Swashbuckle.AspNetCore.SwaggerUI": {
+            "StackExchange.Redis": {
               "target": "Package",
-              "version": "[10.1.0, )"
+              "version": "[2.12.14, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[7.2.0, )"
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",

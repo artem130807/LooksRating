@@ -8,5 +8,6 @@ namespace LooksRatingApi.Contracts
     public interface ICityService
     {
         bool IsCityValid(string cityName);
+        IReadOnlyList<string> GetAllCities();
     }
 }

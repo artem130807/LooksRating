@@ -27,15 +27,26 @@ namespace LooksRatingApi.Repositories
             .ExecuteDeleteAsync();
         }
 
-        public async Task<User> GetUserById(Guid Id)
+        public async Task<User?> GetUserById(Guid Id)
         {
             return await _context.Users.FindAsync(Id);
         }
 
-        public async Task<User> GetUserByTelegramId(long TelegramId)
+        public async Task<User?> GetUserByTelegramId(long TelegramId)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.TelegramId == TelegramId);
+            return await _context.Users
+                .Include(x => x.RecomendationSettings)
+                .FirstOrDefaultAsync(x => x.TelegramId == TelegramId);
         }
+
+        // public async Task<int> CountTimesInTopAsync(Guid userId, CancellationToken cancellationToken = default)
+        // {
+        //     return await _context.PhotoUsers
+        //         .AsNoTracking()
+        //         .Where(p => p.UserId == userId)
+        //         .SelectMany(p => p.TheBestWeeks)
+        //         .CountAsync(cancellationToken);
+        // }
 
         public async Task<List<User>> GetUsers()
         {

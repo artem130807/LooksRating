@@ -12,11 +12,17 @@ namespace LooksRatingApi.Configurations
     {
         public void Configure(EntityTypeBuilder<Review> builder)
         {
-            builder.ToTable("Review");
+            builder.ToTable("Review", tableBuilder =>
+            {
+                tableBuilder.HasCheckConstraint("CK_Review_Rating_Range", "\"Rating\" >= 1 AND \"Rating\" <= 10");
+            });
             builder.HasKey(r => r.Id);
 
             builder.Property(r => r.Rating)
                    .IsRequired();
+
+            builder.HasIndex(r => new { r.UserId, r.PhotoUserId })
+                   .IsUnique();
 
             builder.HasOne(r => r.User)
                    .WithMany(u => u.Reviews)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CSharpFunctionalExtensions;
 
 namespace LooksRatingApi.Models
 {
@@ -13,11 +14,21 @@ namespace LooksRatingApi.Models
         public bool IsClosed {get; set;}
         public Guid ListSeasonsId {get; set;}
         public ListSeasons ListSeasons {get; set;}
-        public ICollection<PhotoSeason> PhotoSeasons {get; set;}
+        public ICollection<PhotoUser> PhotoUsers {get; set;}
         public DateTime CreatedDate {get; set;}
-        public Season()
+
+        public static Result<Season> Create(string name, int number, Guid listSeasonsId)
         {
-            PhotoSeasons = new List<PhotoSeason>();
+            var season = new Season
+            {
+                Id = Guid.NewGuid(),
+                Name = name, 
+                Number =  number,
+                IsClosed = false,
+                ListSeasonsId = listSeasonsId,
+                CreatedDate = DateTime.UtcNow
+            };
+            return season;
         }
     }
 }

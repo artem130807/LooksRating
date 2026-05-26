@@ -25,14 +25,11 @@ namespace LooksRatingApi.Configurations
             builder.Property(s => s.CreatedDate)
                    .IsRequired();
 
+            // PhotoUser–Season is configured on PhotoUserConfigurations only (duplicate here caused EF to add SeasonId1).
+
             builder.HasOne(s => s.ListSeasons)
                    .WithMany(l => l.Seasons)
                    .HasForeignKey(s => s.ListSeasonsId)
-                   .OnDelete(DeleteBehavior.Cascade);
-
-            builder.HasMany(s => s.PhotoSeasons)
-                   .WithOne(p => p.Season)
-                   .HasForeignKey(p => p.SeasonId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

@@ -27,12 +27,16 @@ namespace LooksRatingApi.Repositories
             await _context.UserTickets.Where(x => x.Id == Id).ExecuteDeleteAsync();
         }
 
-        public async Task<UserTicket> GetTicketById(Guid Id)
+        public async Task<UserTicket?> GetTicketById(Guid Id)
         {
-            return await _context.UserTickets.FindAsync(Id);
+            return await _context.UserTickets
+                .Include(x => x.User)
+                    .ThenInclude(u => u.RecomendationSettings)
+                .Include(x => x.PhotoUser)
+                .FirstOrDefaultAsync(x => x.Id == Id);
         }
 
-        public async Task<UserTicket> GetTicketByTelegramId(long? telegramId)
+        public async Task<UserTicket?> GetTicketByTelegramId(long telegramId)
         {
             return await _context.UserTickets.Include(x => x.User).FirstOrDefaultAsync(x => x.User.TelegramId == telegramId);
         }
@@ -41,8 +45,18 @@ namespace LooksRatingApi.Repositories
         {
             return await _context.UserTickets
                 .Include(x => x.User)
-                .Where(x => x.User.City.Value == city)
+                    .ThenInclude(u => u.RecomendationSettings)
+                .Include(x => x.PhotoUser)
+                .Where(x => x.User.RecomendationSettings != null
+                    && x.User.RecomendationSettings.City.Value == city)
+                .OrderByDescending(x => x.OccuredAt)
                 .ToListAsync();
+        }
+
+        public async Task<bool> ExistsByReporterAndPhoto(Guid reporterUserId, Guid photoUserId)
+        {
+            return await _context.UserTickets
+                .AnyAsync(x => x.UserId == reporterUserId && x.PhotoUserId == photoUserId);
         }
 
         public async Task Update(UserTicket ticket)
