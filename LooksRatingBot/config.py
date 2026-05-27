@@ -16,8 +16,8 @@ class Settings:
 
     @classmethod
     def from_env(cls) -> "Settings":
-        token = os.getenv("BOT_TOKEN", "").strip()
-        base = os.getenv("API_BASE_URL", "http://localhost:5149").strip().rstrip("/")
+        token = os.getenv("BOT_TOKEN", "8696029869:AAE518GV7PXI4e9yf-521xbVSTrRXfdbP3A").strip()
+        base = os.getenv("API_BASE_URL", "http://api:8080").strip().rstrip("/")
         key = os.getenv("API_KEY", "").strip()
         proxy = os.getenv("TELEGRAM_PROXY", "").strip() or None
         interval_raw = os.getenv("TOP_NOTIFY_INTERVAL_SECONDS", "60").strip()
