@@ -98,7 +98,7 @@ services:
     environment:
       API_URL: http://api:8080
       API_KEY: ${API_KEY:-default_secret_api_key}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:8696029869:AAE518GV7PXI4e9yf-521xbVSTrRXfdbP3A}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-8696029869:AAE518GV7PXI4e9yf-521xbVSTrRXfdbP3A}
 
 volumes:
   looksrating-pgdata:
