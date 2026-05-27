@@ -1,16 +1,16 @@
-FROM ://microsoft.com AS base
+FROM python:3.11-slim
 WORKDIR /app
 
-FROM ://microsoft.com AS build
-WORKDIR /src
-COPY ["LooksRatingBot/LooksRatingBot.csproj", "LooksRatingBot/"]
-RUN dotnet restore "LooksRatingBot/LooksRatingBot.csproj"
+# Установка системных зависимостей, если необходимы
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY . .
-WORKDIR "/src/LooksRatingBot"
-RUN dotnet publish "LooksRatingBot.csproj" -c Release -o /app/publish
+# Копируем зависимости и устанавливаем их
+COPY LooksRatingBot/requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-FROM base AS final
-WORKDIR /app
-COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "LooksRatingBot.dll"]
+# Копируем исходный код бота
+COPY LooksRatingBot/ .
+
+CMD ["python", "main.py"]
