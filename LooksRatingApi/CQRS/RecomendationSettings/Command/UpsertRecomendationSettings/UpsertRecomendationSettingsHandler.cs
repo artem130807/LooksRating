@@ -1,10 +1,12 @@
 using CSharpFunctionalExtensions;
+using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.RecomendationSettingsContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.CQRS.RecomendationSettings;
 using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Models;
 using MediatR;
+using Microsoft.IdentityModel.Tokens.Experimental;
 
 namespace LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationSettings
 {
@@ -14,15 +16,17 @@ namespace LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationS
         private readonly IUserRepository _userRepository;
         private readonly IRecomendationSettingsRepository _recomendationSettingsRepository;
         private readonly IUpsertRecomendationSettingsValidator _validator;
-
+        private readonly ICityService _cityService;
         public UpsertRecomendationSettingsHandler(
             IUserRepository userRepository,
             IRecomendationSettingsRepository recomendationSettingsRepository,
-            IUpsertRecomendationSettingsValidator validator)
+            IUpsertRecomendationSettingsValidator validator,
+            ICityService cityService)
         {
             _userRepository = userRepository;
             _recomendationSettingsRepository = recomendationSettingsRepository;
             _validator = validator;
+            _cityService = cityService;
         }
 
         public async Task<Result<Unit>> Handle(
@@ -40,8 +44,13 @@ namespace LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationS
             {
                 return Result.Failure<Unit>(RecomendationSettingsErrors.UserNotFound);
             }
-
-            var normalizedCity = command.City.Trim().ToLowerInvariant();
+            
+            var normalizedCity = command.City.Trim().ToLower();
+            bool isValidCity = _cityService.IsCityValid(normalizedCity);
+            if(isValidCity == false)
+            {
+                return Result.Failure<Unit>("Город не найден");
+            }
             var cityResult = CityVo.Create(normalizedCity);
             if (cityResult.IsFailure)
             {

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LooksRatingApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dce5361fec23f47831efb4a8a287b2b0451527cf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2ee6cffb61b387df6fe108bc8b8c07c0bfcd2a4a")]
 [assembly: System.Reflection.AssemblyProductAttribute("LooksRatingApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LooksRatingApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

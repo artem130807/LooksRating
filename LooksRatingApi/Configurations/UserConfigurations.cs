@@ -22,6 +22,8 @@ namespace LooksRatingApi.Configurations
 
             builder.Property(x => x.Name)
                 .HasMaxLength(32);
+                
+            builder.Property(x => x.CountInTop);
 
             builder.HasMany(u => u.PhotoUsers)
                 .WithOne()

@@ -13,6 +13,7 @@ namespace LooksRatingApi.Contracts.UserContracts
         Task Update(User user);
         Task<User?> GetUserById(Guid Id);
         Task<User?> GetUserByTelegramId(long TelegramId);
+        Task AddCountInTop(List<long> ids);
         // Task<int> CountTimesInTopAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<List<User>> GetUsers();
     }

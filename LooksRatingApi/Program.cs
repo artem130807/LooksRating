@@ -27,6 +27,7 @@ using LooksRatingApi.Services.CityServices;
 using MediatR;
 using StackExchange.Redis;
 using System.Text.Json.Serialization;
+using LooksRatingApi.Services.BackGroundServices.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -73,6 +74,7 @@ builder.Services.AddScoped<IRankService, RankService>();
 builder.Services.AddScoped<IUpdateRatingPhotoService, UpdateRatingPhotoService>();
 builder.Services.AddScoped<IPhotoRatingCacheService, PhotoRatingCacheService>();
 builder.Services.AddScoped<IPhotoTopReadService, PhotoTopReadService>();
+builder.Services.AddScoped<IAddPhotoUsersCacheHandler, AddPhotoUsersCacheHandler>();
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 {

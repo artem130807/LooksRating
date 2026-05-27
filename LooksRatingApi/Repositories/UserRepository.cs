@@ -15,6 +15,13 @@ namespace LooksRatingApi.Repositories
         {
             _context = context;
         }
+
+        public async Task AddCountInTop(List<long> ids)
+        {
+            await _context.Users.Where(u => ids.Contains(u.TelegramId))
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.CountInTop, u => u.CountInTop + 1));
+        }
+
         public async Task Create(User user)
         {
             _context.Users.Add(user);

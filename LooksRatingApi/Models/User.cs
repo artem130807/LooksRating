@@ -9,6 +9,7 @@ namespace LooksRatingApi.Models
         public long TelegramId { get; set; }
         public string? TelegramUsername { get; set; }
         public string? Name { get; set; }
+        public int CountInTop {get; set;}
         public RecomendationSettings? RecomendationSettings { get; set; }
         public ICollection<PhotoUser> PhotoUsers { get; set; } = new List<PhotoUser>();
         public ICollection<UserTicket> UserTickets { get; set; } = new List<UserTicket>();
