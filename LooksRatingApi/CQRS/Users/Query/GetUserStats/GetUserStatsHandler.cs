@@ -34,7 +34,6 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
                 return Result.Failure<GetUserStatsResponse>(SetUserPhotoErrors.UserNotFound);
             }
 
-            // var timesInTop = await _userRepository.CountTimesInTopAsync(user.Id, cancellationToken);
             var seasonsWithPhoto = await _photoUserRepository.CountSeasonsWithPhotoAsync(
                 user.Id,
                 cancellationToken);
@@ -42,7 +41,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
             return Result.Success(new GetUserStatsResponse
             {
                 TelegramId = user.TelegramId,
-                // TimesInTop = timesInTop,
+                CountInTop = user.CountInTop,
                 SeasonsWithPhoto = seasonsWithPhoto,
             });
         }

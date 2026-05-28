@@ -18,7 +18,7 @@ namespace LooksRatingApi.Services
         }
         public async Task Handle(List<long> ids)
         {
-            
+            await _userRepository.AddCountInTop(ids);
         }
     }
 }
