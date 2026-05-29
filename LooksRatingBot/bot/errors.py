@@ -1,6 +1,6 @@
 ERROR_MESSAGES: dict[str, str] = {
     "TelegramIdIsRequired": "Некорректный идентификатор Telegram.",
-    "InvalidAge": "Возраст должен быть от 14 до 100 лет.",
+    "InvalidAge": "Возраст должен быть от 14 до 100 лет или «Все возраста».",
     "InvalidGender": "Выберите пол: мужской, женский или оба.",
     "InvalidCity": "Город не найден в списке. Проверьте написание.",
     "UserAlreadyExists": "Вы уже зарегистрированы.",

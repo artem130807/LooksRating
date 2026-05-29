@@ -16,5 +16,6 @@ namespace LooksRatingApi.Contracts.UserContracts
         Task AddCountInTop(List<long> ids);
         // Task<int> CountTimesInTopAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<List<User>> GetUsers();
+        Task SaveChangesAsync();
     }
 }

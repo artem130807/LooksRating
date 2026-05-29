@@ -43,7 +43,6 @@ namespace LooksRatingApi.Configurations
                    .WithMany(p => p.PhotoUsers)
                    .HasForeignKey(p => p.UserId)
                    .OnDelete(DeleteBehavior.Cascade);
-                   
             builder.ComplexProperty(c => c.CityNomination, c =>
             {
               c.IsRequired();
@@ -51,7 +50,6 @@ namespace LooksRatingApi.Configurations
               .HasColumnName("City")
               .HasMaxLength(255);
             });
-
             builder.Property(x => x.AgeNomination);
 
             builder.HasOne(p => p.Season)

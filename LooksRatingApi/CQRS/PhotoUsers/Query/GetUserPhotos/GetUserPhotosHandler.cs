@@ -77,6 +77,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
                 RatingCount = photo.RatingCount,
                 UserId = photo.UserId,
                 Gender = GenderDisplay.GetGender(photo.GenderNomination),
+                Age = photo.AgeNomination,
                 City = photo.CityNomination.Value ?? string.Empty,
                 DisplayName = UserPublicDisplayName.Resolve(photo.User),
             });

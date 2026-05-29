@@ -6,7 +6,9 @@ from bot import texts
 from bot.filters import NOT_DURING_RATING_OR_TICKET
 from bot.keyboards import MENU_PROFILE
 from bot.services import (
+    AGE_ALL,
     format_city_display,
+    format_feed_age_range,
     format_rating_display,
     main_menu_for,
     send_main_menu,
@@ -26,9 +28,13 @@ async def show_profile(message: Message, api: LooksRatingApiClient) -> None:
     stats_line = ""
     try:
         stats = await api.get_user_stats(telegram_id)
+        count_in_top = stats.get("countInTop", stats.get("timesInTop", user.get("countInTop", 0)))
+        age = user.get("age")
+        age_info = "Все возраста" if age == AGE_ALL else format_feed_age_range(age)
         stats_line = (
             "\n"
-            + texts.STATS_IN_TOP.format(times=stats.get("timesInTop", 0))
+            + f"📐 Категория ленты по возрасту: <b>{age_info}</b>\n"
+            + texts.STATS_IN_TOP.format(times=count_in_top)
             + "\n"
             + texts.STATS_SEASONS.format(count=stats.get("seasonsWithPhoto", 0))
         )

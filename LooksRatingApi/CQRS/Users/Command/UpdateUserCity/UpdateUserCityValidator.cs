@@ -8,16 +8,13 @@ namespace LooksRatingApi.CQRS.Users.Command.UpdateUserCity
     {
         private readonly IUserRepository _userRepository;
         private readonly ICityService _cityService;
-        private readonly INormalizeCityNameService _normalizeCityNameService;
 
         public UpdateUserCityValidator(
             IUserRepository userRepository,
-            ICityService cityService,
-            INormalizeCityNameService normalizeCityNameService)
+            ICityService cityService)
         {
             _userRepository = userRepository;
             _cityService = cityService;
-            _normalizeCityNameService = normalizeCityNameService;
         }
 
         public async Task<Result<string>> ValidateAsync(
@@ -34,8 +31,7 @@ namespace LooksRatingApi.CQRS.Users.Command.UpdateUserCity
                 return Result.Failure<string>(UpdateUserCityErrors.InvalidCity);
             }
 
-            var normalizedCity = _normalizeCityNameService.Normalize(command.City);
-            if (!_cityService.IsCityValid(normalizedCity))
+            if (!_cityService.IsCityValid(command.City))
             {
                 return Result.Failure<string>(UpdateUserCityErrors.InvalidCity);
             }

@@ -38,6 +38,7 @@ GENDER_BOTH = "👥 Оба"
 BTN_EDIT_CITY = "🏙 Город"
 BTN_EDIT_AGE = "🎂 Возраст"
 BTN_EDIT_GENDER = "👤 Пол"
+BTN_AGE_ALL = "🌐 Все возраста"
 BTN_RATING_EXIT = "⏹ Выйти из оценки"
 BTN_SEASON_TOP = "🏆 Топ сезона"
 BTN_SEASON_MY_PHOTO = "📸 Моё фото"
@@ -85,6 +86,17 @@ def cancel_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[[KeyboardButton(text=MENU_CANCEL)]],
         resize_keyboard=True,
         input_field_placeholder="Или нажмите «Отмена»",
+    )
+
+
+def age_input_keyboard() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=BTN_AGE_ALL)],
+            [KeyboardButton(text=MENU_CANCEL)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Введите возраст или выберите «Все возраста»",
     )
 
 
@@ -184,7 +196,7 @@ def season_actions_keyboard(season_id: str) -> InlineKeyboardMarkup:
             [
                 InlineKeyboardButton(
                     text=BTN_SEASON_TOP,
-                    callback_data=f"top:p:{season_id}:1",
+                    callback_data=f"top:pick:{season_id}",
                 ),
                 InlineKeyboardButton(
                     text=BTN_SEASON_MY_PHOTO,
@@ -202,7 +214,7 @@ def season_actions_keyboard(season_id: str) -> InlineKeyboardMarkup:
 def tops_menu_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🔥 Топ недели", callback_data="top:weekly:now")],
+            [InlineKeyboardButton(text="🔥 Топ недели", callback_data="top:weekly:pick")],
             [InlineKeyboardButton(text="📅 Топы по сезонам", callback_data="season:list")],
             [InlineKeyboardButton(text="📱 В меню", callback_data="top:menu")],
         ]
@@ -212,8 +224,29 @@ def tops_menu_keyboard() -> InlineKeyboardMarkup:
 def top_notification_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="🔥 Открыть топ недели", callback_data="top:weekly:now")],
+            [InlineKeyboardButton(text="🔥 Открыть топ недели", callback_data="top:weekly:pick")],
             [InlineKeyboardButton(text="📅 Топы по сезонам", callback_data="season:list")],
+        ]
+    )
+
+
+def top_gender_pick_keyboard(scope: str, season_id: str | None = None) -> InlineKeyboardMarkup:
+    if scope == "season":
+        male_callback = f"top:open:season:{season_id}:1:1"
+        female_callback = f"top:open:season:{season_id}:1:2"
+        back_callback = f"season:open:{season_id}"
+    else:
+        male_callback = "top:open:weekly:1"
+        female_callback = "top:open:weekly:2"
+        back_callback = "top:menu"
+
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="👨 Парни", callback_data=male_callback),
+                InlineKeyboardButton(text="👩 Девушки", callback_data=female_callback),
+            ],
+            [InlineKeyboardButton(text="◀️ Назад", callback_data=back_callback)],
         ]
     )
 

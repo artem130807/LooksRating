@@ -209,6 +209,13 @@ class LooksRatingApiClient:
             allow_404=True,
         )
 
+    async def get_photo_user_by_id(self, photo_user_id: str) -> dict[str, Any] | None:
+        return await self._request(
+            "GET",
+            f"/api/photo-users/{photo_user_id}",
+            allow_404=True,
+        )
+
     async def get_next_photo(self, telegram_id: int) -> dict[str, Any]:
         return await self._request(
             "POST",

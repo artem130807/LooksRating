@@ -24,6 +24,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
             CancellationToken cancellationToken)
         {
             if (request.TelegramId <= 0)
+            
             {
                 return Result.Failure<GetUserStatsResponse>(SetUserPhotoErrors.TelegramIdIsRequired);
             }

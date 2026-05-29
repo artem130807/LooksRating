@@ -22,6 +22,40 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
+def _gender_icon(gender: str | None) -> str:
+    normalized = (gender or "").strip().lower()
+    if "муж" in normalized:
+        return "👨"
+    if "жен" in normalized:
+        return "👩"
+    if "оба" in normalized:
+        return "👥"
+    return "👤"
+
+
+def _format_age_text(age: int | str | None) -> str:
+    if isinstance(age, str):
+        raw = age.strip()
+        if raw.isdigit():
+            age = int(raw)
+        else:
+            return f"{raw} лет"
+    if not isinstance(age, int):
+        return "— лет"
+    n = abs(age)
+    mod100 = n % 100
+    mod10 = n % 10
+    if 11 <= mod100 <= 14:
+        suffix = "лет"
+    elif mod10 == 1:
+        suffix = "год"
+    elif mod10 in {2, 3, 4}:
+        suffix = "года"
+    else:
+        suffix = "лет"
+    return f"{age} {suffix}"
+
+
 def _normalize_photo_payload(photo: dict) -> dict:
     return {
         "id": photo.get("id") or photo.get("Id"),
@@ -30,12 +64,20 @@ def _normalize_photo_payload(photo: dict) -> dict:
         "rating": photo.get("rating") if photo.get("rating") is not None else photo.get("Rating", 0),
         "ratingCount": photo.get("ratingCount") if photo.get("ratingCount") is not None else photo.get("RatingCount", 0),
         "displayName": photo.get("displayName") or photo.get("DisplayName"),
+        "gender": photo.get("gender") or photo.get("Gender"),
+        "age": photo.get("age") if photo.get("age") is not None else photo.get("Age"),
         "city": photo.get("city") or photo.get("City"),
     }
 
 
 def _photo_caption(photo: dict) -> str:
+    gender_text = photo.get("gender") or "Не указан"
+    age_text = _format_age_text(photo.get("age"))
     caption = texts.RATING_CAPTION.format(
+        display_name=photo.get("displayName") or "Участник",
+        gender=gender_text,
+        gender_icon=_gender_icon(gender_text),
+        age_text=age_text,
         city=format_city_display(photo.get("city")),
         rank=photo.get("rank", "—"),
         rating_line=format_rating_display(
@@ -43,9 +85,6 @@ def _photo_caption(photo: dict) -> str:
             int(photo.get("ratingCount", 0)),
         ),
     )
-    display_name = photo.get("displayName")
-    if display_name:
-        caption += texts.RATING_CAPTION_USER.format(display_name=display_name)
     return caption
 
 

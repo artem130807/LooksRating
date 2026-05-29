@@ -468,3 +468,4 @@ E:/AAAAA1111222C#/LooksRating/LooksRatingApi/obj/Debug/net9.0/ref/LooksRatingApi
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/LooksRatingApi.pdb
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/LooksRatingApi.genruntimeconfig.cache
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/ref/LooksRatingApi.dll
+/home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/swae.build.ex.cache

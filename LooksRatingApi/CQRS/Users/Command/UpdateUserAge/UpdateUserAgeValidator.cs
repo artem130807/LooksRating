@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.Services;
 
 namespace LooksRatingApi.CQRS.Users.Command.UpdateUserAge
 {
@@ -21,7 +22,7 @@ namespace LooksRatingApi.CQRS.Users.Command.UpdateUserAge
                 return Result.Failure<string>(UpdateUserAgeErrors.TelegramIdIsRequired);
             }
 
-            if (command.Age is < 14 or > 100)
+            if (command.Age is < TopService.AllAges or > 100)
             {
                 return Result.Failure<string>(UpdateUserAgeErrors.InvalidAge);
             }

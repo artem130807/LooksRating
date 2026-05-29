@@ -69,5 +69,6 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             string city,
             int age,
             GenderEnum genderEnum);
+        Task<bool> IsNotThreePhotosSeasonVip(Guid seasonId, long telegramId);
     }
 }

@@ -8,6 +8,7 @@ from bot.filters import NOT_DURING_RATING_OR_TICKET
 from bot.keyboards import MENU_MY_PHOTO, MENU_RATE, rating_flow_keyboard
 from bot.services import SessionState, format_city_display, format_rating_display, main_menu_for, send_main_menu, set_bot_state
 from handlers.feed_setup import begin_feed_setup
+from handlers.photo import offer_photo_creation_prompt
 from handlers.rating import show_next_photo
 
 router = Router()
@@ -41,11 +42,17 @@ async def menu_rate(message: Message, state: FSMContext, api: LooksRatingApiClie
 
 
 @router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_MY_PHOTO)
-async def menu_my_photo(message: Message, api: LooksRatingApiClient) -> None:
+async def menu_my_photo(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
     telegram_id = message.from_user.id
     photo = await api.get_my_photo(telegram_id)
     if not photo:
-        await send_main_menu(message, api, telegram_id, texts.MY_PHOTO_EMPTY)
+        await offer_photo_creation_prompt(
+            message,
+            state,
+            api,
+            telegram_id,
+            texts.MY_PHOTO_EMPTY_OFFER,
+        )
         return
     caption = texts.MY_PHOTO.format(
         rating_line=format_rating_display(

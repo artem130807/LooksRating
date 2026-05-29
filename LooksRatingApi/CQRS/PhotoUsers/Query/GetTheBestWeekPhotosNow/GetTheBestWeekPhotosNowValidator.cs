@@ -4,6 +4,7 @@ using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos;
 using LooksRatingApi.CQRS.RecomendationSettings;
+using LooksRatingApi.Services;
 
 namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow
 {
@@ -30,7 +31,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow
                     SetUserPhotoErrors.TelegramIdIsRequired);
             }
 
-            if (query.Age is < 14 or > 100)
+            if (query.Age is < TopService.AllAges or > 100)
             {
                 return Result.Failure<GetTheBestWeekPhotosNowValidatedContext>(
                     GetTopUserPhotosErrors.InvalidAge);

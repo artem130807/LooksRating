@@ -6,6 +6,7 @@ using LooksRatingApi.CQRS.RecomendationSettings;
 using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
+using LooksRatingApi.Services;
 using MediatR;
 
 namespace LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationSettings
@@ -39,7 +40,7 @@ namespace LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationS
                 return Result.Failure<string>(RecomendationSettingsErrors.TelegramIdIsRequired);
             }
 
-            if (command.Age is < 14 or > 100)
+            if (command.Age is < TopService.AllAges or > 100)
             {
                 return Result.Failure<string>(RecomendationSettingsErrors.InvalidAge);
             }

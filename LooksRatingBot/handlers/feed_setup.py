@@ -6,11 +6,21 @@ from aiogram.types import Message
 
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
-from bot.keyboards import MENU_CANCEL, cancel_keyboard, feed_gender_keyboard, remove_keyboard
+from bot.keyboards import (
+    BTN_AGE_ALL,
+    MENU_CANCEL,
+    age_input_keyboard,
+    cancel_keyboard,
+    feed_gender_keyboard,
+    remove_keyboard,
+)
 from bot.services import (
+    AGE_ALL,
     SessionState,
     feed_gender_from_text,
     format_api_error,
+    format_feed_age_value,
+    format_feed_age_range,
     format_city_display,
     gender_label,
     load_cities,
@@ -88,7 +98,7 @@ async def feed_city_entered(
 
     await message.answer(
         texts.FEED_SETUP_AGE.format(city=format_city_display(city)),
-        reply_markup=cancel_keyboard(),
+        reply_markup=age_input_keyboard(),
     )
 
 
@@ -104,12 +114,15 @@ async def feed_age_entered(
         return
 
     try:
-        age = int(message.text.strip())
+        if message.text.strip() == BTN_AGE_ALL:
+            age = AGE_ALL
+        else:
+            age = int(message.text.strip())
     except ValueError:
-        await message.answer(texts.REG_AGE_INVALID, reply_markup=cancel_keyboard())
+        await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
         return
-    if age < 14 or age > 100:
-        await message.answer(texts.REG_AGE_INVALID, reply_markup=cancel_keyboard())
+    if age != AGE_ALL and (age < 14 or age > 100):
+        await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
         return
 
     await state.update_data(age=age)
@@ -120,7 +133,12 @@ async def feed_age_entered(
         await message.answer(format_api_error(exc))
         return
 
-    await message.answer(texts.FEED_SETUP_GENDER, reply_markup=feed_gender_keyboard())
+    await message.answer(
+        texts.FEED_SETUP_AGE_RANGE.format(age_range=format_feed_age_range(age))
+        + "\n\n"
+        + texts.FEED_SETUP_GENDER,
+        reply_markup=feed_gender_keyboard(),
+    )
 
 
 @router.message(FeedSetupStates.gender, F.text)
@@ -155,7 +173,7 @@ async def feed_gender_entered(
     await message.answer(
         texts.FEED_SETUP_DONE.format(
             city=format_city_display(city),
-            age=age,
+            age=format_feed_age_value(age),
             gender=gender_text,
         )
     )
@@ -174,7 +192,7 @@ async def feed_gender_entered(
             telegram_id,
             prefix=texts.FEED_SETUP_DONE.format(
                 city=format_city_display(city),
-                age=age,
+                age=format_feed_age_value(age),
                 gender=gender_text,
             )
             + "\n\n",

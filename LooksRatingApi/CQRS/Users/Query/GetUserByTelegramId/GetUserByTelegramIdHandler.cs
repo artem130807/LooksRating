@@ -58,6 +58,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
                 UserId = user.Id,
                 TelegramId = user.TelegramId,
                 TelegramUsername = user.TelegramUsername,
+                CountInTop = user.CountInTop,
                 DisplayName = UserPublicDisplayName.Resolve(user),
                 Age = hasSettings ? settings!.Age : null,
                 Gender = hasSettings ? settings!.Gender : Enums.GenderEnum.Unknown,

@@ -7,6 +7,7 @@ namespace LooksRatingApi.Services
 {
     public class TopService
     {
+        public const int AllAges = 0;
         private static List<int[]> intsList = new List<int[]>()
         {
             new int[] {11, 12, 13},
@@ -24,6 +25,10 @@ namespace LooksRatingApi.Services
         };
         public static int[] GetTop(int age)
         {
+            if (age == AllAges)
+            {
+                return Array.Empty<int>();
+            }
             foreach (var ints in intsList)
             {
                 if (ints.Contains(age))
@@ -39,6 +44,10 @@ namespace LooksRatingApi.Services
         }
         public static bool MatchesAge(int viewerAge, int photoAge)
         {
+            if (viewerAge == AllAges)
+            {
+                return true;
+            }
             var topAge = GetTop(viewerAge);
             if (topAge.Length == 0)
             {

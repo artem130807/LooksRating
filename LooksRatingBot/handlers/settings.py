@@ -9,6 +9,7 @@ from bot.keyboards import (
     BTN_DELETE_ACCOUNT,
     BTN_DELETE_CONFIRM,
     BTN_EDIT_AGE,
+    BTN_AGE_ALL,
     BTN_EDIT_CITY,
     BTN_EDIT_GENDER,
     BTN_SETTINGS_FEED,
@@ -16,14 +17,18 @@ from bot.keyboards import (
     MENU_CANCEL,
     MENU_SETTINGS,
     SETTINGS_PHOTO_BUTTONS,
+    age_input_keyboard,
     cancel_keyboard,
     delete_account_keyboard,
     feed_gender_keyboard,
 )
 from bot.services import (
+    AGE_ALL,
     SessionState,
     feed_gender_from_text,
     format_api_error,
+    format_feed_age_value,
+    format_feed_age_range,
     format_city_display,
     load_cities,
     resolve_city_name,
@@ -140,7 +145,7 @@ async def edit_city_save(
 @router.message(ProfileEditStates.field, F.text == BTN_EDIT_AGE)
 async def edit_age_start(message: Message, state: FSMContext) -> None:
     await state.set_state(ProfileEditStates.age)
-    await message.answer(texts.EDIT_AGE, reply_markup=cancel_keyboard())
+    await message.answer(texts.EDIT_AGE, reply_markup=age_input_keyboard())
 
 
 @router.message(ProfileEditStates.field, F.text == BTN_EDIT_GENDER)
@@ -158,12 +163,15 @@ async def edit_age_save(
         await send_feed_view(message, api, message.from_user.id)
         return
     try:
-        age = int(message.text.strip())
+        if message.text.strip() == BTN_AGE_ALL:
+            age = AGE_ALL
+        else:
+            age = int(message.text.strip())
     except ValueError:
-        await message.answer(texts.REG_AGE_INVALID)
+        await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
         return
-    if age < 14 or age > 100:
-        await message.answer(texts.REG_AGE_INVALID)
+    if age != AGE_ALL and (age < 14 or age > 100):
+        await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
         return
     try:
         await api.update_age(message.from_user.id, age)
@@ -175,7 +183,12 @@ async def edit_age_save(
         message,
         api,
         message.from_user.id,
-        prefix=texts.EDIT_SAVED_AGE.format(age=age) + "\n\n",
+        prefix=(
+            texts.EDIT_SAVED_AGE.format(age=format_feed_age_value(age))
+            + "\n"
+            + texts.FEED_SETUP_AGE_RANGE.format(age_range=format_feed_age_range(age))
+            + "\n\n"
+        ),
     )
 
 

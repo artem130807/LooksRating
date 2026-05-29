@@ -13,18 +13,18 @@ namespace LooksRatingApi.CQRS.Users.Command.UpdateUserCity
         private readonly IUserRepository _userRepository;
         private readonly IRecomendationSettingsRepository _recomendationSettingsRepository;
         private readonly IUpdateUserCityValidator _validator;
-        private readonly INormalizeCityNameService _normalizeCityNameService;
+        private readonly ICityService _cityService;
 
         public UpdateUserCityCommandHandler(
             IUserRepository userRepository,
             IRecomendationSettingsRepository recomendationSettingsRepository,
             IUpdateUserCityValidator validator,
-            INormalizeCityNameService normalizeCityNameService)
+            ICityService cityService)
         {
             _userRepository = userRepository;
             _recomendationSettingsRepository = recomendationSettingsRepository;
             _validator = validator;
-            _normalizeCityNameService = normalizeCityNameService;
+            _cityService = cityService;
         }
 
         public async Task<Result<string>> Handle(UpdateUserCityCommand command, CancellationToken cancellationToken)
@@ -48,8 +48,12 @@ namespace LooksRatingApi.CQRS.Users.Command.UpdateUserCity
                 return Result.Failure<string>(RecomendationSettingsErrors.SettingsNotFound);
             }
 
-            var normalizedCity = _normalizeCityNameService.Normalize(command.City);
-            var cityResult = CityVo.Create(normalizedCity);
+            if (!_cityService.TryResolveCanonicalCity(command.City, out var canonicalCity))
+            {
+                return Result.Failure<string>(UpdateUserCityErrors.InvalidCity);
+            }
+
+            var cityResult = CityVo.Create(canonicalCity);
             if (cityResult.IsFailure)
             {
                 return Result.Failure<string>(cityResult.Error);

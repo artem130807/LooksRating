@@ -96,7 +96,7 @@ namespace LooksRatingApi.Repositories
             CancellationToken cancellationToken = default)
         {
             var topAge = TopService.GetTop(age);
-            if (topAge.Length == 0)
+            if (age != TopService.AllAges && topAge.Length == 0)
             {
                 return (new List<PhotoUser>(), 0);
             }
@@ -113,10 +113,13 @@ namespace LooksRatingApi.Repositories
 
             query = GenderFeedHelper.ApplyFilter(query, gender);
 
-            query = query
-                .Where(p => p.AgeNomination == topAge[0]
-                    || p.AgeNomination == topAge[1]
-                    || p.AgeNomination == topAge[2]);
+            if (age != TopService.AllAges)
+            {
+                query = query
+                    .Where(p => p.AgeNomination == topAge[0]
+                        || p.AgeNomination == topAge[1]
+                        || p.AgeNomination == topAge[2]);
+            }
 
             var total = await query.CountAsync(cancellationToken);
             var items = await query
@@ -209,6 +212,11 @@ namespace LooksRatingApi.Repositories
 
             query = GenderFeedHelper.ApplyFilter(query, gender);
 
+            if (age == TopService.AllAges)
+            {
+                return query;
+            }
+
             if (topAge.Length == 0)
             {
                 return query.Where(p => false);
@@ -286,6 +294,16 @@ namespace LooksRatingApi.Repositories
             .ThenByDescending(x => x.RatingCount)
             .Take(10)
             .ToList();
+        }
+
+        public async Task<bool> IsNotThreePhotosSeasonVip(Guid seasonId, long telegramId)
+        {
+            var photos = await _context.PhotoUsers
+            .Where(p => p.SeasonId == seasonId && p.User.TelegramId == telegramId)
+            .ToListAsync();
+            if(photos.Count < 4)
+                return true;
+            return false;
         }
     }
 }

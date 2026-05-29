@@ -9,6 +9,21 @@ from bot.errors import translate_error
 GENDER_MALE = 1
 GENDER_FEMALE = 2
 GENDER_BOTH = 3
+AGE_ALL = 0
+TOP_AGE_GROUPS = (
+    (11, 12, 13),
+    (14, 15, 16),
+    (17, 18, 19),
+    (20, 21, 22),
+    (23, 24, 25),
+    (26, 27, 28),
+    (28, 30, 31),
+    (32, 33, 34),
+    (35, 36, 37),
+    (38, 39, 40),
+    (41, 42, 43),
+    (44, 45, 46),
+)
 
 class SessionState:
     START = "Start"
@@ -144,6 +159,32 @@ def format_rating_display(rating: float, count: int) -> str:
     return f"{rating:.1f}/10 · {count} оценок"
 
 
+def feed_age_group(age: int | None) -> tuple[int, int, int] | None:
+    if not isinstance(age, int):
+        return None
+    for group in TOP_AGE_GROUPS:
+        if age in group:
+            return group
+    return None
+
+
+def format_feed_age_range(age: int | None) -> str:
+    if age == AGE_ALL:
+        return "все возраста"
+    group = feed_age_group(age)
+    if group is None:
+        return "категория не определена"
+    return f"{group[0]}-{group[2]} лет"
+
+
+def format_feed_age_value(age: int | None) -> str:
+    if age == AGE_ALL:
+        return "Все возраста"
+    if isinstance(age, int):
+        return str(age)
+    return "—"
+
+
 async def main_menu_for(api: LooksRatingApiClient, telegram_id: int):
     from bot.keyboards import main_menu
 
@@ -176,7 +217,8 @@ def format_feed_view(user: dict[str, Any]) -> str:
 
     return texts.FEED_VIEW.format(
         city=format_city_display(user.get("city")),
-        age=user.get("age", "—"),
+        age=format_feed_age_value(user.get("age")),
+        age_range=format_feed_age_range(user.get("age")),
         gender=gender_label(user.get("gender")),
     )
 

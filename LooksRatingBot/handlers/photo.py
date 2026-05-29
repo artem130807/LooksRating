@@ -40,9 +40,25 @@ async def offer_photo_after_registration(
     user = await api.get_user(telegram_id)
     if user and user.get("hasPhoto"):
         return
+    await offer_photo_creation_prompt(
+        message,
+        state,
+        api,
+        telegram_id,
+        texts.PHOTO_OFFER,
+    )
+
+
+async def offer_photo_creation_prompt(
+    message: Message,
+    state: FSMContext,
+    api: LooksRatingApiClient,
+    telegram_id: int,
+    text: str,
+) -> None:
     await state.set_state(PhotoStates.confirm_create)
     await set_bot_state(api, telegram_id, SessionState.AWAITING_PHOTO)
-    await message.answer(texts.PHOTO_OFFER, reply_markup=yes_no_photo_keyboard())
+    await message.answer(text, reply_markup=yes_no_photo_keyboard())
 
 
 @router.message(PhotoStates.confirm_create, F.text == BTN_YES)
@@ -54,7 +70,7 @@ async def photo_yes(message: Message, state: FSMContext, api: LooksRatingApiClie
 async def photo_no(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
     await state.clear()
     await set_bot_state(api, message.from_user.id, SessionState.IDLE)
-    await send_main_menu(message, api, message.from_user.id, texts.PHOTO_LATER)
+    await send_main_menu(message, api, message.from_user.id, texts.MAIN_MENU)
 
 
 async def _finish_photo_flow(

@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
+using LooksRatingApi.Services;
 
 namespace LooksRatingApi.Models
 {
@@ -32,7 +33,7 @@ namespace LooksRatingApi.Models
         public void UpdateCity(CityVo city) => City = city;
 
         public bool IsComplete =>
-            Age is >= 14 and <= 100
+            Age is >= TopService.AllAges and <= 100
             && Enum.IsDefined(typeof(GenderEnum), Gender)
             && Gender != GenderEnum.Unknown
             && !string.IsNullOrWhiteSpace(City?.Value);
