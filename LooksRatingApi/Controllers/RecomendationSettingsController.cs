@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using LooksRatingApi.CQRS.RecomendationSettings;
 using LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationSettings;
 using LooksRatingApi.CQRS.RecomendationSettings.Query.GetRecomendationSettings;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -33,6 +34,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPut]
         public async Task<IActionResult> Upsert(
             [FromBody] UpsertRecomendationSettingsRequest request,

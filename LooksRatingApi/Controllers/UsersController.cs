@@ -6,6 +6,7 @@ using LooksRatingApi.CQRS.Users.Command.UpdateUserCity;
 using LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId;
 using LooksRatingApi.CQRS.Users.Query.GetUserStats;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,6 +23,7 @@ namespace LooksRatingApi.Controllers
             _sender = sender;
         }
 
+        [RateLimitPolicy(RateLimitPolicies.AccountSensitive)]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserRequest request, CancellationToken cancellationToken)
         {
@@ -45,6 +47,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("{telegramId:long}")]
         public async Task<IActionResult> GetByTelegramId(long telegramId, CancellationToken cancellationToken)
         {
@@ -60,6 +63,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("{telegramId:long}/stats")]
         public async Task<IActionResult> GetStats(long telegramId, CancellationToken cancellationToken)
         {
@@ -75,6 +79,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPut("gender")]
         public async Task<IActionResult> UpdateGender(
             [FromBody] UpdateGenderUserRequest request,
@@ -95,6 +100,7 @@ namespace LooksRatingApi.Controllers
             return Ok(new { message = result.Value });
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPut("city")]
         public async Task<IActionResult> UpdateCity(
             [FromBody] UpdateUserCityRequest request,
@@ -115,6 +121,7 @@ namespace LooksRatingApi.Controllers
             return Ok(new { message = result.Value });
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPut("age")]
         public async Task<IActionResult> UpdateAge(
             [FromBody] UpdateUserAgeRequest request,
@@ -135,6 +142,7 @@ namespace LooksRatingApi.Controllers
             return Ok(new { message = result.Value });
         }
 
+        [RateLimitPolicy(RateLimitPolicies.AccountSensitive)]
         [HttpDelete("{telegramId:long}")]
         public async Task<IActionResult> DeleteAccount(long telegramId, CancellationToken cancellationToken)
         {

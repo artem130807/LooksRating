@@ -23,6 +23,7 @@ using LooksRatingApi.CQRS.Users.Command.UpdateUserAge;
 using LooksRatingApi.CQRS.Users.Command.UpdateUserCity;
 using LooksRatingApi.Cqrs.Users.Command.RegisterUser;
 using LooksRatingApi.CQRS.Users.Command.UpdateGenderUser;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using LooksRatingApi.Infrastructure.Startup;
 using LooksRatingApi.Repositories;
 using LooksRatingApi.Services;
@@ -44,7 +45,8 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
+    })
+    .AddRateLimitingFilters();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddApplicationInfrastructure(configuration);
 builder.Services.AddMediatR(typeof(Program));

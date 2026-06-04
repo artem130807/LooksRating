@@ -11,6 +11,7 @@ using LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos;
 using LooksRatingApi.CQRS.TheBestWeeks.Query.GetTheBestWeeks;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,7 @@ namespace LooksRatingApi.Controllers
             _sender = sender;
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPost("set_photo")]
         public async Task<IActionResult> SetPhoto([FromBody] SetUserPhotoRequest request, CancellationToken cancellationToken)
         {
@@ -57,6 +59,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPost("recreate_photo")]
         public async Task<IActionResult> RecreatePhoto(
             [FromBody] RecreateUserPhotoRequest request,
@@ -80,6 +83,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPost("recreate_all_photos")]
         public async Task<IActionResult> RecreateAllPhotos(
             [FromBody] RecreateAllUserPhotosRequest request,
@@ -103,6 +107,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {
@@ -113,6 +118,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("my/{telegramId:long}")]
         public async Task<IActionResult> GetMyPhoto(long telegramId, CancellationToken cancellationToken)
         {
@@ -128,6 +134,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("my/{telegramId:long}/seasons/{seasonId:guid}")]
         public async Task<IActionResult> GetMyPhotoBySeason(
             long telegramId,
@@ -153,6 +160,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.GetNextPhoto)]
         [HttpPost("get_next_photo")]
         public async Task<IActionResult> GetNextPhoto(
             [FromBody] GetNextPhotoRequest request,
@@ -184,6 +192,7 @@ namespace LooksRatingApi.Controllers
             }
             return Ok(result.Value);
         }
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpPost("get_top_photos")]
         public async Task<IActionResult> GetTopPhotos([FromBody] GetTopUserPhotosRequest request, CancellationToken cancellationToken)
         {
@@ -220,6 +229,7 @@ namespace LooksRatingApi.Controllers
             }
             return Ok(result.Value);
         }
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("get_thebestWeek_photosNow")]
         public async Task<IActionResult> GetTheBestWeekPhotosNow([FromQuery] GetTheBestWeekPhotosNowRequest request, CancellationToken cancellationToken)
         {
@@ -234,6 +244,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("get_thebestvip_photos")]
         public async Task<IActionResult> GetTheBestVipPhotos(
             [FromQuery] GetTheBestVipPhotosRequest request,
@@ -251,6 +262,7 @@ namespace LooksRatingApi.Controllers
 
             return Ok(result.Value);
         }
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("get_thebestWeek_photos")]
         public async Task<IActionResult> GetTheBestWeekPhotos([FromQuery] GetTheBestWeeksRequest request, CancellationToken cancellationToken)
         {

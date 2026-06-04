@@ -1,6 +1,7 @@
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Infrastructure.Auth;
 using LooksRatingApi.Infrastructure.Health;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.GrpcService;
@@ -44,6 +45,7 @@ namespace LooksRatingApi.Infrastructure.Startup
             IConfiguration configuration)
         {
             services.AddApiKeyAuthentication(configuration);
+            services.AddRedisRateLimiting(configuration);
             services.AddInfrastructureHealthChecks(configuration);
             services.AddScoped<ISeasonDataSeeder, SeasonDataSeeder>();
 

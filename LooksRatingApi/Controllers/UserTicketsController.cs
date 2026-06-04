@@ -1,6 +1,7 @@
 using LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket;
 using LooksRatingApi.CQRS.UserTickets.Query.GetUserTicketById;
 using LooksRatingApi.CQRS.UserTickets.Query.GetUserTicketsByCity;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -48,6 +49,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
         {

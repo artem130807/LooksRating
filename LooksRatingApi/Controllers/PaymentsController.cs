@@ -1,5 +1,6 @@
 using LooksRatingApi.CQRS.Payments.Command.ConfirmPaymentOrder;
 using LooksRatingApi.CQRS.Payments.Command.CreatePaymentOrder;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,6 +17,7 @@ namespace LooksRatingApi.Controllers
             _sender = sender;
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Payments)]
         [HttpPost("orders")]
         public async Task<IActionResult> CreateOrder(
             [FromBody] CreatePaymentOrderRequest request,
@@ -44,6 +46,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Payments)]
         [HttpPost("orders/confirm")]
         public async Task<IActionResult> ConfirmOrder(
             [FromBody] ConfirmPaymentOrderRequest request,

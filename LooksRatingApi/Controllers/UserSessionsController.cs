@@ -3,6 +3,7 @@ using LooksRatingApi.CQRS.UserSessions.Command.LinkUserSession;
 using LooksRatingApi.CQRS.UserSessions.Command.UpdateUserSessionState;
 using LooksRatingApi.CQRS.UserSessions.Query.GetUserSession;
 using LooksRatingApi.Enums;
+using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,7 @@ namespace LooksRatingApi.Controllers
             _sender = sender;
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpGet("{telegramId:long}")]
         public async Task<IActionResult> Get(long telegramId, CancellationToken cancellationToken)
         {
@@ -29,6 +31,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Reads)]
         [HttpPost("ensure")]
         public async Task<IActionResult> Ensure(
             [FromBody] EnsureUserSessionRequest request,
@@ -44,6 +47,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPut("state")]
         public async Task<IActionResult> UpdateState(
             [FromBody] UpdateUserSessionStateRequest request,
@@ -64,6 +68,7 @@ namespace LooksRatingApi.Controllers
             return Ok(result.Value);
         }
 
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
         [HttpPut("link")]
         public async Task<IActionResult> Link(
             [FromBody] LinkUserSessionRequest request,
