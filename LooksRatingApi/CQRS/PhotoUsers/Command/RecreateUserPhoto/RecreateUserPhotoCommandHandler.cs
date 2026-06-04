@@ -13,27 +13,24 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
         : IRequestHandler<RecreateUserPhotoCommand, Result<SetUserPhotoResult>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IRecreateUserPhotoValidator _validator;
         private readonly ISeasonRepository _seasonRepository;
-        private readonly IPhotoUserLifecycleService _photoUserLifecycleService;
         private readonly ICityService _cityService;
         private readonly INormalizeCityNameService _normalizeCityNameService;
 
         public RecreateUserPhotoCommandHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IRecreateUserPhotoValidator validator,
             ISeasonRepository seasonRepository,
-            IPhotoUserLifecycleService photoUserLifecycleService,
             ICityService cityService,
             INormalizeCityNameService normalizeCityNameService)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _validator = validator;
             _seasonRepository = seasonRepository;
-            _photoUserLifecycleService = photoUserLifecycleService;
             _cityService = cityService;
             _normalizeCityNameService = normalizeCityNameService;
         }
@@ -60,16 +57,14 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
                 return Result.Failure<SetUserPhotoResult>(SetUserPhotoErrors.CurrentSeasonNotFound);
             }
 
-            var existingPhoto = await _photoUserRepository.GetByTelegramIdAndSeasonIdAsync(
-                command.Request.TelegramId,
+            var profile = await _photoProfileRepository.GetByUserAndSeasonAsync(
+                user.Id,
                 season.Id,
                 cancellationToken);
-            if (existingPhoto is null)
+            if (profile is null || profile.Photos.Count == 0)
             {
                 return Result.Failure<SetUserPhotoResult>(RecreateUserPhotoErrors.PhotoNotFound);
             }
-
-            await _photoUserLifecycleService.RemoveAsync(existingPhoto, season, cancellationToken);
 
             var nominationResult = await PhotoNominationResolver.ResolveAsync(
                 user,
@@ -83,24 +78,32 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
 
             var (ageNomination, genderNomination, cityNomination) = nominationResult.Value;
             var telegramFileId = command.Request.TelegramFileId.Trim();
-            var photoUser = await _photoUserLifecycleService.CreateAsync(
-                user,
-                telegramFileId,
-                season,
-                ageNomination,
-                genderNomination,
-                cityNomination,
-                cancellationToken);
+            var target = command.Request.TargetPhotoId.HasValue
+                ? profile.Photos.FirstOrDefault(x => x.Id == command.Request.TargetPhotoId.Value)
+                : profile.Photos.OrderBy(x => x.SortOrder).FirstOrDefault();
+            if (target is null)
+            {
+                return Result.Failure<SetUserPhotoResult>(RecreateUserPhotoErrors.TargetPhotoNotFound);
+            }
+
+            target.TelegramFileId = telegramFileId;
+            profile.CityNomination = cityNomination;
+            profile.AgeNomination = ageNomination;
+            profile.GenderNomination = genderNomination;
+            profile.Status = Enums.StatusEnum.Active;
+            await _photoProfileRepository.UpdateAsync(profile, cancellationToken);
+            var primaryPhoto = profile.LegacyPhotoUsers.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
 
             return Result.Success(new SetUserPhotoResult
             {
-                PhotoUserId = photoUser.Id,
+                ProfileId = profile.Id,
+                PhotoUserId = primaryPhoto?.Id ?? Guid.Empty,
                 UserId = user.Id,
                 TelegramId = user.TelegramId,
-                TelegramFileId = photoUser.TelegramFileId,
-                Rating = photoUser.Rating,
-                RatingCount = photoUser.RatingCount,
-                City = photoUser.CityNomination.Value ?? string.Empty,
+                TelegramFileId = target.TelegramFileId,
+                Rating = profile.Rating,
+                RatingCount = profile.RatingCount,
+                City = profile.CityNomination.Value ?? string.Empty,
             });
         }
     }

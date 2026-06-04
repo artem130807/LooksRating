@@ -3,7 +3,7 @@ import logging
 from aiogram import F, Router
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
@@ -57,9 +57,17 @@ def _format_age_text(age: int | str | None) -> str:
 
 
 def _normalize_photo_payload(photo: dict) -> dict:
+    photos = list(photo.get("photos") or photo.get("Photos") or [])
+    normalized_photos = []
+    for item in photos:
+        normalized_photos.append(
+            {
+                "id": item.get("id") or item.get("Id"),
+                "telegramFileId": item.get("telegramFileId") or item.get("TelegramFileId"),
+            }
+        )
     return {
-        "id": photo.get("id") or photo.get("Id"),
-        "telegramFileId": photo.get("telegramFileId") or photo.get("TelegramFileId"),
+        "profileId": photo.get("profileId") or photo.get("ProfileId"),
         "rank": photo.get("rank") or photo.get("Rank") or "—",
         "rating": photo.get("rating") if photo.get("rating") is not None else photo.get("Rating", 0),
         "ratingCount": photo.get("ratingCount") if photo.get("ratingCount") is not None else photo.get("RatingCount", 0),
@@ -67,6 +75,7 @@ def _normalize_photo_payload(photo: dict) -> dict:
         "gender": photo.get("gender") or photo.get("Gender"),
         "age": photo.get("age") if photo.get("age") is not None else photo.get("Age"),
         "city": photo.get("city") or photo.get("City"),
+        "photos": normalized_photos,
     }
 
 
@@ -86,6 +95,49 @@ def _photo_caption(photo: dict) -> str:
         ),
     )
     return caption
+
+
+def _build_rating_media(photos: list[dict], caption: str) -> list[InputMediaPhoto]:
+    media = [InputMediaPhoto(media=photos[0]["telegramFileId"], caption=caption)]
+    for item in photos[1:]:
+        media.append(InputMediaPhoto(media=item["telegramFileId"]))
+    return media
+
+
+async def _present_rating_card(
+    message: Message,
+    state: FSMContext,
+    *,
+    profile_id: str,
+    photo_id: str,
+    file_id: str,
+    caption: str,
+    photos: list[dict],
+) -> bool:
+    await state.set_state(RatingStates.awaiting_rating)
+    await state.update_data(
+        current_profile_id=str(profile_id),
+        current_photo_id=str(photo_id),
+        current_file_id=file_id,
+        current_caption=caption,
+        current_photos=photos,
+    )
+
+    try:
+        await message.answer_media_group(_build_rating_media(photos, caption))
+    except TelegramBadRequest as exc:
+        logger.warning("Rating media unavailable for profile %s: %s", profile_id, exc)
+        return False
+
+    try:
+        await message.answer(texts.RATING_PROMPT, reply_markup=rating_keyboard(str(photo_id)))
+    except TelegramBadRequest as exc:
+        logger.exception("Failed to send rating keyboard for profile %s: %s", profile_id, exc)
+        await message.answer(
+            texts.RATING_REQUIRED_HINT,
+            reply_markup=rating_flow_keyboard(),
+        )
+    return True
 
 
 async def exit_rating(
@@ -114,9 +166,12 @@ async def show_next_photo(
         return
 
     photo = _normalize_photo_payload(raw_photo)
-    photo_id = photo.get("id")
-    file_id = photo.get("telegramFileId")
-    if not photo_id or not file_id:
+    profile_id = photo.get("profileId")
+    photos = [x for x in photo.get("photos", []) if x.get("id") and x.get("telegramFileId")]
+    first = photos[0] if photos else None
+    photo_id = first.get("id") if first else None
+    file_id = first.get("telegramFileId") if first else None
+    if not photo_id or not file_id or not profile_id:
         await state.clear()
         await set_bot_state(api, telegram_id, SessionState.IDLE)
         await send_main_menu(
@@ -129,47 +184,39 @@ async def show_next_photo(
 
     photo_id = str(photo_id)
     caption = _photo_caption(photo)
-    await state.set_state(RatingStates.awaiting_rating)
-    await state.update_data(
-        current_photo_id=photo_id,
-        current_file_id=file_id,
-        current_caption=caption,
+    delivered = await _present_rating_card(
+        message,
+        state,
+        profile_id=str(profile_id),
+        photo_id=photo_id,
+        file_id=file_id,
+        caption=caption,
+        photos=photos,
     )
-    try:
-        await message.answer_photo(
-            file_id,
-            caption=caption,
-            reply_markup=rating_keyboard(photo_id),
-        )
-    except TelegramBadRequest as exc:
-        logger.exception("Failed to send photo for rating: %s", exc)
+    if not delivered:
         await state.clear()
         await set_bot_state(api, telegram_id, SessionState.IDLE)
-        await send_main_menu(
-            message,
-            api,
-            telegram_id,
-            "Не удалось показать фото. Возможно, оно загружено другим ботом — добавьте новое фото в сезон.",
-        )
-        return
-
-    await message.answer(texts.RATING_HINT, reply_markup=rating_flow_keyboard())
+        await send_main_menu(message, api, telegram_id, texts.RATING_MEDIA_UNAVAILABLE)
 
 
 async def _resend_current_photo(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
+    photos = data.get("current_photos") or []
     file_id = data.get("current_file_id")
     caption = data.get("current_caption")
     photo_id = data.get("current_photo_id")
-    if not file_id or not photo_id:
+    profile_id = data.get("current_profile_id")
+    if not file_id or not photo_id or not profile_id:
         return
-    await state.set_state(RatingStates.awaiting_rating)
-    await message.answer_photo(
-        file_id,
+    await _present_rating_card(
+        message,
+        state,
+        profile_id=str(profile_id),
+        photo_id=str(photo_id),
+        file_id=file_id,
         caption=caption,
-        reply_markup=rating_keyboard(photo_id),
+        photos=photos,
     )
-    await message.answer(texts.RATING_HINT, reply_markup=rating_flow_keyboard())
 
 
 @router.callback_query(RatingStates.awaiting_rating, F.data == "rate:exit")
@@ -204,8 +251,16 @@ async def rate_photo(
 
     rating = int(rating_str)
     telegram_id = callback.from_user.id
+    profile_id = data.get("current_profile_id")
+    if not profile_id:
+        await callback.answer("Профиль для оценки не найден", show_alert=True)
+        return
     try:
-        await api.create_review(telegram_id, photo_id, rating)
+        await api.create_review(
+            telegram_id,
+            rating=rating,
+            photo_profile_id=profile_id,
+        )
     except ApiError as exc:
         await callback.answer(format_api_error(exc), show_alert=True)
         return
@@ -238,7 +293,8 @@ async def complain_submit(
 
     data = await state.get_data()
     photo_id = data.get("complaint_photo_id")
-    if not photo_id:
+    profile_id = data.get("current_profile_id")
+    if not photo_id or not profile_id:
         await state.clear()
         await set_bot_state(api, message.from_user.id, SessionState.IDLE)
         return
@@ -250,7 +306,11 @@ async def complain_submit(
         )
         return
     try:
-        await api.create_ticket(message.from_user.id, photo_id, description)
+        await api.create_ticket(
+            message.from_user.id,
+            description,
+            photo_profile_id=profile_id,
+        )
     except ApiError as exc:
         await message.answer(format_api_error(exc), reply_markup=rating_flow_keyboard())
         return

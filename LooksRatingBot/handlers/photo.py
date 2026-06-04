@@ -1,7 +1,7 @@
 from aiogram import F, Router
 from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
@@ -11,6 +11,8 @@ from bot.keyboards import (
     MENU_CANCEL,
     cancel_keyboard,
     gender_keyboard,
+    multi_photo_upload_keyboard,
+    replace_photo_picker_keyboard,
     yes_no_photo_keyboard,
 )
 from bot.services import (
@@ -37,8 +39,9 @@ async def offer_photo_after_registration(
     api: LooksRatingApiClient,
     telegram_id: int,
 ) -> None:
-    user = await api.get_user(telegram_id)
-    if user and user.get("hasPhoto"):
+    payload = await api.get_my_photo(telegram_id)
+    photos = list((payload or {}).get("photos") or [])
+    if photos:
         return
     await offer_photo_creation_prompt(
         message,
@@ -63,7 +66,7 @@ async def offer_photo_creation_prompt(
 
 @router.message(PhotoStates.confirm_create, F.text == BTN_YES)
 async def photo_yes(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
-    await start_custom_nomination_flow(message, state, api, recreate=False, from_settings=False)
+    await start_nomination_flow(message, state, api, recreate=False, from_settings=False)
 
 
 @router.message(PhotoStates.confirm_create, F.text == BTN_NO)
@@ -97,6 +100,7 @@ async def start_nomination_flow(
     *,
     recreate: bool,
     from_settings: bool = False,
+    replace_all: bool = False,
 ) -> None:
     await start_custom_nomination_flow(
         message,
@@ -104,6 +108,7 @@ async def start_nomination_flow(
         api,
         recreate=recreate,
         from_settings=from_settings,
+        replace_all=replace_all,
     )
 
 
@@ -112,8 +117,9 @@ async def start_custom_nomination_flow(
     state: FSMContext,
     api: LooksRatingApiClient,
     *,
-    recreate: bool,
-    from_settings: bool,
+    recreate: bool = False,
+    from_settings: bool = False,
+    replace_all: bool = False,
 ) -> None:
     try:
         cities = await load_cities(api)
@@ -121,15 +127,69 @@ async def start_custom_nomination_flow(
         await message.answer(format_api_error(exc))
         return
 
+    existing_photos: list[dict] = []
+    if recreate:
+        try:
+            payload = await api.get_my_photo(message.from_user.id)
+        except ApiError as exc:
+            await message.answer(format_api_error(exc))
+            return
+        existing_photos = list((payload or {}).get("photos") or [])
+        existing_photos = [p for p in existing_photos if p.get("id") and p.get("telegramFileId")]
+        if not existing_photos:
+            await message.answer(texts.PHOTO_NOT_FOUND)
+            return
+
     await state.clear()
     group = RecreatePhotoStates if recreate else PhotoStates
+    await state.update_data(
+        recreate=recreate,
+        from_settings=from_settings,
+        replace_all=replace_all,
+        cities=cities,
+        existing_photos=existing_photos,
+    )
+    if recreate and replace_all:
+        await state.set_state(RecreatePhotoStates.custom_city)
+        await message.answer(
+            f"<b>Смените все фото в сезоне</b>\n\n{texts.PHOTO_NOM_CITY}",
+            reply_markup=cancel_keyboard(),
+        )
+        return
+
+    if recreate and len(existing_photos) > 1:
+        await state.set_state(RecreatePhotoStates.select_target)
+        await message.answer(
+            texts.PHOTO_REPLACE_PICK,
+            reply_markup=replace_photo_picker_keyboard(existing_photos),
+        )
+        return
+
+    if recreate and existing_photos:
+        await state.update_data(target_photo_id=str(existing_photos[0]["id"]))
     await state.set_state(group.custom_city)
-    await state.update_data(recreate=recreate, from_settings=from_settings, cities=cities)
     title = "Замените фото в сезоне" if recreate else "Добавьте фото в сезон"
     await message.answer(
         f"<b>{title}</b>\n\n{texts.PHOTO_NOM_CITY}",
         reply_markup=cancel_keyboard(),
     )
+
+
+@router.callback_query(RecreatePhotoStates.select_target, F.data == "replace:cancel")
+async def recreate_pick_cancel(callback: CallbackQuery, state: FSMContext, api: LooksRatingApiClient) -> None:
+    if callback.message:
+        await _finish_photo_flow(callback.message, state, api, callback.from_user.id, texts.PHOTO_CANCEL)
+    await callback.answer()
+
+
+@router.callback_query(RecreatePhotoStates.select_target, F.data.startswith("replace:pick:"))
+async def recreate_pick_photo(callback: CallbackQuery, state: FSMContext) -> None:
+    target_photo_id = callback.data.split(":", 2)[2]
+    await state.update_data(target_photo_id=target_photo_id)
+    await state.set_state(RecreatePhotoStates.custom_city)
+    if callback.message:
+        await callback.message.answer(texts.PHOTO_NOM_CITY, reply_markup=cancel_keyboard())
+    await callback.answer()
 
 
 @router.message(PhotoStates.custom_city, F.text)
@@ -196,6 +256,13 @@ async def nomination_custom_gender(
 
 async def go_upload(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
     data = await state.get_data()
+    replace_all = bool(data.get("replace_all"))
+    if replace_all:
+        await state.set_state(RecreatePhotoStates.upload_many)
+        await state.update_data(replace_all_file_ids=[])
+        await message.answer(texts.PHOTO_REPLACE_ALL_UPLOAD, reply_markup=multi_photo_upload_keyboard())
+        return
+
     group = RecreatePhotoStates if data.get("recreate") else PhotoStates
     await state.set_state(group.upload)
     await message.answer(texts.PHOTO_UPLOAD, reply_markup=cancel_keyboard())
@@ -214,17 +281,81 @@ async def photo_flow_cancel(message: Message, state: FSMContext, api: LooksRatin
 async def photo_uploaded(
     message: Message, state: FSMContext, api: LooksRatingApiClient
 ) -> None:
+    if message.media_group_id:
+        await message.answer("Отправьте одно фото одним сообщением (не альбом).")
+        return
+
     data = await state.get_data()
     file_id = message.photo[-1].file_id
     nomination = data.get("nomination")
     telegram_id = message.from_user.id
     recreate = data.get("recreate", False)
+    target_photo_id = data.get("target_photo_id")
 
     try:
         if recreate:
-            result = await api.recreate_photo(telegram_id, file_id, nomination)
+            result = await api.recreate_photo(
+                telegram_id,
+                file_id,
+                nomination,
+                target_photo_id=target_photo_id,
+            )
         else:
             result = await api.set_photo(telegram_id, file_id, nomination)
+    except ApiError as exc:
+        await message.answer(format_api_error(exc))
+        await _finish_photo_flow(message, state, api, telegram_id, texts.MAIN_MENU)
+        return
+
+    city = result.get("city", "")
+    await _finish_photo_flow(
+        message,
+        state,
+        api,
+        telegram_id,
+        texts.PHOTO_SAVED.format(
+            city=format_city_display(city),
+            rating_line=format_rating_display(float(result.get("rating", 0)), 0),
+        ),
+    )
+
+
+@router.message(RecreatePhotoStates.upload_many, F.photo)
+async def photo_uploaded_many(
+    message: Message, state: FSMContext
+) -> None:
+    if message.media_group_id:
+        await message.answer("Отправьте одно фото одним сообщением (не альбом).")
+        return
+
+    data = await state.get_data()
+    file_ids = list(data.get("replace_all_file_ids") or [])
+    if len(file_ids) >= 4:
+        await message.answer(texts.PHOTO_REPLACE_ALL_LIMIT, reply_markup=multi_photo_upload_keyboard())
+        return
+
+    file_ids.append(message.photo[-1].file_id)
+    await state.update_data(replace_all_file_ids=file_ids)
+    await message.answer(
+        f"Добавлено фото: {len(file_ids)}/4",
+        reply_markup=multi_photo_upload_keyboard(),
+    )
+
+
+@router.message(RecreatePhotoStates.upload_many, F.text == "✅ Сохранить набор")
+async def photo_uploaded_many_save(
+    message: Message, state: FSMContext, api: LooksRatingApiClient
+) -> None:
+    data = await state.get_data()
+    telegram_id = message.from_user.id
+    nomination = data.get("nomination")
+    file_ids = list(data.get("replace_all_file_ids") or [])
+    if not file_ids:
+        await message.answer(texts.PHOTO_REPLACE_ALL_EMPTY, reply_markup=multi_photo_upload_keyboard())
+        return
+
+    try:
+        result = await api.recreate_all_photos(telegram_id, file_ids, nomination)
     except ApiError as exc:
         await message.answer(format_api_error(exc))
         await _finish_photo_flow(message, state, api, telegram_id, texts.MAIN_MENU)

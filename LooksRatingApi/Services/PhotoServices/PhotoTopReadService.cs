@@ -9,38 +9,38 @@ namespace LooksRatingApi.Services
     public sealed class PhotoTopReadService : IPhotoTopReadService
     {
         private const int BatchSize = 100;
-
         private readonly IDatabase _db;
         private readonly INormalizeCityNameService _normalizeCityNameService;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public PhotoTopReadService(
             IDatabase db,
             INormalizeCityNameService normalizeCityNameService,
-            IPhotoUserRepository photoUserRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _db = db;
             _normalizeCityNameService = normalizeCityNameService;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
-        public async Task<(IReadOnlyList<Guid> PhotoIds, int TotalCount)> GetTopPhotoIdsAsync(
+        public async Task<(IReadOnlyList<Guid> ProfileIds, int TotalCount)> GetTopProfileIdsAsync(
             Guid seasonId,
             bool seasonIsClosed,
-            string normalizedCity,
+            string cityNomination,
             GenderEnum gender,
             int age,
             int skip,
             int take,
+            bool vipOnly = false,
             CancellationToken cancellationToken = default)
         {
-            var cityKey = _normalizeCityNameService.Normalize(normalizedCity);
+            var cityKey = _normalizeCityNameService.Normalize(cityNomination);
             var sortedSetKey = PhotoRedisKeys.RatingSortedSet(cityKey, seasonId);
 
             if (!seasonIsClosed && await _db.KeyExistsAsync(sortedSetKey))
             {
-                var fromCache = await GetTopFromRedisAsync(sortedSetKey, gender, age, skip, take);
-                if (fromCache.TotalCount > 0)
+                var fromCache = await GetTopFromRedisAsync(sortedSetKey, gender, age, skip, take, vipOnly);
+                if (vipOnly || fromCache.TotalCount > 0)
                 {
                     return fromCache;
                 }
@@ -49,22 +49,24 @@ namespace LooksRatingApi.Services
             return await GetTopFromDatabaseAsync(
                 seasonId,
                 seasonIsClosed,
-                cityKey,
+                cityNomination,
                 gender,
                 age,
                 skip,
                 take,
+                vipOnly,
                 cancellationToken);
         }
 
-        private async Task<(IReadOnlyList<Guid> PhotoIds, int TotalCount)> GetTopFromRedisAsync(
+        private async Task<(IReadOnlyList<Guid> ProfileIds, int TotalCount)> GetTopFromRedisAsync(
             RedisKey sortedSetKey,
             GenderEnum gender,
             int age,
             int skip,
-            int take)
+            int take,
+            bool vipOnly = false)
         {
-            var rankedPhotos = new List<RankedPhoto>();
+            var rankedProfiles = new List<RankedPhoto>();
             long rankStart = 0;
 
             while (true)
@@ -87,13 +89,13 @@ namespace LooksRatingApi.Services
                         continue;
                     }
 
-                    var ranking = await TryGetRankedPhotoAsync(photoId, gender, age);
+                    var ranking = await TryGetRankedPhotoAsync(photoId, gender, age, vipOnly);
                     if (ranking is null)
                     {
                         continue;
                     }
 
-                    rankedPhotos.Add(ranking);
+                    rankedProfiles.Add(ranking);
                 }
 
                 rankStart += BatchSize;
@@ -103,11 +105,11 @@ namespace LooksRatingApi.Services
                 }
             }
 
-            rankedPhotos.Sort((left, right) =>
+            rankedProfiles.Sort((left, right) =>
                 PhotoRankingScore.Compare(left.Rating, left.RatingCount, right.Rating, right.RatingCount));
 
-            var totalCount = rankedPhotos.Count;
-            var pageIds = rankedPhotos
+            var totalCount = rankedProfiles.Count;
+            var pageIds = rankedProfiles
                 .Skip(skip)
                 .Take(take)
                 .Select(photo => photo.Id)
@@ -119,9 +121,10 @@ namespace LooksRatingApi.Services
         private async Task<RankedPhoto?> TryGetRankedPhotoAsync(
             Guid photoId,
             GenderEnum genderEnum,
-            int age)
+            int age,
+            bool vipOnly = false)
         {
-            var photoKey = PhotoRedisKeys.PhotoHash(photoId);
+            var photoKey = PhotoRedisKeys.ProfileHash(photoId);
             var hashValues = await _db.HashGetAsync(
                 photoKey,
                 new RedisValue[] { "gender_photo", "age_photo", "rating", "rating_count" });
@@ -146,62 +149,85 @@ namespace LooksRatingApi.Services
             }
             else
             {
-                var photoUser = await _photoUserRepository.GePhotoUserById(photoId);
-                if (photoUser is null)
-                {
-                    return null;
-                }
-
-                if (!GenderFeedHelper.Matches(genderEnum, photoUser.GenderNomination))
-                {
-                    return null;
-                }
-
-                if (!TopService.MatchesAge(age, photoUser.AgeNomination))
-                {
-                    return null;
-                }
-
-                return new RankedPhoto(photoId, photoUser.Rating, photoUser.RatingCount);
+                return await TryGetRankedPhotoFromProfileAsync(photoId, genderEnum, age, vipOnly);
             }
 
             if (!ratingValue.HasValue
                 || !decimal.TryParse(ratingValue.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var rating))
             {
-                var photoUser = await _photoUserRepository.GePhotoUserById(photoId);
-                if (photoUser is null)
-                {
-                    return null;
-                }
+                return await TryGetRankedPhotoFromProfileAsync(photoId, genderEnum, age, vipOnly);
+            }
 
-                return new RankedPhoto(photoId, photoUser.Rating, photoUser.RatingCount);
+            if (vipOnly)
+            {
+                return await TryGetRankedPhotoFromProfileAsync(photoId, genderEnum, age, vipOnly: true);
             }
 
             var ratingCount = ratingCountValue.HasValue ? (int)ratingCountValue : 0;
             return new RankedPhoto(photoId, rating, ratingCount);
         }
 
-        private async Task<(IReadOnlyList<Guid> PhotoIds, int TotalCount)> GetTopFromDatabaseAsync(
+        private async Task<RankedPhoto?> TryGetRankedPhotoFromProfileAsync(
+            Guid photoId,
+            GenderEnum genderEnum,
+            int age,
+            bool vipOnly)
+        {
+            var profile = await _photoProfileRepository.GetByIdAsync(photoId);
+            if (profile is null)
+            {
+                return null;
+            }
+
+            if (vipOnly && profile.User.Status != VipStatus.Availlable)
+            {
+                return null;
+            }
+
+            if (!GenderFeedHelper.Matches(genderEnum, profile.GenderNomination))
+            {
+                return null;
+            }
+
+            if (!TopService.MatchesAge(age, profile.AgeNomination))
+            {
+                return null;
+            }
+
+            return new RankedPhoto(photoId, profile.Rating, profile.RatingCount);
+        }
+
+        private async Task<(IReadOnlyList<Guid> ProfileIds, int TotalCount)> GetTopFromDatabaseAsync(
             Guid seasonId,
             bool seasonIsClosed,
-            string cityKey,
+            string cityNomination,
             GenderEnum gender,
             int age,
             int skip,
             int take,
+            bool vipOnly,
             CancellationToken cancellationToken)
         {
-            var (photos, total) = await _photoUserRepository.GetTopPhotosPagedAsync(
+            var ids = await _photoProfileRepository.GetTopProfileIdsAsync(
                 seasonId,
                 seasonIsClosed,
-                cityKey,
+                cityNomination,
                 gender,
                 age,
                 skip,
                 take,
+                vipOnly,
+                cancellationToken);
+            var total = await _photoProfileRepository.CountTopProfilesAsync(
+                seasonId,
+                seasonIsClosed,
+                cityNomination,
+                gender,
+                age,
+                vipOnly,
                 cancellationToken);
 
-            return (photos.Select(p => p.Id).ToList(), total);
+            return (ids, total);
         }
 
         private sealed record RankedPhoto(Guid Id, decimal Rating, int RatingCount);

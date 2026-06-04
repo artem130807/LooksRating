@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "dgSpecHash": "Ghmk7d71twQ=",
+  "success": true,
+  "projectFilePath": "/home/shade/LooksRating/LooksRating.Contracts/LooksRating.Contracts.csproj",
+  "expectedPackageFiles": [
+    "/home/shade/.nuget/packages/google.protobuf/3.35.0/google.protobuf.3.35.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.aspnetcore/2.67.0/grpc.aspnetcore.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.aspnetcore.server/2.67.0/grpc.aspnetcore.server.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.aspnetcore.server.clientfactory/2.67.0/grpc.aspnetcore.server.clientfactory.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.core.api/2.67.0/grpc.core.api.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.net.client/2.67.0/grpc.net.client.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.net.clientfactory/2.67.0/grpc.net.clientfactory.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.net.common/2.67.0/grpc.net.common.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/grpc.tools/2.81.0/grpc.tools.2.81.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.dependencyinjection/6.0.0/microsoft.extensions.dependencyinjection.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/6.0.0/microsoft.extensions.dependencyinjection.abstractions.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.http/6.0.0/microsoft.extensions.http.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.logging/6.0.0/microsoft.extensions.logging.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.logging.abstractions/6.0.0/microsoft.extensions.logging.abstractions.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.options/6.0.0/microsoft.extensions.options.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.extensions.primitives/6.0.0/microsoft.extensions.primitives.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/system.diagnostics.diagnosticsource/6.0.0/system.diagnostics.diagnosticsource.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.netcore.app.ref/9.0.16/microsoft.netcore.app.ref.9.0.16.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.16/microsoft.aspnetcore.app.ref.9.0.16.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -191,13 +191,34 @@ class LooksRatingApiClient:
         telegram_id: int,
         file_id: str,
         nomination: dict[str, Any],
+        *,
+        target_photo_id: str | None = None,
     ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "telegramId": telegram_id,
+            "telegramFileId": file_id,
+            "nomination": nomination,
+        }
+        if target_photo_id:
+            payload["targetPhotoId"] = str(uuid.UUID(str(target_photo_id)))
         return await self._request(
             "POST",
             "/api/photo-users/recreate_photo",
+            json=payload,
+        )
+
+    async def recreate_all_photos(
+        self,
+        telegram_id: int,
+        file_ids: list[str],
+        nomination: dict[str, Any],
+    ) -> dict[str, Any]:
+        return await self._request(
+            "POST",
+            "/api/photo-users/recreate_all_photos",
             json={
                 "telegramId": telegram_id,
-                "telegramFileId": file_id,
+                "telegramFileIds": file_ids,
                 "nomination": nomination,
             },
         )
@@ -209,10 +230,10 @@ class LooksRatingApiClient:
             allow_404=True,
         )
 
-    async def get_photo_user_by_id(self, photo_user_id: str) -> dict[str, Any] | None:
+    async def get_photo_user_by_id(self, profile_id: str) -> dict[str, Any] | None:
         return await self._request(
             "GET",
-            f"/api/photo-users/{photo_user_id}",
+            f"/api/photo-users/{profile_id}",
             allow_404=True,
         )
 
@@ -261,7 +282,27 @@ class LooksRatingApiClient:
             "/api/photo-users/get_thebestWeek_photosNow",
             params={
                 "telegramId": telegram_id,
-                "genderEnum": gender,
+                "genderEnum": gender_to_api(gender),
+                "age": age,
+            },
+            allow_404=True,
+        )
+        if isinstance(data, list):
+            return data
+        return []
+
+    async def get_the_best_vip_photos(
+        self,
+        telegram_id: int,
+        gender: int,
+        age: int,
+    ) -> list[dict[str, Any]]:
+        data = await self._request(
+            "GET",
+            "/api/photo-users/get_thebestvip_photos",
+            params={
+                "telegramId": telegram_id,
+                "genderEnum": gender_to_api(gender),
                 "age": age,
             },
             allow_404=True,
@@ -273,11 +314,17 @@ class LooksRatingApiClient:
     async def get_the_best_week_photos(
         self,
         telegram_id: int,
+        gender: int,
+        age: int,
     ) -> list[dict[str, Any]]:
         data = await self._request(
             "GET",
             "/api/photo-users/get_thebestWeek_photos",
-            params={"telegramId": telegram_id},
+            params={
+                "telegramId": telegram_id,
+                "genderEnum": gender_to_api(gender),
+                "age": age,
+            },
             allow_404=True,
         )
         if isinstance(data, list):
@@ -302,35 +349,40 @@ class LooksRatingApiClient:
     async def create_review(
         self,
         reviewer_telegram_id: int,
-        photo_user_id: str,
+        *,
         rating: int,
+        photo_profile_id: str | None = None,
     ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "reviewerTelegramId": reviewer_telegram_id,
+            "rating": rating,
+        }
+        if photo_profile_id:
+            payload["photoProfileId"] = str(uuid.UUID(str(photo_profile_id)))
         return await self._request(
             "POST",
             "/api/reviews/create_review",
-            json={
-                "reviewerTelegramId": reviewer_telegram_id,
-                "photoUserId": photo_user_id,
-                "rating": rating,
-            },
+            json=payload,
         )
 
     async def create_ticket(
         self,
         reporter_telegram_id: int,
-        photo_user_id: str,
         description: str,
+        *,
+        photo_profile_id: str | None = None,
     ) -> dict[str, Any]:
-        photo_id = str(uuid.UUID(str(photo_user_id)))
         text = description.strip()
+        payload: dict[str, Any] = {
+            "reporterTelegramId": reporter_telegram_id,
+            "description": text,
+        }
+        if photo_profile_id:
+            payload["photoProfileId"] = str(uuid.UUID(str(photo_profile_id)))
         return await self._request(
             "POST",
             "/api/user-tickets/create",
-            json={
-                "reporterTelegramId": reporter_telegram_id,
-                "photoUserId": photo_id,
-                "description": text,
-            },
+            json=payload,
         )
 
     async def get_current_season(self) -> dict[str, Any] | None:
@@ -370,3 +422,31 @@ class LooksRatingApiClient:
         if isinstance(data, list):
             return data
         return list(data.get("seasons", []))
+
+    async def create_payment_order(self, telegram_id: int, product_code: int) -> dict[str, Any]:
+        return await self._request(
+            "POST",
+            "/api/payments/orders",
+            json={
+                "telegramId": telegram_id,
+                "productCode": product_code,
+            },
+        )
+
+    async def confirm_payment_order(
+        self,
+        telegram_id: int,
+        payload: str,
+        telegram_payment_charge_id: str,
+        provider_payment_charge_id: str | None = None,
+    ) -> dict[str, Any]:
+        return await self._request(
+            "POST",
+            "/api/payments/orders/confirm",
+            json={
+                "telegramId": telegram_id,
+                "payload": payload,
+                "telegramPaymentChargeId": telegram_payment_charge_id,
+                "providerPaymentChargeId": provider_payment_charge_id,
+            },
+        )

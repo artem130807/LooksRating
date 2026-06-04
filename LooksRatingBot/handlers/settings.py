@@ -13,8 +13,11 @@ from bot.keyboards import (
     BTN_EDIT_CITY,
     BTN_EDIT_GENDER,
     BTN_SETTINGS_FEED,
+    MENU_PHOTO_ADD,
     MENU_BACK,
     MENU_CANCEL,
+    MENU_PHOTO_REPLACE,
+    MENU_PHOTO_REPLACE_ALL,
     MENU_SETTINGS,
     SETTINGS_PHOTO_BUTTONS,
     age_input_keyboard,
@@ -227,8 +230,21 @@ async def settings_photo(
     if not user:
         await message.answer(texts.NEED_START)
         return
-    photo = await api.get_my_photo(telegram_id)
-    await start_nomination_flow(message, state, api, recreate=photo is not None, from_settings=True)
+    if message.text == MENU_PHOTO_REPLACE_ALL:
+        await start_nomination_flow(
+            message,
+            state,
+            api,
+            recreate=True,
+            from_settings=True,
+            replace_all=True,
+        )
+        return
+
+    recreate = message.text == MENU_PHOTO_REPLACE
+    if message.text == MENU_PHOTO_ADD:
+        recreate = False
+    await start_nomination_flow(message, state, api, recreate=recreate, from_settings=True)
 
 
 @router.message(NOT_DURING_RATING_OR_TICKET, F.text == BTN_DELETE_ACCOUNT)

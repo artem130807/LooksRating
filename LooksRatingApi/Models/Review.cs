@@ -14,16 +14,16 @@ namespace LooksRatingApi.Models
         public int Rating { get; private set; }
         public Guid UserId { get; private set; }
         public User User { get; private set; } = null!;
-        public Guid PhotoUserId { get; private set; }
-        public PhotoUser PhotoUser { get; private set; } = null!;
+        public Guid PhotoProfileId { get; private set; }
+        public PhotoProfile PhotoProfile { get; private set; } = null!;
 
-        public static Result<Review> Create(int rating, Guid userId, Guid photoUserId)
+        public static Result<Review> Create(int rating, Guid userId, Guid photoProfileId)
         {
             if (userId == Guid.Empty)
                 return Result.Failure<Review>("ReviewUserIdIsRequired");
 
-            if (photoUserId == Guid.Empty)
-                return Result.Failure<Review>("ReviewPhotoUserIdIsRequired");
+            if (photoProfileId == Guid.Empty)
+                return Result.Failure<Review>("ReviewPhotoProfileIdIsRequired");
 
             if (rating is < MinRating or > MaxRating)
                 return Result.Failure<Review>("ReviewRatingIsOutOfRange");
@@ -33,7 +33,7 @@ namespace LooksRatingApi.Models
                Id = Guid.NewGuid(),
                Rating = rating,
                UserId = userId, 
-               PhotoUserId = photoUserId  
+               PhotoProfileId = photoProfileId
             };
             return review;
         }

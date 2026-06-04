@@ -24,14 +24,14 @@ namespace LooksRatingApi.Controllers
         {
             var command = new CreateUserTicketCommand(
                 request.ReporterTelegramId,
-                request.PhotoUserId,
+                request.PhotoProfileId,
                 request.Description);
 
             var result = await _sender.Send(command, cancellationToken);
             if (result.IsFailure)
             {
                 if (result.Error is CreateUserTicketErrors.ReporterNotFound
-                    or CreateUserTicketErrors.PhotoUserNotFound)
+                    or CreateUserTicketErrors.PhotoProfileNotFound)
                 {
                     return NotFound(new { error = result.Error });
                 }

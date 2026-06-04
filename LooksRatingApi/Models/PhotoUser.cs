@@ -20,6 +20,8 @@ namespace LooksRatingApi.Models
         public Guid SeasonId {get; set;}
         public StatusEnum Status {get; set;}
         public Season Season {get; set;}
+        public Guid? PhotoProfileId { get; set; }
+        public PhotoProfile? PhotoProfile { get; set; }
         public CityVo CityNomination {get; set;}
         public int AgeNomination {get; set;}
         public GenderEnum GenderNomination {get; set;}

@@ -9,25 +9,38 @@ namespace LooksRatingApi.Services
     public class PhotoRecommendationService : IPhotoRecommendationService
     {
         private const int BatchSize = 50;
+        private const int VipFeedInterval = 5;
+        private const int MaxRandomBatchAttempts = 20;
 
         private readonly IDatabase _db;
         private readonly INormalizeCityNameService _normalizeCityNameService;
         private readonly ISeasonRepository _seasonRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public PhotoRecommendationService(
             IConnectionMultiplexer redis,
             INormalizeCityNameService normalizeCityNameService,
             ISeasonRepository seasonRepository,
-            IPhotoUserRepository photoUserRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _db = redis.GetDatabase();
             _normalizeCityNameService = normalizeCityNameService;
             _seasonRepository = seasonRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
-        public async Task<Guid?> GetNextUnratedPhotoIdAsync(
+        public async Task<Guid?> GetNextUnratedProfileIdAsync(
+            Guid reviewerUserId,
+            GenderEnum genderEnum,
+            int age,
+            string city,
+            double? lastScore = null)
+        {
+            var ids = await GetNextUnratedProfileIdsAsync(reviewerUserId, genderEnum, age, city, lastScore);
+            return ids.Count > 0 ? ids[0] : null;
+        }
+
+        public async Task<List<Guid>> GetNextUnratedProfileIdsAsync(
             Guid reviewerUserId,
             GenderEnum genderEnum,
             int age,
@@ -37,37 +50,66 @@ namespace LooksRatingApi.Services
             var season = await _seasonRepository.GetCurrent();
             if (season is null)
             {
-                return null;
+                return new List<Guid>();
             }
 
             var cityKey = _normalizeCityNameService.Normalize(city);
             var context = new FeedSearchContext(
                 season.Id,
                 reviewerUserId,
+                city,
                 cityKey,
                 genderEnum,
                 age,
                 PhotoRedisKeys.RatingSortedSet(cityKey, season.Id),
-                PhotoRedisKeys.UserRatedSet(reviewerUserId),
-                PhotoRedisKeys.CycleAnchor(reviewerUserId));
+                PhotoRedisKeys.UserRatedSet(reviewerUserId, season.Id),
+                PhotoRedisKeys.CycleAnchor(reviewerUserId, season.Id),
+                VipOnly: false);
 
             await EnsureCycleAnchorAsync(context.CycleAnchorKey);
 
-            var ratedPhotoIds = await LoadRatedPhotoIdsAsync(context.RatedSetKey);
+            var ratedProfileIds = await LoadRatedPhotoIdsAsync(context.RatedSetKey);
+            var completedRatings = await GetFeedRatingCounterAsync(reviewerUserId, season.Id);
 
-            var photoId = await TryGetByRatingOrderAsync(context, ratedPhotoIds, lastScore);
-            if (photoId.HasValue)
+            if (IsVipFeedTurn(completedRatings))
             {
-                return photoId;
+                var vipContext = context with { VipOnly = true };
+                var vipProfileId = await TryGetNextProfileAsync(vipContext, ratedProfileIds);
+                if (vipProfileId.HasValue)
+                {
+                    return [vipProfileId.Value];
+                }
             }
 
-            if (!await IsCycleCompleteAsync(context, ratedPhotoIds))
+            var profileId = await TryGetNextProfileAsync(context, ratedProfileIds);
+            if (profileId.HasValue)
+            {
+                return [profileId.Value];
+            }
+
+            return new List<Guid>();
+        }
+
+        private async Task<Guid?> TryGetNextProfileAsync(
+            FeedSearchContext context,
+            HashSet<Guid> ratedProfileIds)
+        {
+            var profileId = await TryGetByRandomOrderAsync(context, ratedProfileIds);
+            if (profileId.HasValue)
+            {
+                return profileId;
+            }
+
+            if (!await IsCycleCompleteAsync(context, ratedProfileIds))
             {
                 return null;
             }
 
             return await RestartCycleAndGetNextAsync(context);
         }
+
+        private static bool IsVipFeedTurn(int completedRatings) =>
+            (completedRatings + 1) % VipFeedInterval == 0;
 
         private async Task<Guid?> RestartCycleAndGetNextAsync(FeedSearchContext context)
         {
@@ -76,206 +118,198 @@ namespace LooksRatingApi.Services
             await _db.KeyDeleteAsync(context.RatedSetKey);
             await SetCycleAnchorAsync(context.CycleAnchorKey, DateTime.UtcNow);
 
-            var photoId = await TryGetByCreatedAtOrderAsync(context, previousAnchor, new HashSet<Guid>());
-            if (photoId.HasValue)
+            var profileId = await TryGetByRandomOrderAsync(
+                context,
+                new HashSet<Guid>(),
+                createdAfter: previousAnchor);
+            if (profileId.HasValue)
             {
-                return photoId;
+                return profileId;
             }
 
-            return await TryGetByRatingOrderAsync(context, new HashSet<Guid>(), lastScore: null);
+            return await TryGetByRandomOrderAsync(context, new HashSet<Guid>());
         }
 
-        private async Task<Guid?> TryGetByRatingOrderAsync(
-            FeedSearchContext context,
-            HashSet<Guid> ratedPhotoIds,
-            double? lastScore)
+        private async Task<int> GetFeedRatingCounterAsync(Guid reviewerUserId, Guid seasonId)
         {
-            var photoId = await TryGetFromRatingSortedSetAsync(context, ratedPhotoIds, lastScore);
-            if (photoId.HasValue)
+            var value = await _db.StringGetAsync(PhotoRedisKeys.FeedRatingCounter(reviewerUserId, seasonId));
+            if (!value.HasValue || !long.TryParse(value.ToString(), out var count) || count < 0)
             {
-                return photoId;
+                return 0;
             }
 
-            return await TryGetFromDatabaseByRatingAsync(context, ratedPhotoIds);
+            return count > int.MaxValue ? int.MaxValue : (int)count;
         }
 
-        private async Task<Guid?> TryGetByCreatedAtOrderAsync(
+        private async Task<Guid?> TryGetByRandomOrderAsync(
             FeedSearchContext context,
-            DateTime createdAfter,
-            HashSet<Guid> ratedPhotoIds)
+            HashSet<Guid> ratedProfileIds,
+            DateTime? createdAfter = null)
         {
-            var skip = 0;
-            while (true)
+            if (createdAfter.HasValue)
             {
-                var candidates = await _photoUserRepository.GetNewFeedCandidateIdsAsync(
-                    context.SeasonId,
+                return await TryGetFromDatabaseRandomAsync(context, ratedProfileIds, createdAfter.Value);
+            }
+
+            var profileId = await TryGetFromRandomSortedSetAsync(context, ratedProfileIds);
+            if (profileId.HasValue)
+            {
+                return profileId;
+            }
+
+            return await TryGetFromDatabaseRandomAsync(context, ratedProfileIds);
+        }
+
+        private async Task<Guid?> TryGetFromRandomSortedSetAsync(
+            FeedSearchContext context,
+            HashSet<Guid> ratedProfileIds)
+        {
+            if (!await _db.KeyExistsAsync(context.SortedSetKey))
+            {
+                return null;
+            }
+
+            for (var attempt = 0; attempt < MaxRandomBatchAttempts; attempt++)
+            {
+                var members = await _db.SortedSetRandomMembersAsync(context.SortedSetKey, BatchSize);
+                if (members.Length == 0)
+                {
+                    return null;
+                }
+
+                var profileId = await SelectRandomEligiblePhotoAsync(
+                    ParseProfileIds(members),
+                    ratedProfileIds,
                     context.ReviewerUserId,
-                    context.CityKey,
                     context.Gender,
                     context.Age,
-                    createdAfter,
-                    skip,
-                    BatchSize);
+                    context.VipOnly);
+                if (profileId.HasValue)
+                {
+                    return profileId;
+                }
 
-                if (candidates.Count == 0)
+                if (members.Length < BatchSize)
                 {
                     return null;
                 }
-
-                var photoId = await SelectFirstEligiblePhotoAsync(
-                    candidates,
-                    ratedPhotoIds,
-                    context.ReviewerUserId,
-                    context.Gender,
-                    context.Age);
-                if (photoId.HasValue)
-                {
-                    return photoId;
-                }
-
-                skip += BatchSize;
-                if (candidates.Count < BatchSize)
-                {
-                    return null;
-                }
-            }
-        }
-
-        private async Task<Guid?> TryGetFromRatingSortedSetAsync(
-            FeedSearchContext context,
-            HashSet<Guid> ratedPhotoIds,
-            double? lastScore)
-        {
-            var maxScore = lastScore ?? double.PositiveInfinity;
-
-            while (true)
-            {
-                var candidates = await _db.SortedSetRangeByScoreAsync(
-                    context.SortedSetKey,
-                    start: 0,
-                    stop: maxScore,
-                    exclude: maxScore == double.PositiveInfinity ? Exclude.None : Exclude.Stop,
-                    order: Order.Descending,
-                    take: BatchSize);
-
-                if (candidates.Length == 0)
-                {
-                    return null;
-                }
-
-                var photoIds = ParsePhotoIds(candidates);
-                var photoId = await SelectFirstEligiblePhotoAsync(
-                    photoIds,
-                    ratedPhotoIds,
-                    context.ReviewerUserId,
-                    context.Gender,
-                    context.Age);
-                if (photoId.HasValue)
-                {
-                    return photoId;
-                }
-
-                var lastScoreInBatch = await _db.SortedSetScoreAsync(context.SortedSetKey, candidates[^1]);
-                if (!lastScoreInBatch.HasValue || candidates.Length < BatchSize)
-                {
-                    return null;
-                }
-
-                maxScore = lastScoreInBatch.Value;
-            }
-        }
-
-        private async Task<Guid?> TryGetFromDatabaseByRatingAsync(
-            FeedSearchContext context,
-            HashSet<Guid> ratedPhotoIds)
-        {
-            var skip = 0;
-            while (true)
-            {
-                var candidates = await _photoUserRepository.GetFeedCandidateIdsAsync(
-                    context.SeasonId,
-                    context.ReviewerUserId,
-                    context.CityKey,
-                    context.Gender,
-                    context.Age,
-                    skip,
-                    BatchSize);
-
-                if (candidates.Count == 0)
-                {
-                    return null;
-                }
-
-                var photoId = await SelectFirstEligiblePhotoAsync(
-                    candidates,
-                    ratedPhotoIds,
-                    context.ReviewerUserId,
-                    context.Gender,
-                    context.Age);
-                if (photoId.HasValue)
-                {
-                    return photoId;
-                }
-
-                skip += BatchSize;
-                if (candidates.Count < BatchSize)
-                {
-                    return null;
-                }
-            }
-        }
-
-        private async Task<Guid?> SelectFirstEligiblePhotoAsync(
-            IReadOnlyList<Guid> photoIds,
-            HashSet<Guid> ratedPhotoIds,
-            Guid reviewerUserId,
-            GenderEnum genderEnum,
-            int age)
-        {
-            foreach (var photoId in photoIds)
-            {
-                if (ratedPhotoIds.Contains(photoId))
-                {
-                    continue;
-                }
-
-                if (!await MatchesFeedCriteriaAsync(photoId, reviewerUserId, genderEnum, age))
-                {
-                    continue;
-                }
-
-                return photoId;
             }
 
             return null;
         }
 
+        private async Task<Guid?> TryGetFromDatabaseRandomAsync(
+            FeedSearchContext context,
+            HashSet<Guid> ratedProfileIds,
+            DateTime? createdAfter = null)
+        {
+            for (var attempt = 0; attempt < MaxRandomBatchAttempts; attempt++)
+            {
+                var candidates = createdAfter.HasValue
+                    ? await _photoProfileRepository.GetRandomNewFeedCandidateProfileIdsAsync(
+                        context.SeasonId,
+                        context.ReviewerUserId,
+                        context.CityNomination,
+                        context.Gender,
+                        context.Age,
+                        createdAfter.Value,
+                        BatchSize,
+                        context.VipOnly)
+                    : await _photoProfileRepository.GetRandomFeedCandidateProfileIdsAsync(
+                        context.SeasonId,
+                        context.ReviewerUserId,
+                        context.CityNomination,
+                        context.Gender,
+                        context.Age,
+                        BatchSize,
+                        context.VipOnly);
+
+                if (candidates.Count == 0)
+                {
+                    return null;
+                }
+
+                var profileId = await SelectRandomEligiblePhotoAsync(
+                    candidates,
+                    ratedProfileIds,
+                    context.ReviewerUserId,
+                    context.Gender,
+                    context.Age,
+                    context.VipOnly);
+                if (profileId.HasValue)
+                {
+                    return profileId;
+                }
+
+                if (candidates.Count < BatchSize)
+                {
+                    return null;
+                }
+            }
+
+            return null;
+        }
+
+        private async Task<Guid?> SelectRandomEligiblePhotoAsync(
+            IReadOnlyList<Guid> profileIds,
+            HashSet<Guid> ratedProfileIds,
+            Guid reviewerUserId,
+            GenderEnum genderEnum,
+            int age,
+            bool vipOnly)
+        {
+            var eligibleProfileIds = new List<Guid>(profileIds.Count);
+            foreach (var profileId in profileIds)
+            {
+                if (ratedProfileIds.Contains(profileId))
+                {
+                    continue;
+                }
+
+                if (!await MatchesFeedCriteriaAsync(profileId, reviewerUserId, genderEnum, age, vipOnly))
+                {
+                    continue;
+                }
+
+                eligibleProfileIds.Add(profileId);
+            }
+
+            if (eligibleProfileIds.Count == 0)
+            {
+                return null;
+            }
+
+            var randomIndex = Random.Shared.Next(eligibleProfileIds.Count);
+            return eligibleProfileIds[randomIndex];
+        }
+
         private async Task<bool> IsCycleCompleteAsync(
             FeedSearchContext context,
-            HashSet<Guid> ratedPhotoIds)
+            HashSet<Guid> ratedProfileIds)
         {
-            if (ratedPhotoIds.Count == 0)
+            if (ratedProfileIds.Count == 0)
             {
                 return false;
             }
 
-            var feedCount = await _photoUserRepository.CountFeedPhotosAsync(
+            var feedCount = await _photoProfileRepository.CountFeedProfilesAsync(
                 context.SeasonId,
                 context.ReviewerUserId,
-                context.CityKey,
+                context.CityNomination,
                 context.Gender,
                 context.Age);
 
-            return feedCount > 0 && ratedPhotoIds.Count >= feedCount;
+            return feedCount > 0 && ratedProfileIds.Count >= feedCount;
         }
 
         private async Task<bool> MatchesFeedCriteriaAsync(
-            Guid photoId,
+            Guid profileId,
             Guid reviewerUserId,
             GenderEnum genderEnum,
-            int age)
+            int age,
+            bool vipOnly)
         {
-            var photoKey = PhotoRedisKeys.PhotoHash(photoId);
+            var photoKey = PhotoRedisKeys.ProfileHash(profileId);
             var hashValues = await _db.HashGetAsync(
                 photoKey,
                 new RedisValue[] { "gender_photo", "age_photo", "user_id" });
@@ -299,51 +333,64 @@ namespace LooksRatingApi.Services
 
                 if (ownerValue.HasValue && Guid.TryParse(ownerValue.ToString(), out var ownerId))
                 {
-                    return ownerId != reviewerUserId;
+                    if (ownerId == reviewerUserId)
+                    {
+                        return false;
+                    }
+
+                    if (!vipOnly)
+                    {
+                        return true;
+                    }
                 }
             }
 
-            var photoUser = await _photoUserRepository.GePhotoUserById(photoId);
-            if (photoUser is null || photoUser.UserId == reviewerUserId)
+            var photoProfile = await _photoProfileRepository.GetByIdAsync(profileId);
+            if (photoProfile is null || photoProfile.UserId == reviewerUserId)
             {
                 return false;
             }
 
-            if (!GenderFeedHelper.Matches(genderEnum, photoUser.GenderNomination))
+            if (vipOnly && photoProfile.User.Status != VipStatus.Availlable)
             {
                 return false;
             }
 
-            return TopService.MatchesAge(age, photoUser.AgeNomination);
+            if (!GenderFeedHelper.Matches(genderEnum, photoProfile.GenderNomination))
+            {
+                return false;
+            }
+
+            return TopService.MatchesAge(age, photoProfile.AgeNomination);
         }
 
-        private static List<Guid> ParsePhotoIds(RedisValue[] candidates)
+        private static List<Guid> ParseProfileIds(RedisValue[] members)
         {
-            var photoIds = new List<Guid>(candidates.Length);
-            foreach (var candidate in candidates)
+            var profileIds = new List<Guid>(members.Length);
+            foreach (var member in members)
             {
-                if (Guid.TryParse(candidate, out var photoId))
+                if (Guid.TryParse(member.ToString(), out var profileId))
                 {
-                    photoIds.Add(photoId);
+                    profileIds.Add(profileId);
                 }
             }
 
-            return photoIds;
+            return profileIds;
         }
 
         private async Task<HashSet<Guid>> LoadRatedPhotoIdsAsync(RedisKey ratedSetKey)
         {
             var members = await _db.SetMembersAsync(ratedSetKey);
-            var ratedPhotoIds = new HashSet<Guid>(members.Length);
+            var ratedProfileIds = new HashSet<Guid>(members.Length);
             foreach (var member in members)
             {
-                if (Guid.TryParse(member.ToString(), out var photoId))
+                if (Guid.TryParse(member.ToString(), out var profileId))
                 {
-                    ratedPhotoIds.Add(photoId);
+                    ratedProfileIds.Add(profileId);
                 }
             }
 
-            return ratedPhotoIds;
+            return ratedProfileIds;
         }
 
         private async Task EnsureCycleAnchorAsync(RedisKey cycleAnchorKey)
@@ -371,11 +418,13 @@ namespace LooksRatingApi.Services
         private sealed record FeedSearchContext(
             Guid SeasonId,
             Guid ReviewerUserId,
+            string CityNomination,
             string CityKey,
             GenderEnum Gender,
             int Age,
             RedisKey SortedSetKey,
             RedisKey RatedSetKey,
-            RedisKey CycleAnchorKey);
+            RedisKey CycleAnchorKey,
+            bool VipOnly);
     }
 }

@@ -35,7 +35,7 @@ namespace LooksRatingApi.Services
                 sortScore);
 
             await _db.HashSetAsync(
-                PhotoRedisKeys.PhotoHash(photoRated.AggregateId),
+                PhotoRedisKeys.ProfileHash(photoRated.AggregateId),
                 new HashEntry[]
                 {
                     new("rating", photoRated.Rating.ToString(System.Globalization.CultureInfo.InvariantCulture)),
@@ -43,14 +43,21 @@ namespace LooksRatingApi.Services
                 });
         }
 
-        public Task MarkPhotoAsRatedAsync(
+        public async Task MarkProfileAsRatedAsync(
             Guid reviewerUserId,
-            Guid photoUserId,
+            Guid seasonId,
+            Guid photoProfileId,
             CancellationToken cancellationToken = default)
         {
-            return _db.SetAddAsync(
-                PhotoRedisKeys.UserRatedSet(reviewerUserId),
-                photoUserId.ToString());
+            var added = await _db.SetAddAsync(
+                PhotoRedisKeys.UserRatedSet(reviewerUserId, seasonId),
+                photoProfileId.ToString());
+
+            if (added)
+            {
+                await _db.StringIncrementAsync(
+                    PhotoRedisKeys.FeedRatingCounter(reviewerUserId, seasonId));
+            }
         }
     }
 }

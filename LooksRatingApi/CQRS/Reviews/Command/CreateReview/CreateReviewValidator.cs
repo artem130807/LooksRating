@@ -11,16 +11,16 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         private const int MaxRating = 10;
 
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IReviewRepository _reviewRepository;
 
         public CreateReviewValidator(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IReviewRepository reviewRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _reviewRepository = reviewRepository;
         }
 
@@ -31,10 +31,11 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 return Result.Failure<string>(CreateReviewErrors.ReviewerTelegramIdIsRequired);
             }
 
-            if (command.PhotoUserId == Guid.Empty)
+            if (command.PhotoProfileId == Guid.Empty)
             {
-                return Result.Failure<string>(CreateReviewErrors.PhotoUserIdIsRequired);
+                return Result.Failure<string>(CreateReviewErrors.PhotoProfileIdIsRequired);
             }
+            var profileId = command.PhotoProfileId;
 
             if (command.Rating is < MinRating or > MaxRating)
             {
@@ -47,15 +48,24 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 return Result.Failure<string>(CreateReviewErrors.ReviewerNotFound);
             }
 
-            var photoUser = await _photoUserRepository.GePhotoUserById(command.PhotoUserId);
-            if (photoUser is null)
+            var photoProfile = await _photoProfileRepository.GetByIdAsync(profileId, cancellationToken);
+            if (photoProfile is null)
             {
-                return Result.Failure<string>(CreateReviewErrors.PhotoUserNotFound);
+                return Result.Failure<string>(CreateReviewErrors.PhotoProfileNotFound);
             }
 
-            if (photoUser.UserId == reviewer.Id)
+            if (photoProfile.UserId == reviewer.Id)
             {
                 return Result.Failure<string>(CreateReviewErrors.SelfReviewIsNotAllowed);
+            }
+
+            var existingReview = await _reviewRepository.GetByUserAndProfileAsync(
+                reviewer.Id,
+                photoProfile.Id,
+                cancellationToken);
+            if (existingReview is not null)
+            {
+                return Result.Success(string.Empty);
             }
 
             return Result.Success(string.Empty);

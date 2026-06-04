@@ -3,6 +3,7 @@ using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.Models;
 using LooksRatingApi.Services;
 using MediatR;
 
@@ -11,7 +12,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
     public sealed class SetUserPhotoCommandHandler : IRequestHandler<SetUserPhotoCommand, Result<SetUserPhotoResult>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISetUserPhotoValidator _validator;
         private readonly ISeasonRepository _seasonRepository;
         private readonly IPhotoUserLifecycleService _photoUserLifecycleService;
@@ -20,7 +21,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
 
         public SetUserPhotoCommandHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ISetUserPhotoValidator validator,
             ISeasonRepository seasonRepository,
             IPhotoUserLifecycleService photoUserLifecycleService,
@@ -28,7 +29,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
             INormalizeCityNameService normalizeCityNameService)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _validator = validator;
             _seasonRepository = seasonRepository;
             _photoUserLifecycleService = photoUserLifecycleService;
@@ -56,15 +57,19 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
                 return Result.Failure<SetUserPhotoResult>(SetUserPhotoErrors.CurrentSeasonNotFound);
             }
 
-            var existingPhoto = await _photoUserRepository.GetByTelegramIdAndSeasonIdAsync(
-                query.request.TelegramId,
+            var profile = await _photoProfileRepository.GetByUserAndSeasonAsync(
+                user.Id,
                 season.Id,
                 cancellationToken);
-            if (existingPhoto is not null)
+            if (profile is not null && user.Status == Enums.VipStatus.Unavaillable)
             {
                 return Result.Failure<SetUserPhotoResult>(SetUserPhotoErrors.PhotoAlreadyExists);
             }
-
+            var isWithinVipPhotoLimit = await _photoProfileRepository.IsWithinVipPhotoLimitAsync(season.Id, query.request.TelegramId, cancellationToken);
+            if(isWithinVipPhotoLimit == false)
+            {
+                return Result.Failure<SetUserPhotoResult>(SetUserPhotoErrors.VipPhotoLimitExceeded);
+            }
             var nominationResult = await PhotoNominationResolver.ResolveAsync(
                 user,
                 query.request.Nomination,
@@ -77,17 +82,26 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
 
             var (ageNomination, genderNomination, cityNomination) = nominationResult.Value;
             var telegramFileId = query.request.TelegramFileId.Trim();
-            var photoUser = await _photoUserLifecycleService.CreateAsync(
-                user,
-                telegramFileId,
-                season,
-                ageNomination,
-                genderNomination,
-                cityNomination,
-                cancellationToken);
+            PhotoUser photoUser;
+            try
+            {
+                photoUser = await _photoUserLifecycleService.CreateAsync(
+                    user,
+                    telegramFileId,
+                    season,
+                    ageNomination,
+                    genderNomination,
+                    cityNomination,
+                    cancellationToken);
+            }
+            catch (InvalidOperationException ex) when (ex.Message == SetUserPhotoErrors.PhotoUploadInProgress)
+            {
+                return Result.Failure<SetUserPhotoResult>(SetUserPhotoErrors.PhotoUploadInProgress);
+            }
 
             return Result.Success(new SetUserPhotoResult
             {
+                ProfileId = photoUser.PhotoProfileId ?? Guid.Empty,
                 PhotoUserId = photoUser.Id,
                 UserId = user.Id,
                 TelegramId = user.TelegramId,

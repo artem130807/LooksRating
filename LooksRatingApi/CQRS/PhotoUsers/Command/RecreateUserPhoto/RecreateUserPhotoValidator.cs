@@ -9,16 +9,16 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
     public sealed class RecreateUserPhotoValidator : IRecreateUserPhotoValidator
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
 
         public RecreateUserPhotoValidator(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
         }
 
@@ -53,13 +53,19 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
                 return Result.Failure<string>(SetUserPhotoErrors.CurrentSeasonNotFound);
             }
 
-            var existingPhoto = await _photoUserRepository.GetByTelegramIdAndSeasonIdAsync(
-                command.Request.TelegramId,
+            var profile = await _photoProfileRepository.GetByUserAndSeasonAsync(
+                user.Id,
                 season.Id,
                 cancellationToken);
-            if (existingPhoto is null)
+            if (profile is null || profile.Photos.Count == 0)
             {
                 return Result.Failure<string>(RecreateUserPhotoErrors.PhotoNotFound);
+            }
+
+            if (command.Request.TargetPhotoId.HasValue
+                && profile.Photos.All(x => x.Id != command.Request.TargetPhotoId.Value))
+            {
+                return Result.Failure<string>(RecreateUserPhotoErrors.TargetPhotoNotFound);
             }
 
             return Result.Success(string.Empty);

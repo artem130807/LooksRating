@@ -195,8 +195,17 @@ async def settings_menu_for(api: LooksRatingApiClient, telegram_id: int):
     from bot.keyboards import settings_keyboard
 
     user = await api.get_user(telegram_id)
-    has_photo = bool(user and user.get("hasPhoto"))
-    return settings_keyboard(has_photo=has_photo)
+    photo_payload = await api.get_my_photo(telegram_id) if user else None
+    photos = []
+    if isinstance(photo_payload, dict):
+        photos = list(photo_payload.get("photos") or [])
+    has_photo = len(photos) > 0
+    has_vip = bool(user.get("hasVip")) if isinstance(user, dict) else False
+    return settings_keyboard(
+        has_photo=has_photo,
+        has_vip=has_vip,
+        photo_count=len(photos),
+    )
 
 
 async def send_settings_menu(message, api: LooksRatingApiClient, telegram_id: int, text: str) -> None:
@@ -264,3 +273,40 @@ async def load_seasons_catalog(
     if current:
         return [current], current
     return [], current
+
+
+async def load_chapters_catalog(
+    api: LooksRatingApiClient,
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    current = await api.get_current_season()
+    chapters = await api.get_chapters(include_seasons=True)
+    normalized: list[dict[str, Any]] = []
+    for chapter in chapters:
+        seasons = list(chapter.get("seasons") or [])
+        item = dict(chapter)
+        item["seasons"] = seasons
+        item["seasonsCount"] = len(seasons) if seasons else int(chapter.get("seasonsCount") or 0)
+        normalized.append(item)
+    return normalized, current
+
+
+async def load_seasons_for_chapter(
+    api: LooksRatingApiClient,
+    chapter_id: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    current = await api.get_current_season()
+    seasons = await api.get_seasons_by_chapter(chapter_id)
+    if seasons:
+        return seasons, current
+
+    chapters = await api.get_chapters(include_seasons=True)
+    chapter = next((item for item in chapters if str(item.get("id")) == str(chapter_id)), None)
+    if chapter:
+        embedded = list(chapter.get("seasons") or [])
+        if embedded:
+            return embedded, current
+
+    if current and str(current.get("listSeasonsId")) == str(chapter_id):
+        return [current], current
+
+    return seasons, current

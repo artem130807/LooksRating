@@ -2,6 +2,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
 {
     public sealed class SetUserPhotoResult
     {
+        public Guid ProfileId { get; init; }
         public Guid PhotoUserId { get; init; }
         public Guid UserId { get; init; }
         public long TelegramId { get; init; }

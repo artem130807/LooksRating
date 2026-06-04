@@ -13,6 +13,7 @@ class Settings:
     api_key: str
     telegram_proxy: str | None
     top_notify_interval_seconds: int
+    stars_provider_token: str
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -21,6 +22,7 @@ class Settings:
         key = os.getenv("API_KEY", "").strip()
         proxy = os.getenv("TELEGRAM_PROXY", "").strip() or None
         interval_raw = os.getenv("TOP_NOTIFY_INTERVAL_SECONDS", "60").strip()
+        stars_provider_token = os.getenv("STARS_PROVIDER_TOKEN", "").strip()
         try:
             interval = max(10, int(interval_raw))
         except ValueError:
@@ -33,4 +35,5 @@ class Settings:
             api_key=key,
             telegram_proxy=proxy,
             top_notify_interval_seconds=interval,
+            stars_provider_token=stars_provider_token,
         )

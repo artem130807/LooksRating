@@ -6,6 +6,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
     {
         public long TelegramId { get; set; }
         public string TelegramFileId { get; set; } = string.Empty;
+        public Guid? TargetPhotoId { get; set; }
         public PhotoNominationRequest Nomination { get; set; } = new();
     }
 }

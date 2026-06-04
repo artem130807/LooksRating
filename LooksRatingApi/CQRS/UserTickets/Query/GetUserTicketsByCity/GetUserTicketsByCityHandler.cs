@@ -46,8 +46,11 @@ namespace LooksRatingApi.CQRS.UserTickets.Query.GetUserTicketsByCity
                 OccuredAt = t.OccuredAt,
                 ReporterUserId = t.UserId,
                 ReporterTelegramId = t.User.TelegramId,
-                PhotoUserId = t.PhotoUserId,
-                PhotoTelegramFileId = t.PhotoUser.TelegramFileId
+                PhotoProfileId = t.PhotoProfileId,
+                PhotoTelegramFileIds = t.PhotoProfile.Photos
+                    .OrderBy(p => p.SortOrder)
+                    .Select(p => p.TelegramFileId)
+                    .ToList()
             }).ToList();
 
             return Result.Success(response);

@@ -14,7 +14,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
     {
         private readonly LooksRatingDbContext _context;
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IReviewRepository _reviewRepository;
         private readonly ICreateReviewValidator _validator;
         private readonly IKafkaPhotoRatedProducer<PhotoRatedEvent> _producer;
@@ -24,7 +24,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         public CreateReviewCommandHandler(
             LooksRatingDbContext context,
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IReviewRepository reviewRepository,
             ICreateReviewValidator validator,
             IKafkaPhotoRatedProducer<PhotoRatedEvent> producer,
@@ -33,7 +33,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         {
             _context = context;
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _reviewRepository = reviewRepository;
             _validator = validator;
             _producer = producer;
@@ -55,24 +55,24 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 return Result.Failure<CreateReviewResult>(CreateReviewErrors.ReviewerNotFound);
             }
 
-            var photoUser = await _photoUserRepository.GePhotoUserById(request.PhotoUserId);
-            if (photoUser is null)
+            var photoProfile = await _photoProfileRepository.GetByIdAsync(request.PhotoProfileId, cancellationToken);
+            if (photoProfile is null)
             {
-                return Result.Failure<CreateReviewResult>(CreateReviewErrors.PhotoUserNotFound);
+                return Result.Failure<CreateReviewResult>(CreateReviewErrors.PhotoProfileNotFound);
             }
 
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
-                var existingReview = await _reviewRepository.GetByUserAndPhotoAsync(
+                var existingReview = await _reviewRepository.GetByUserAndProfileAsync(
                     reviewer.Id,
-                    photoUser.Id,
+                    photoProfile.Id,
                     cancellationToken);
 
                 Review review;
                 if (existingReview is null)
                 {
-                    var reviewResult = Review.Create(request.Rating, reviewer.Id, photoUser.Id);
+                    var reviewResult = Review.Create(request.Rating, reviewer.Id, photoProfile.Id);
                     if (reviewResult.IsFailure)
                     {
                         await transaction.RollbackAsync(cancellationToken);
@@ -80,7 +80,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                     }
 
                     review = reviewResult.Value;
-                    photoUser.AddRating(request.Rating);
+                    photoProfile.AddRating(request.Rating);
                     await _reviewRepository.Create(review);
                 }
                 else
@@ -94,25 +94,26 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                     }
 
                     review = existingReview;
-                    photoUser.ChangeRating(previousRating, request.Rating);
+                    photoProfile.ChangeRating(previousRating, request.Rating);
                     await _reviewRepository.Update(review);
                 }
 
-                var rank = _rankService.GetRankEnum(photoUser.Rating);
-                photoUser.UpdateRank(rank);
-                await _photoUserRepository.Update(photoUser);
+                var rank = _rankService.GetRankEnum(photoProfile.Rating);
+                photoProfile.UpdateRank(rank);
+                await _photoProfileRepository.UpdateAsync(photoProfile, cancellationToken);
 
-                var city = photoUser.CityNomination.Value ?? string.Empty;
+                var city = photoProfile.CityNomination.Value ?? string.Empty;
                 var domainEvent = new PhotoRatedEvent(
-                    photoUser.Id,
-                    photoUser.Rating,
-                    photoUser.RatingCount,
+                    photoProfile.Id,
+                    photoProfile.Rating,
+                    photoProfile.RatingCount,
                     city,
-                    photoUser.SeasonId);
+                    photoProfile.SeasonId);
 
-                await _photoRatingCacheService.MarkPhotoAsRatedAsync(
+                await _photoRatingCacheService.MarkProfileAsRatedAsync(
                     reviewer.Id,
-                    photoUser.Id,
+                    photoProfile.SeasonId,
+                    photoProfile.Id,
                     cancellationToken);
                 await _photoRatingCacheService.SyncPhotoRatingAsync(domainEvent, cancellationToken);
                 await _producer.ProduceAsync(domainEvent, cancellationToken);
@@ -123,10 +124,10 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 {
                     ReviewId = review.Id,
                     ReviewerUserId = reviewer.Id,
-                    PhotoUserId = photoUser.Id,
+                    PhotoProfileId = photoProfile.Id,
                     Rating = request.Rating,
-                    UpdatedPhotoRating = photoUser.Rating,
-                    UpdatedPhotoRatingCount = photoUser.RatingCount
+                    UpdatedProfileRating = photoProfile.Rating,
+                    UpdatedProfileRatingCount = photoProfile.RatingCount
                 });
             }
             catch

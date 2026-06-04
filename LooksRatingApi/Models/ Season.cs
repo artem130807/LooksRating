@@ -15,6 +15,7 @@ namespace LooksRatingApi.Models
         public Guid ListSeasonsId {get; set;}
         public ListSeasons ListSeasons {get; set;}
         public ICollection<PhotoUser> PhotoUsers {get; set;}
+        public ICollection<PhotoProfile> PhotoProfiles { get; set; } = new List<PhotoProfile>();
         public DateTime CreatedDate {get; set;}
 
         public static Result<Season> Create(string name, int number, Guid listSeasonsId)

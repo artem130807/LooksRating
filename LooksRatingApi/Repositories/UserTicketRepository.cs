@@ -32,7 +32,8 @@ namespace LooksRatingApi.Repositories
             return await _context.UserTickets
                 .Include(x => x.User)
                     .ThenInclude(u => u.RecomendationSettings)
-                .Include(x => x.PhotoUser)
+                .Include(x => x.PhotoProfile)
+                    .ThenInclude(p => p.Photos.OrderBy(x => x.SortOrder))
                 .FirstOrDefaultAsync(x => x.Id == Id);
         }
 
@@ -46,17 +47,18 @@ namespace LooksRatingApi.Repositories
             return await _context.UserTickets
                 .Include(x => x.User)
                     .ThenInclude(u => u.RecomendationSettings)
-                .Include(x => x.PhotoUser)
+                .Include(x => x.PhotoProfile)
+                    .ThenInclude(p => p.Photos.OrderBy(x => x.SortOrder))
                 .Where(x => x.User.RecomendationSettings != null
                     && x.User.RecomendationSettings.City.Value == city)
                 .OrderByDescending(x => x.OccuredAt)
                 .ToListAsync();
         }
 
-        public async Task<bool> ExistsByReporterAndPhoto(Guid reporterUserId, Guid photoUserId)
+        public async Task<bool> ExistsByReporterAndProfile(Guid reporterUserId, Guid photoProfileId)
         {
             return await _context.UserTickets
-                .AnyAsync(x => x.UserId == reporterUserId && x.PhotoUserId == photoUserId);
+                .AnyAsync(x => x.UserId == reporterUserId && x.PhotoProfileId == photoProfileId);
         }
 
         public async Task Update(UserTicket ticket)

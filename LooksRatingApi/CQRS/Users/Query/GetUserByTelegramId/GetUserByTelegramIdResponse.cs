@@ -19,6 +19,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
         public string City { get; init; } = string.Empty;
         public bool HasRecommendationSettings { get; init; }
         public bool HasPhoto { get; init; }
+        public bool HasVip { get; init; }
     }
 
 }

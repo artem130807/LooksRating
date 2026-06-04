@@ -15,6 +15,8 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
         Task<PhotoUser?> GePhotoUserById(Guid Id);
         Task<List<PhotoUser>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default);
         Task<PhotoUser?> GetByTelegramIdAndSeasonIdAsync(long telegramId, Guid seasonId, CancellationToken cancellationToken = default);
+        Task<List<PhotoUser>> GetByTelegramIdAndSeasonIdListAsync(long telegramId, Guid seasonId, CancellationToken cancellationToken = default);
+        Task<List<Guid>> GetActivePhotoIdsByUserAndSeasonAsync(Guid userId, Guid seasonId, CancellationToken cancellationToken = default);
         Task<List<PhotoUser>> GetPhotoUsers();
         Task<List<PhotoUser>> GetByUserIdWithSeasonAsync(
             Guid userId,
@@ -69,6 +71,6 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             string city,
             int age,
             GenderEnum genderEnum);
-        Task<bool> IsNotThreePhotosSeasonVip(Guid seasonId, long telegramId);
+        Task<bool> IsWithinVipPhotoLimitAsync(Guid seasonId, long telegramId);
     }
 }

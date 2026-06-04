@@ -1,8 +1,8 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Services;
+using LooksRatingApi.Services.TheBestWeek;
 using MediatR;
-using System.Text.Json;
 
 namespace LooksRatingApi.CQRS.TheBestWeeks.Query.GetTheBestWeekById
 {
@@ -31,7 +31,7 @@ namespace LooksRatingApi.CQRS.TheBestWeeks.Query.GetTheBestWeekById
                 return Result.Failure<GetTheBestWeekByIdResponse>("Лучшая неделя не найдена");
             }
 
-            var photos = JsonSerializer.Deserialize<List<LooksRatingApi.Models.PhotoUser>>(week.SnapshotJson) ?? [];
+            var snapshotItems = TheBestWeekSnapshotSerializer.Deserialize(week.SnapshotJson);
 
             var response = new GetTheBestWeekByIdResponse
             {
@@ -41,17 +41,17 @@ namespace LooksRatingApi.CQRS.TheBestWeeks.Query.GetTheBestWeekById
                 WeekOfYear = week.WeekOfYear,
                 Week = week.Week,
                 CreatedDate = week.CreatedDate,
-                Photos = photos
+                Photos = snapshotItems
                     .OrderByDescending(p => p.Rating)
                     .ThenByDescending(p => p.RatingCount)
                     .Select(p => new GetTheBestWeekByIdPhotoItemResponse
                     {
-                        Id = p.Id,
-                        TelegramFileId = p.TelegramFileId,
+                        Id = p.ProfileId,
+                        TelegramFileId = p.TelegramFileIds.FirstOrDefault() ?? string.Empty,
                         Rating = p.Rating,
                         RatingCount = p.RatingCount,
-                        Rank = p.Rank.ToString(),
-                        DisplayName = UserPublicDisplayName.Resolve(p.User),
+                        Rank = p.Rank,
+                        DisplayName = p.DisplayName,
                         AgeNomination = p.AgeNomination,
                         GenderNomination = p.GenderNomination
                     })

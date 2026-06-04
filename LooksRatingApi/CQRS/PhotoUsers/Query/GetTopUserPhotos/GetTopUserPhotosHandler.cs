@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Models;
 using LooksRatingApi.Services;
 using MediatR;
 
@@ -9,16 +10,16 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos
         : IRequestHandler<GetTopUserPhotosQuery, Result<GetTopUserPhotosPagedResponse>>
     {
         private readonly IGetTopUserPhotosValidator _validator;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IPhotoTopReadService _photoTopReadService;
 
         public GetTopUserPhotosHandler(
             IGetTopUserPhotosValidator validator,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IPhotoTopReadService photoTopReadService)
         {
             _validator = validator;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _photoTopReadService = photoTopReadService;
         }
 
@@ -31,7 +32,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos
             }
 
             var context = validationResult.Value;
-            var (photoIds, total) = await _photoTopReadService.GetTopPhotoIdsAsync(
+            var (profileIds, total) = await _photoTopReadService.GetTopProfileIdsAsync(
                 context.Season.Id,
                 context.Season.IsClosed,
                 context.FeedCity,
@@ -39,29 +40,37 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos
                 context.Query.Age,
                 context.Skip,
                 context.PageSize,
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
-            var photos = await _photoUserRepository.GetByIdsAsync(photoIds, cancellationToken);
-            var photosById = photos.ToDictionary(p => p.Id);
+            var profiles = await _photoProfileRepository.GetByIdsAsync(profileIds, cancellationToken);
+            var profilesById = profiles.ToDictionary(p => p.Id);
 
-            var items = new List<GetTopUserPhotosResponse>(photoIds.Count);
-            foreach (var photoId in photoIds)
+            var items = new List<GetTopUserPhotosResponse>(profileIds.Count);
+            foreach (var profileId in profileIds)
             {
-                if (!photosById.TryGetValue(photoId, out var photo))
+                if (!profilesById.TryGetValue(profileId, out var profile))
                 {
                     continue;
                 }
 
+                var files = profile.Photos
+                    .OrderBy(x => x.SortOrder)
+                    .Select(x => x.TelegramFileId)
+                    .ToList();
+                var firstFile = files.FirstOrDefault() ?? string.Empty;
+
                 items.Add(new GetTopUserPhotosResponse
                 {
-                    Id = photo.Id,
+                    Id = profile.Id,
+                    ProfileId = profile.Id,
                     Place = context.Skip + items.Count + 1,
-                    Name = UserPublicDisplayName.Resolve(photo.User),
-                    TelegramFileId = photo.TelegramFileId,
-                    Rating = photo.Rating,
-                    RatingCount = photo.RatingCount,
-                    GenderNomination = GenderDisplay.GetGender(photo.GenderNomination),
-                    AgeNomination = photo.AgeNomination,
+                    Name = UserPublicDisplayName.Resolve(profile.User),
+                    TelegramFileId = firstFile,
+                    TelegramFileIds = files,
+                    Rating = profile.Rating,
+                    RatingCount = profile.RatingCount,
+                    GenderNomination = GenderDisplay.GetGender(profile.GenderNomination),
+                    AgeNomination = profile.AgeNomination,
                 });
             }
 

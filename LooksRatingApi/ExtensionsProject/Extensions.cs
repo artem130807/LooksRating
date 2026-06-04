@@ -1,4 +1,5 @@
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Contracts;
 using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Filters;
 using LooksRatingApi.Messages.Kafka.PhotoRated;
@@ -64,10 +65,12 @@ namespace LooksRatingApi
             services.AddScoped<INewListSeasonProcessor, NewListSeasonProcessor>();
             services.AddScoped<INewSeasonProcessor, NewSeasonProcessor>();
             services.AddScoped<ITheBestWeekProcessor, TheBestWeekProcessor>();
+            services.AddScoped<IVipStatusExpiryProcessor, VipStatusExpiryProcessor>();
 
             var newListSeasonCron = configuration["Quartz:NewListSeasonCron"] ?? "0 0 0 1 1 ?";
             var newSeasonCron = configuration["Quartz:NewSeasonCron"] ?? "0 0 0 1 2-12 ?";
             var theBestWeekCron = configuration["Quartz:TheBestWeekCron"] ?? "0 0 0 ? * MON";
+            var vipStatusExpiryCron = configuration["Quartz:VipStatusExpiryCron"] ?? "0 0 * * * ?";
 
             services.AddQuartz(q =>
             {
@@ -83,6 +86,8 @@ namespace LooksRatingApi
 
                 q.AddJob<TheBestWeekRefreshJob>(opts => opts
                     .WithIdentity(TheBestWeekRefreshJob.JobName));
+                q.AddJob<VipStatusExpiryJob>(opts => opts
+                    .WithIdentity(VipStatusExpiryJob.JobName));
 
                 q.AddTrigger(opts => opts
                     .ForJob(NewListSeasonAddJob.JobName)
@@ -98,6 +103,11 @@ namespace LooksRatingApi
                     .ForJob(TheBestWeekRefreshJob.JobName)
                     .WithIdentity($"{TheBestWeekRefreshJob.JobName}-trigger")
                     .WithCronSchedule(theBestWeekCron));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(VipStatusExpiryJob.JobName)
+                    .WithIdentity($"{VipStatusExpiryJob.JobName}-trigger")
+                    .WithCronSchedule(vipStatusExpiryCron));
             });
 
             services.AddQuartzHostedService(options =>

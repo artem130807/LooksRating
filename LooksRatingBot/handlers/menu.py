@@ -1,17 +1,21 @@
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, LabeledPrice, Message, PreCheckoutQuery
+from aiogram.exceptions import TelegramBadRequest
+import logging
 
-from api.client import LooksRatingApiClient
+from api.client import ApiError, LooksRatingApiClient
 from bot import texts
 from bot.filters import NOT_DURING_RATING_OR_TICKET
-from bot.keyboards import MENU_MY_PHOTO, MENU_RATE, rating_flow_keyboard
-from bot.services import SessionState, format_city_display, format_rating_display, main_menu_for, send_main_menu, set_bot_state
+from bot.keyboards import MENU_ABOUT, MENU_RATE, MENU_SHOP, rating_flow_keyboard, shop_keyboard
+from bot.services import SessionState, format_api_error, main_menu_for, send_main_menu, set_bot_state
+from config import Settings
 from handlers.feed_setup import begin_feed_setup
-from handlers.photo import offer_photo_creation_prompt
 from handlers.rating import show_next_photo
 
 router = Router()
+VIP_PRODUCT_CODE = 1001
+logger = logging.getLogger(__name__)
 
 
 async def start_rating_after_feed_setup(
@@ -41,31 +45,82 @@ async def menu_rate(message: Message, state: FSMContext, api: LooksRatingApiClie
     await start_rating_after_feed_setup(message, state, api, telegram_id)
 
 
-@router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_MY_PHOTO)
-async def menu_my_photo(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
-    telegram_id = message.from_user.id
-    photo = await api.get_my_photo(telegram_id)
-    if not photo:
-        await offer_photo_creation_prompt(
-            message,
-            state,
-            api,
-            telegram_id,
-            texts.MY_PHOTO_EMPTY_OFFER,
-        )
+@router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_ABOUT)
+async def menu_about(message: Message, api: LooksRatingApiClient) -> None:
+    await message.answer(texts.BOT_INFO)
+
+
+@router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_SHOP)
+async def menu_shop(message: Message, api: LooksRatingApiClient) -> None:
+    await message.answer(texts.SHOP_MENU, reply_markup=shop_keyboard())
+
+
+@router.callback_query(F.data == "shop:vip:buy")
+async def shop_buy_vip(callback: CallbackQuery, api: LooksRatingApiClient) -> None:
+    settings = Settings.from_env()
+    try:
+        order = await api.create_payment_order(callback.from_user.id, VIP_PRODUCT_CODE)
+    except ApiError as exc:
+        await callback.answer(format_api_error(exc), show_alert=True)
         return
-    caption = texts.MY_PHOTO.format(
-        rating_line=format_rating_display(
-            float(photo.get("rating", 0)),
-            int(photo.get("ratingCount", 0)),
-        ),
-        rank=photo.get("rank", "—"),
-        city=format_city_display(photo.get("city")),
-        age=photo.get("age", "—"),
-        gender=photo.get("gender", "—"),
-    )
-    await message.answer_photo(
-        photo["telegramFileId"],
-        caption=caption,
-        reply_markup=await main_menu_for(api, telegram_id),
-    )
+    payload = order.get("payload")
+    amount = int(order.get("amountStars", 0))
+    if not payload or amount <= 0:
+        await callback.answer(texts.SHOP_VIP_BUY_UNAVAILABLE, show_alert=True)
+        return
+
+    invoice_kwargs = {
+        "title": order.get("productName", texts.SHOP_VIP_INVOICE_TITLE),
+        "description": texts.SHOP_VIP_INVOICE_DESCRIPTION,
+        "payload": payload,
+        "currency": order.get("currency", "XTR"),
+        "prices": [LabeledPrice(label="VIP", amount=amount)],
+        "start_parameter": f"vip_{order.get('productCode', VIP_PRODUCT_CODE)}",
+    }
+    token = settings.stars_provider_token.strip()
+    if token:
+        invoice_kwargs["provider_token"] = token
+
+    try:
+        await callback.bot.send_invoice(
+            chat_id=callback.from_user.id,
+            **invoice_kwargs,
+        )
+    except TelegramBadRequest as exc:
+        logger.warning("VIP invoice rejected for user %s: %s", callback.from_user.id, exc)
+        await callback.answer(texts.SHOP_VIP_BUY_UNAVAILABLE, show_alert=True)
+        return
+    except Exception as exc:
+        logger.exception("VIP invoice failed for user %s", callback.from_user.id, exc_info=exc)
+        await callback.answer(texts.SHOP_VIP_BUY_UNAVAILABLE, show_alert=True)
+        return
+
+    await callback.answer()
+
+
+@router.pre_checkout_query()
+async def shop_pre_checkout(pre_checkout_query: PreCheckoutQuery) -> None:
+    await pre_checkout_query.answer(ok=True)
+
+
+@router.message(F.successful_payment)
+async def shop_successful_payment(message: Message, api: LooksRatingApiClient) -> None:
+    payment = message.successful_payment
+    try:
+        await api.confirm_payment_order(
+            message.from_user.id,
+            payload=payment.invoice_payload,
+            telegram_payment_charge_id=payment.telegram_payment_charge_id,
+            provider_payment_charge_id=payment.provider_payment_charge_id,
+        )
+    except Exception:
+        await message.answer(texts.SHOP_VIP_PRECHECKOUT_FAILED)
+        return
+    await message.answer(texts.SHOP_VIP_PAID, reply_markup=await main_menu_for(api, message.from_user.id))
+
+
+@router.callback_query(F.data == "shop:menu")
+async def shop_back_menu(callback: CallbackQuery, api: LooksRatingApiClient) -> None:
+    if callback.message:
+        await send_main_menu(callback.message, api, callback.from_user.id, texts.MAIN_MENU)
+    await callback.answer()

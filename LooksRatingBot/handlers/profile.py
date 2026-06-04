@@ -1,5 +1,6 @@
 from aiogram import F, Router
 from aiogram.types import Message
+from aiogram.types import InputMediaPhoto
 
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
@@ -10,7 +11,6 @@ from bot.services import (
     format_city_display,
     format_feed_age_range,
     format_rating_display,
-    main_menu_for,
     send_main_menu,
 )
 
@@ -41,30 +41,34 @@ async def show_profile(message: Message, api: LooksRatingApiClient) -> None:
     except ApiError:
         pass
 
-    has_photo = bool(user.get("hasPhoto"))
+    payload = await api.get_my_photo(telegram_id) if user.get("hasPhoto") else None
+    photos = list((payload or {}).get("photos") or [])
+    has_photo = len(photos) > 0
     text = texts.PROFILE.format(
         display_name=user.get("displayName") or "—",
         photo="есть" if has_photo else "нет",
+        vip_status="активен" if user.get("hasVip") else "не активен",
     ) + stats_line
 
     if has_photo:
-        photo = await api.get_my_photo(telegram_id)
-        if photo:
+        first = photos[0]
+        if first:
             text += "\n\n" + texts.PROFILE_PHOTO_STATS.format(
                 rating_line=format_rating_display(
-                    float(photo.get("rating", 0)),
-                    int(photo.get("ratingCount", 0)),
+                    float(first.get("rating", 0)),
+                    int(first.get("ratingCount", 0)),
                 ),
-                rank=photo.get("rank", "—"),
-                city=format_city_display(photo.get("city")),
-                age=photo.get("age", "—"),
-                gender=photo.get("gender", "—"),
+                rank=first.get("rank", "—"),
+                city=format_city_display(first.get("city")),
+                age=first.get("age", "—"),
+                gender=first.get("gender", "—"),
             )
-            await message.answer_photo(
-                photo["telegramFileId"],
-                caption=text,
-                reply_markup=await main_menu_for(api, telegram_id),
-            )
+            media = [InputMediaPhoto(media=first["telegramFileId"], caption=text)]
+            for photo in photos[1:]:
+                file_id = photo.get("telegramFileId")
+                if file_id:
+                    media.append(InputMediaPhoto(media=file_id))
+            await message.answer_media_group(media)
             return
 
     await send_main_menu(message, api, telegram_id, text)

@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Contracts.UserTicketContracts;
 using LooksRatingApi.Models;
@@ -11,15 +12,18 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
     {
         private readonly IUserRepository _userRepository;
         private readonly IUserTicketRepository _userTicketRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ICreateUserTicketValidator _validator;
 
         public CreateUserTicketCommandHandler(
             IUserRepository userRepository,
             IUserTicketRepository userTicketRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ICreateUserTicketValidator validator)
         {
             _userRepository = userRepository;
             _userTicketRepository = userTicketRepository;
+            _photoProfileRepository = photoProfileRepository;
             _validator = validator;
         }
 
@@ -39,6 +43,12 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
                 return Result.Failure<CreateUserTicketResult>(CreateUserTicketErrors.ReporterNotFound);
             }
 
+            var profile = await _photoProfileRepository.GetByIdAsync(request.PhotoProfileId, cancellationToken);
+            if (profile is null)
+            {
+                return Result.Failure<CreateUserTicketResult>(CreateUserTicketErrors.PhotoProfileNotFound);
+            }
+
             var occuredAt = DateTime.UtcNow;
             var ticket = new UserTicket
             {
@@ -46,7 +56,7 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
                 Description = request.Description.Trim(),
                 OccuredAt = occuredAt,
                 UserId = reporter.Id,
-                PhotoUserId = request.PhotoUserId
+                PhotoProfileId = request.PhotoProfileId
             };
 
             await _userTicketRepository.Create(ticket);
@@ -55,7 +65,7 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
             {
                 TicketId = ticket.Id,
                 ReporterUserId = reporter.Id,
-                PhotoUserId = request.PhotoUserId,
+                PhotoProfileId = request.PhotoProfileId,
                 OccuredAt = occuredAt
             });
         }

@@ -11,16 +11,16 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
     public sealed class GetMyPhotoHandler : IRequestHandler<GetMyPhotoQuery, Result<GetMyPhotoResponse>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
 
         public GetMyPhotoHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
         }
 
@@ -45,27 +45,34 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
                 return Result.Failure<GetMyPhotoResponse>(SetUserPhotoErrors.CurrentSeasonNotFound);
             }
 
-            var photo = await _photoUserRepository.GetByTelegramIdAndSeasonIdAsync(
-                request.TelegramId,
+            var profile = await _photoProfileRepository.GetByUserAndSeasonAsync(
+                user.Id,
                 season.Id,
                 cancellationToken);
-            if (photo is null)
+            if (profile is null)
             {
                 return Result.Failure<GetMyPhotoResponse>("PhotoNotFound");
             }
 
             return Result.Success(new GetMyPhotoResponse
             {
-                Id = photo.Id,
-                UserId = photo.UserId,
-                TelegramFileId = photo.TelegramFileId,
-                Rating = photo.Rating,
-                RatingCount = photo.RatingCount,
-                Rank = RankDisplay.GetSticker(photo.Rank),
-                Gender = GenderDisplay.GetGender(photo.GenderNomination),
-                Age = photo.AgeNomination,
-                City = photo.CityNomination.Value ?? string.Empty,
-                SeasonId = photo.SeasonId
+                ProfileId = profile.Id,
+                UserId = user.Id,
+                SeasonId = season.Id,
+                Photos = profile.Photos
+                    .OrderBy(x => x.SortOrder)
+                    .Select(item => new GetMyPhotoItem
+                    {
+                        Id = item.Id,
+                        TelegramFileId = item.TelegramFileId,
+                        Rating = profile.Rating,
+                        RatingCount = profile.RatingCount,
+                        Rank = RankDisplay.GetSticker(profile.Rank),
+                        Gender = GenderDisplay.GetGender(profile.GenderNomination),
+                        Age = profile.AgeNomination,
+                        City = profile.CityNomination.Value ?? string.Empty,
+                    })
+                    .ToList(),
             });
         }
     }

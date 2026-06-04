@@ -6,6 +6,7 @@ using LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhotoBySeason;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetPhotoUserById;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosId;
+using LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestVipPhotos;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos;
@@ -45,6 +46,11 @@ namespace LooksRatingApi.Controllers
                     return Conflict(new { error = result.Error });
                 }
 
+                if (result.Error == SetUserPhotoErrors.PhotoUploadInProgress)
+                {
+                    return Conflict(new { error = result.Error });
+                }
+
                 return BadRequest(new { error = result.Error });
             }
 
@@ -62,7 +68,31 @@ namespace LooksRatingApi.Controllers
             {
                 if (result.Error is SetUserPhotoErrors.UserNotFound
                     or SetUserPhotoErrors.CurrentSeasonNotFound
-                    or RecreateUserPhotoErrors.PhotoNotFound)
+                    or RecreateUserPhotoErrors.PhotoNotFound
+                    or RecreateUserPhotoErrors.TargetPhotoNotFound)
+                {
+                    return NotFound(new { error = result.Error });
+                }
+
+                return BadRequest(new { error = result.Error });
+            }
+
+            return Ok(result.Value);
+        }
+
+        [HttpPost("recreate_all_photos")]
+        public async Task<IActionResult> RecreateAllPhotos(
+            [FromBody] RecreateAllUserPhotosRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(new RecreateAllUserPhotosCommand(request), cancellationToken);
+
+            if (result.IsFailure)
+            {
+                if (result.Error is SetUserPhotoErrors.UserNotFound
+                    or SetUserPhotoErrors.CurrentSeasonNotFound
+                    or RecreateUserPhotoErrors.PhotoNotFound
+                    or RecreateUserPhotoErrors.TargetPhotoNotFound)
                 {
                     return NotFound(new { error = result.Error });
                 }
@@ -203,13 +233,35 @@ namespace LooksRatingApi.Controllers
             }
             return Ok(result.Value);
         }
-        [HttpGet("get_thebestWeek_photos")]
-        public async Task<IActionResult> GetTheBestWeekPhotos([FromQuery] GetTheBestWeeksRequest request, CancellationToken cancellationToken)
+
+        [HttpGet("get_thebestvip_photos")]
+        public async Task<IActionResult> GetTheBestVipPhotos(
+            [FromQuery] GetTheBestVipPhotosRequest request,
+            CancellationToken cancellationToken)
         {
-            var query = new GetTheBestWeeksQuery(request.TelegramId);
+            var query = new GetTheBestVipPhotosQuery(
+                request.TelegramId,
+                request.GenderEnum,
+                request.Age);
             var result = await _sender.Send(query, cancellationToken);
             if (result.IsFailure)
             {
+                return BadRequest(new { error = result.Error });
+            }
+
+            return Ok(result.Value);
+        }
+        [HttpGet("get_thebestWeek_photos")]
+        public async Task<IActionResult> GetTheBestWeekPhotos([FromQuery] GetTheBestWeeksRequest request, CancellationToken cancellationToken)
+        {
+            var query = new GetTheBestWeeksQuery(request.TelegramId, request.GenderEnum, request.Age);
+            var result = await _sender.Send(query, cancellationToken);
+            if (result.IsFailure)
+            {
+                if (result.Error == SetUserPhotoErrors.UserNotFound)
+                {
+                    return NotFound(new { error = result.Error });
+                }
                 return BadRequest(new { error = result.Error });
             }
             return Ok(result.Value);

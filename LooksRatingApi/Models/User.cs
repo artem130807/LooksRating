@@ -14,6 +14,7 @@ namespace LooksRatingApi.Models
         public VipStatus Status {get; set;} = VipStatus.Unavaillable;
         public RecomendationSettings? RecomendationSettings { get; set; }
         public ICollection<PhotoUser> PhotoUsers { get; set; } = new List<PhotoUser>();
+        public ICollection<PhotoProfile> PhotoProfiles { get; set; } = new List<PhotoProfile>();
         public ICollection<UserTicket> UserTickets { get; set; } = new List<UserTicket>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public void UpdateVipStatus() => Status = VipStatus.Availlable;

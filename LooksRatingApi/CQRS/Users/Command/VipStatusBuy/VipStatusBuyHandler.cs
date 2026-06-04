@@ -30,10 +30,13 @@ namespace LooksRatingApi.CQRS.Users.Command.VipStatusBuy
                 try
                 {
                     user.UpdateVipStatus();
+                    await _userRepository.SaveChangesAsync();
+                    await transaction.CommitAsync(cancellationToken);
                 }catch(Exception ex)
                 {
-                    await transaction.RollbackAsync();
-                    _logger.LogError(ex.Message);
+                    await transaction.RollbackAsync(cancellationToken);
+                    _logger.LogError(ex, "Ошибка обновления VIP-статуса");
+                    return new VipStatusBuyResponse{Message = "Статус не обновлен", Result = false};
                 }
                 return new VipStatusBuyResponse{Message = "Статус успешно обновлен", Result = true};
             }

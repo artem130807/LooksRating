@@ -14,6 +14,6 @@ namespace LooksRatingApi.Contracts.UserTicketContracts
         Task<UserTicket?> GetTicketById(Guid Id);
         Task<UserTicket?> GetTicketByTelegramId(long telegramId);
         Task<List<UserTicket>> GetTicketsByUsersCity(string city);
-        Task<bool> ExistsByReporterAndPhoto(Guid reporterUserId, Guid photoUserId);
+        Task<bool> ExistsByReporterAndProfile(Guid reporterUserId, Guid photoProfileId);
     }
 }

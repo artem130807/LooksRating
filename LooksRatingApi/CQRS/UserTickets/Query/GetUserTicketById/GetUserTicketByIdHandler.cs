@@ -34,9 +34,12 @@ namespace LooksRatingApi.CQRS.UserTickets.Query.GetUserTicketById
                 ReporterTelegramId = ticket.User.TelegramId,
                 ReporterDisplayName = UserPublicDisplayName.Resolve(ticket.User),
                 ReporterCity = ticket.User.RecomendationSettings?.City.Value ?? string.Empty,
-                PhotoUserId = ticket.PhotoUserId,
-                PhotoTelegramFileId = ticket.PhotoUser.TelegramFileId,
-                PhotoOwnerUserId = ticket.PhotoUser.UserId
+                PhotoProfileId = ticket.PhotoProfileId,
+                PhotoTelegramFileIds = ticket.PhotoProfile.Photos
+                    .OrderBy(p => p.SortOrder)
+                    .Select(p => p.TelegramFileId)
+                    .ToList(),
+                PhotoOwnerUserId = ticket.PhotoProfile.UserId
             });
         }
     }

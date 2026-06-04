@@ -33,5 +33,12 @@ namespace LooksRatingApi.Services
                     p.GenderNomination == GenderEnum.Male
                     || p.GenderNomination == GenderEnum.Female)
                 : query.Where(p => p.GenderNomination == preference);
+
+        public static IQueryable<PhotoProfile> ApplyFilter(IQueryable<PhotoProfile> query, GenderEnum preference) =>
+            preference == GenderEnum.MaleFamale
+                ? query.Where(p =>
+                    p.GenderNomination == GenderEnum.Male
+                    || p.GenderNomination == GenderEnum.Female)
+                : query.Where(p => p.GenderNomination == preference);
     }
 }

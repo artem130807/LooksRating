@@ -11,16 +11,16 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
     public class GetUserPhotosHandler : IRequestHandler<GetUserPhotosQuery, Result<GetUserPhotosResponse>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IPhotoRecommendationService _photoRecommendationService;
 
         public GetUserPhotosHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IPhotoRecommendationService photoRecommendationService)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _photoRecommendationService = photoRecommendationService;
         }
 
@@ -46,40 +46,42 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
                 return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.RecommendationSettingsIncomplete);
             }
 
-            var photoId = await _photoRecommendationService.GetNextUnratedPhotoIdAsync(
+            var profileIds = await _photoRecommendationService.GetNextUnratedProfileIdsAsync(
                 user.Id,
                 settings.Gender,
                 settings.Age!.Value,
                 feedCity);
 
-            if (photoId is null)
+            if (profileIds.Count == 0)
             {
                 return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.NoPhotosAvailable);
             }
 
-            var photo = await _photoUserRepository.GePhotoUserById(photoId.Value);
-            if (photo is null)
+            var profile = await _photoProfileRepository.GetByIdAsync(profileIds[0], cancellationToken);
+            if (profile is null)
             {
-                return Result.Failure<GetUserPhotosResponse>(CreateReviewErrors.PhotoUserNotFound);
-            }
-
-            if (photo.UserId == user.Id)
-            {
-                return Result.Failure<GetUserPhotosResponse>(CreateReviewErrors.SelfReviewIsNotAllowed);
+                return Result.Failure<GetUserPhotosResponse>(CreateReviewErrors.PhotoProfileNotFound);
             }
 
             return Result.Success(new GetUserPhotosResponse
             {
-                Id = photo.Id,
-                TelegramFileId = photo.TelegramFileId,
-                Rank = RankDisplay.GetSticker(photo.Rank),
-                Rating = photo.Rating,
-                RatingCount = photo.RatingCount,
-                UserId = photo.UserId,
-                Gender = GenderDisplay.GetGender(photo.GenderNomination),
-                Age = photo.AgeNomination,
-                City = photo.CityNomination.Value ?? string.Empty,
-                DisplayName = UserPublicDisplayName.Resolve(photo.User),
+                ProfileId = profile.Id,
+                Rank = RankDisplay.GetSticker(profile.Rank),
+                Rating = profile.Rating,
+                RatingCount = profile.RatingCount,
+                UserId = profile.UserId,
+                Gender = GenderDisplay.GetGender(profile.GenderNomination),
+                Age = profile.AgeNomination,
+                City = profile.CityNomination.Value ?? string.Empty,
+                DisplayName = UserPublicDisplayName.Resolve(profile.User),
+                Photos = profile.Photos
+                    .OrderBy(x => x.SortOrder)
+                    .Select(photo => new GetUserPhotosItem
+                    {
+                        Id = photo.Id,
+                        TelegramFileId = photo.TelegramFileId
+                    })
+                    .ToList(),
             });
         }
     }

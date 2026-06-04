@@ -8,16 +8,16 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
     public sealed class SetUserPhotoValidator : ISetUserPhotoValidator
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
 
         public SetUserPhotoValidator(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
         }
 
@@ -50,11 +50,11 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
                 return Result.Failure<string>(SetUserPhotoErrors.CurrentSeasonNotFound);
             }
 
-            var existingPhoto = await _photoUserRepository.GetByTelegramIdAndSeasonIdAsync(
-                command.request.TelegramId,
+            var profile = await _photoProfileRepository.GetByUserAndSeasonAsync(
+                user.Id,
                 season.Id,
                 cancellationToken);
-            if (existingPhoto is not null)
+            if (profile is not null && user.Status == Enums.VipStatus.Unavaillable)
             {
                 return Result.Failure<string>(SetUserPhotoErrors.PhotoAlreadyExists);
             }

@@ -8,6 +8,18 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
 {
     public interface IPhotoRecommendationService
     {
-        Task<Guid?> GetNextUnratedPhotoIdAsync(Guid reviewerUserId, GenderEnum genderEnum, int age, string city, double? lastScore = null);
+        Task<Guid?> GetNextUnratedProfileIdAsync(
+            Guid reviewerUserId,
+            GenderEnum genderEnum,
+            int age,
+            string city,
+            double? lastScore = null);
+
+        Task<List<Guid>> GetNextUnratedProfileIdsAsync(
+            Guid reviewerUserId,
+            GenderEnum genderEnum,
+            int age,
+            string city,
+            double? lastScore = null);
     }
 }

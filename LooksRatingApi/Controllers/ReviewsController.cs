@@ -20,14 +20,14 @@ namespace LooksRatingApi.Controllers
         {
             var command = new CreateReviewCommand(
                 request.ReviewerTelegramId,
-                request.PhotoUserId,
+                request.PhotoProfileId,
                 request.Rating);
 
             var result = await _sender.Send(command, cancellationToken);
             if (result.IsFailure)
             {
                 if (result.Error == CreateReviewErrors.ReviewerNotFound
-                    || result.Error == CreateReviewErrors.PhotoUserNotFound)
+                    || result.Error == CreateReviewErrors.PhotoProfileNotFound)
                 {
                     return NotFound(new { error = result.Error });
                 }

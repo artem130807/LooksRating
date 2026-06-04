@@ -14,11 +14,7 @@ namespace LooksRatingApi.Contracts.ReviewContracts
         Task Update(Review review);
         Task<Review?> GetReviewById(Guid Id);
         Task<List<Review>> GetReviewsByTelegramId(long telegramId);
-        Task<bool> ExistsByUserAndPhoto(Guid userId, Guid photoUserId);
-        Task<HashSet<Guid>> GetReviewedPhotoUserIdsAsync(
-            Guid userId,
-            IReadOnlyCollection<Guid> photoUserIds,
-            CancellationToken cancellationToken = default);
-        Task<Review?> GetByUserAndPhotoAsync(Guid userId, Guid photoUserId, CancellationToken cancellationToken = default);
+        Task<bool> ExistsByUserAndProfile(Guid userId, Guid photoProfileId);
+        Task<Review?> GetByUserAndProfileAsync(Guid userId, Guid photoProfileId, CancellationToken cancellationToken = default);
     }
 }

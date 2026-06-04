@@ -59,9 +59,34 @@ namespace LooksRatingApi.Repositories
         {
             return await _context.PhotoUsers
                 .Include(x => x.User)
-                .FirstOrDefaultAsync(
-                    x => x.User.TelegramId == telegramId && x.SeasonId == seasonId,
-                    cancellationToken);
+                .Where(x => x.User.TelegramId == telegramId && x.SeasonId == seasonId)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<List<PhotoUser>> GetByTelegramIdAndSeasonIdListAsync(
+            long telegramId,
+            Guid seasonId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.PhotoUsers
+                .Include(x => x.User)
+                .Where(x => x.User.TelegramId == telegramId && x.SeasonId == seasonId)
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<List<Guid>> GetActivePhotoIdsByUserAndSeasonAsync(
+            Guid userId,
+            Guid seasonId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.PhotoUsers
+                .AsNoTracking()
+                .Where(x => x.UserId == userId && x.SeasonId == seasonId && x.Status == StatusEnum.Active)
+                .OrderByDescending(x => x.CreatedAt)
+                .Select(x => x.Id)
+                .ToListAsync(cancellationToken);
         }
 
         // public async Task<List<PhotoUser>> GetPhotoUsers(Guid userId, PhotoFilter filter)
@@ -122,12 +147,25 @@ namespace LooksRatingApi.Repositories
             }
 
             var total = await query.CountAsync(cancellationToken);
-            var items = await query
-                .OrderByDescending(p => p.Rating)
-                .ThenByDescending(p => p.RatingCount)
+            var scoredItems = await query
+                .Select(p => new
+                {
+                    Photo = p,
+                    HasVotes = p.RatingCount > 0 ? 1 : 0,
+                    Score = p.RatingCount > 0
+                        ? ((p.Rating * p.RatingCount) + (PhotoRankingScore.PriorMean * PhotoRankingScore.PriorWeight))
+                            / (p.RatingCount + PhotoRankingScore.PriorWeight)
+                        : PhotoRankingScore.UnratedScore,
+                })
+                .OrderByDescending(x => x.HasVotes)
+                .ThenByDescending(x => x.Score)
+                .ThenByDescending(x => x.Photo.Rating)
+                .ThenByDescending(x => x.Photo.RatingCount)
+                .ThenByDescending(x => x.Photo.CreatedAt)
                 .Skip(skip)
                 .Take(take)
                 .ToListAsync(cancellationToken);
+            var items = scoredItems.Select(x => x.Photo).ToList();
 
             return (items, total);
         }
@@ -167,11 +205,26 @@ namespace LooksRatingApi.Repositories
             CancellationToken cancellationToken = default)
         {
             return await BuildFeedQuery(seasonId, reviewerUserId, cityNomination, gender, age)
-                .OrderByDescending(p => p.Rating)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Rating,
+                    p.RatingCount,
+                    p.CreatedAt,
+                    HasVotes = p.RatingCount > 0 ? 1 : 0,
+                    Score = p.RatingCount > 0
+                        ? ((p.Rating * p.RatingCount) + (PhotoRankingScore.PriorMean * PhotoRankingScore.PriorWeight))
+                            / (p.RatingCount + PhotoRankingScore.PriorWeight)
+                        : PhotoRankingScore.UnratedScore,
+                })
+                .OrderByDescending(p => p.HasVotes)
+                .ThenByDescending(p => p.Score)
+                .ThenByDescending(p => p.Rating)
                 .ThenByDescending(p => p.RatingCount)
+                .ThenByDescending(p => p.CreatedAt)
                 .Skip(skip)
-                .Select(p => p.Id)
                 .Take(take)
+                .Select(p => p.Id)
                 .ToListAsync(cancellationToken);
         }
 
@@ -235,17 +288,30 @@ namespace LooksRatingApi.Repositories
             DateTime periodEnd,
             CancellationToken cancellationToken)
         {
-            return await _context.PhotoUsers
+            var scoredItems = await _context.PhotoUsers
                 .AsNoTracking()
                 .Include(p => p.User)
                 .Where(p => p.Status == Enums.StatusEnum.Active
                     && p.CityNomination.Value == city
                     && p.CreatedAt >= periodStart
                     && p.CreatedAt < periodEnd)
-                .OrderByDescending(p => p.Rating)
-                .ThenByDescending(p => p.RatingCount)
+                .Select(p => new
+                {
+                    Photo = p,
+                    HasVotes = p.RatingCount > 0 ? 1 : 0,
+                    Score = p.RatingCount > 0
+                        ? ((p.Rating * p.RatingCount) + (PhotoRankingScore.PriorMean * PhotoRankingScore.PriorWeight))
+                            / (p.RatingCount + PhotoRankingScore.PriorWeight)
+                        : PhotoRankingScore.UnratedScore,
+                })
+                .OrderByDescending(x => x.HasVotes)
+                .ThenByDescending(x => x.Score)
+                .ThenByDescending(x => x.Photo.Rating)
+                .ThenByDescending(x => x.Photo.RatingCount)
+                .ThenByDescending(x => x.Photo.CreatedAt)
                 .Take(take)
                 .ToListAsync(cancellationToken);
+            return scoredItems.Select(x => x.Photo).ToList();
         }
 
         public async Task<List<Guid>> GetPhotoIdsBatch(Guid seasonId, int skip, int take)
@@ -290,16 +356,19 @@ namespace LooksRatingApi.Repositories
             if(photos == null)
                 return new List<PhotoUser>();
             return photos.Where(p => TopService.MatchesAge(age, p.AgeNomination))
-            .OrderByDescending(x => x.Rating)
+            .OrderByDescending(x => x.RatingCount > 0 ? 1 : 0)
+            .ThenByDescending(x => PhotoRankingScore.ToRankScore(x.Rating, x.RatingCount))
+            .ThenByDescending(x => x.Rating)
             .ThenByDescending(x => x.RatingCount)
+            .ThenByDescending(x => x.CreatedAt)
             .Take(10)
             .ToList();
         }
 
-        public async Task<bool> IsNotThreePhotosSeasonVip(Guid seasonId, long telegramId)
+        public async Task<bool> IsWithinVipPhotoLimitAsync(Guid seasonId, long telegramId)
         {
             var photos = await _context.PhotoUsers
-            .Where(p => p.SeasonId == seasonId && p.User.TelegramId == telegramId)
+            .Where(p => p.SeasonId == seasonId && p.User.TelegramId == telegramId && p.User.Status == VipStatus.Availlable)
             .ToListAsync();
             if(photos.Count < 4)
                 return true;

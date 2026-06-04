@@ -468,4 +468,13 @@ E:/AAAAA1111222C#/LooksRating/LooksRatingApi/obj/Debug/net9.0/ref/LooksRatingApi
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/LooksRatingApi.pdb
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/LooksRatingApi.genruntimeconfig.cache
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/ref/LooksRatingApi.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Google.Protobuf.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Grpc.AspNetCore.Server.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Grpc.AspNetCore.Server.ClientFactory.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Grpc.Core.Api.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Grpc.Net.Client.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Grpc.Net.ClientFactory.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Grpc.Net.Common.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/LooksRating.Contracts.dll
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/LooksRating.Contracts.pdb
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/swae.build.ex.cache

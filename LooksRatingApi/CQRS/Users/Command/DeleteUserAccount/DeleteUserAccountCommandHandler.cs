@@ -12,23 +12,20 @@ namespace LooksRatingApi.CQRS.Users.Command.DeleteUserAccount
         : IRequestHandler<DeleteUserAccountCommand, Result<Unit>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IReviewRepository _reviewRepository;
         private readonly IUserSessionRepository _userSessionRepository;
-        private readonly IPhotoUserLifecycleService _photoUserLifecycleService;
 
         public DeleteUserAccountCommandHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IReviewRepository reviewRepository,
-            IUserSessionRepository userSessionRepository,
-            IPhotoUserLifecycleService photoUserLifecycleService)
+            IUserSessionRepository userSessionRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _reviewRepository = reviewRepository;
             _userSessionRepository = userSessionRepository;
-            _photoUserLifecycleService = photoUserLifecycleService;
         }
 
         public async Task<Result<Unit>> Handle(
@@ -46,16 +43,13 @@ namespace LooksRatingApi.CQRS.Users.Command.DeleteUserAccount
                 return Result.Failure<Unit>(DeleteUserAccountErrors.UserNotFound);
             }
 
-            var photoUsers = await _photoUserRepository.GetByUserIdWithSeasonAsync(
+            var profiles = await _photoProfileRepository.GetByUserIdWithSeasonAsync(
                 user.Id,
                 cancellationToken);
 
-            foreach (var photoUser in photoUsers)
+            foreach (var profile in profiles)
             {
-                await _photoUserLifecycleService.RemoveAsync(
-                    photoUser,
-                    photoUser.Season,
-                    cancellationToken);
+                await _photoProfileRepository.DeleteAsync(profile.Id, cancellationToken);
             }
 
             await _reviewRepository.DeleteByUserIdAsync(user.Id, cancellationToken);

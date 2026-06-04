@@ -8,12 +8,15 @@ using LooksRatingApi.Contracts.RecomendationSettingsContracts;
 using LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationSettings;
 using LooksRatingApi.Contracts.UserSessionContracts;
 using LooksRatingApi.Contracts.UserTicketContracts;
+using LooksRatingApi.Contracts.ProductContracts;
+using LooksRatingApi.Contracts.PaymentOrderContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.ListSeasonsContracts;
 using LooksRatingApi.Cqrs.Reviews.Command.CreateReview;
 using LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
+using LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestVipPhotos;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos;
 using LooksRatingApi.CQRS.Users.Command.UpdateUserAge;
@@ -28,6 +31,7 @@ using MediatR;
 using StackExchange.Redis;
 using System.Text.Json.Serialization;
 using LooksRatingApi.Services.BackGroundServices.Handlers;
+using LooksRatingApi.Services.GrpcService;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -35,6 +39,7 @@ var configuration = builder.Configuration;
 builder.ConfigureHost();
 
 builder.Services.AddDb(configuration);
+builder.Services.AddGrpc();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
@@ -54,13 +59,17 @@ builder.Services.AddScoped<IUserSessionRepository, UserSessionRepository>();
 builder.Services.AddScoped<IUserTicketRepository, UserTicketRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IPhotoUserRepository, PhotoUserRepository>();
+builder.Services.AddScoped<IPhotoProfileRepository, PhotoProfileRepository>();
 builder.Services.AddScoped<ITheBestWeekRepository, TheBestWeekRepository>();
 builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
 builder.Services.AddScoped<IListSeasonsRepository, ListSeasonsRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IPaymentOrderRepository, PaymentOrderRepository>();
 builder.Services.AddScoped<IUserRegisterValidator, UserRegisterValidator>();
 builder.Services.AddScoped<IUpdateGenderUserValidator, UpdateGenderUserValidator>();
 builder.Services.AddScoped<ISetUserPhotoValidator, SetUserPhotoValidator>();
 builder.Services.AddScoped<IRecreateUserPhotoValidator, RecreateUserPhotoValidator>();
+builder.Services.AddScoped<IRecreateAllUserPhotosValidator, RecreateAllUserPhotosValidator>();
 builder.Services.AddScoped<IPhotoUserLifecycleService, PhotoUserLifecycleService>();
 builder.Services.AddScoped<IUpdateUserCityValidator, UpdateUserCityValidator>();
 builder.Services.AddScoped<IUpdateUserAgeValidator, UpdateUserAgeValidator>();
@@ -69,11 +78,17 @@ builder.Services.AddScoped<ICreateReviewValidator, CreateReviewValidator>();
 builder.Services.AddScoped<ICreateUserTicketValidator, CreateUserTicketValidator>();
 builder.Services.AddScoped<IGetTopUserPhotosValidator, GetTopUserPhotosValidator>();
 builder.Services.AddScoped<IGetTheBestWeekPhotosNowValidator, GetTheBestWeekPhotosNowValidator>();
+builder.Services.AddScoped<IGetTheBestVipPhotosValidator, GetTheBestVipPhotosValidator>();
 builder.Services.AddScoped<INormalizeCityNameService, NormalizeCityNameService>();
 builder.Services.AddScoped<IRankService, RankService>();
 builder.Services.AddScoped<IUpdateRatingPhotoService, UpdateRatingPhotoService>();
 builder.Services.AddScoped<IPhotoRatingCacheService, PhotoRatingCacheService>();
 builder.Services.AddScoped<IPhotoTopReadService, PhotoTopReadService>();
+builder.Services.AddScoped<IVipTopCategoryService, VipTopCategoryService>();
+builder.Services.AddScoped<IVipExpirationReadService, VipExpirationReadService>();
+builder.Services.AddScoped<IVipStatusExtensionService, VipStatusExtensionService>();
+builder.Services.AddScoped<IVipTopRewardOrchestrator, VipTopRewardOrchestrator>();
+builder.Services.AddScoped<IGetTopVipService, GetTopVipService>();
 builder.Services.AddScoped<IAddPhotoUsersCacheHandler, AddPhotoUsersCacheHandler>();
 
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
@@ -89,7 +104,6 @@ builder.Services.AddBackGroundService(configuration);
 builder.Services.AddQuartz(configuration);
 
 var app = builder.Build();
-
 await app.InitializeApplicationAsync();
 app.ConfigureApplicationPipeline();
 

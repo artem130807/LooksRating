@@ -5,11 +5,10 @@ using System.Threading.Tasks;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
+using LooksRatingApi.Enums;
 using LooksRatingApi.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Newtonsoft.Json;
 using StackExchange.Redis;
 
 namespace LooksRatingApi.Services.BackGroundServices.Handlers
@@ -18,7 +17,6 @@ namespace LooksRatingApi.Services.BackGroundServices.Handlers
     {
         private readonly LooksRatingDbContext _context;
         private readonly ILogger<AddPhotoUsersCacheHandler> _logger;
-        private readonly IConnectionMultiplexer _redis;
         private readonly IDatabase _db;
         private readonly IMemoryCache _memoryCache;
         private readonly INormalizeCityNameService _normalizeCityNameService;
@@ -27,7 +25,6 @@ namespace LooksRatingApi.Services.BackGroundServices.Handlers
         {
             _context = context;
             _logger = logger;
-            _redis = redis;
             _db = redis.GetDatabase();
             _memoryCache = memoryCache;
             _normalizeCityNameService = normalizeCityNameService;
@@ -52,8 +49,6 @@ namespace LooksRatingApi.Services.BackGroundServices.Handlers
                     return;
                 }
 
-                var tempKey = "photos:by_date_temp";
-                var tempRatingKey = "photos:by_rating_temp";
                 var cacheKey  = "key_cities_names";
                 if (!_memoryCache.TryGetValue<HashSet<string>>(cacheKey, out var cityNames) || cityNames is null)
                 {
@@ -62,53 +57,29 @@ namespace LooksRatingApi.Services.BackGroundServices.Handlers
                 const int batchSize = 5000;
                 foreach (var cityName in cityNames)
                 {
-                    await _db.KeyDeleteAsync(tempKey);
-                    var skip = 0;
-                    var hasMore = true;
-                    var totalForCity = 0;
-                    while (hasMore)
-                    {
-                        var batch = await _context.PhotoUsers
-                            .AsNoTracking()
-                            .Where(p => p.CityNomination.Value == cityName)
-                            .OrderByDescending(p => p.CreatedAt)
-                            .Skip(skip)
-                            .Take(batchSize)
-                            .Select(p => new { p.Id, p.CreatedAt })
-                            .ToListAsync(cancellationToken);
-
-                        if (batch.Count == 0)
-                            break;
-
-                        var entries = batch.Select(p => new SortedSetEntry(
-                            p.Id.ToString(),
-                            p.CreatedAt.Ticks
-                        )).ToArray();
-
-                        await _db.SortedSetAddAsync(tempKey, entries);
-
-                        totalForCity += batch.Count;
-                        skip += batchSize;
-                        hasMore = batch.Count == batchSize;
-                    }
-
-                    var cityKey = _normalizeCityNameService.Normalize(cityName);
-                    var destKey = PhotoRedisKeys.RatingSortedSet(cityKey, season.Id);
-                    if (await _db.KeyExistsAsync(tempKey))
-                        await _db.KeyRenameAsync(tempKey, destKey);
-                    else
-                        await _db.KeyDeleteAsync(destKey);
-
+                    var normalizedCity = _normalizeCityNameService.Normalize(cityName);
+                    var destRatingKey = PhotoRedisKeys.RatingSortedSet(normalizedCity, season.Id);
+                    var tempRatingKey = $"profiles:rating:temp:{normalizedCity}:{season.Id:N}";
                     await _db.KeyDeleteAsync(tempRatingKey);
+
                     var skipRating = 0;
                     var hasMoreRating = true;
+                    var totalForCity = 0;
                     while (hasMoreRating)
                     {
-                        var ratingBatch = await _context.PhotoUsers
+                        var ratingBatch = await _context.PhotoProfiles
                             .AsNoTracking()
+                            .Where(p => p.SeasonId == season.Id)
+                            .Where(p => p.Status == StatusEnum.Active)
                             .Where(p => p.CityNomination.Value == cityName)
-                            .OrderByDescending(p => p.Rating)
+                            .OrderByDescending(p => p.RatingCount > 0 ? 1 : 0)
+                            .ThenByDescending(p => p.RatingCount > 0
+                                ? ((p.Rating * p.RatingCount) + (PhotoRankingScore.PriorMean * PhotoRankingScore.PriorWeight))
+                                    / (p.RatingCount + PhotoRankingScore.PriorWeight)
+                                : PhotoRankingScore.UnratedScore)
+                            .ThenByDescending(p => p.Rating)
                             .ThenByDescending(p => p.RatingCount)
+                            .ThenByDescending(p => p.CreatedAt)
                             .Skip(skipRating)
                             .Take(batchSize)
                             .Select(p => new { p.Id, p.Rating, p.RatingCount })
@@ -124,11 +95,11 @@ namespace LooksRatingApi.Services.BackGroundServices.Handlers
 
                         await _db.SortedSetAddAsync(tempRatingKey, ratingEntries);
 
+                        totalForCity += ratingBatch.Count;
                         skipRating += batchSize;
                         hasMoreRating = ratingBatch.Count == batchSize;
                     }
 
-                    var destRatingKey = PhotoRedisKeys.RatingSortedSet(cityKey, season.Id);
                     if (await _db.KeyExistsAsync(tempRatingKey))
                         await _db.KeyRenameAsync(tempRatingKey, destRatingKey);
                     else

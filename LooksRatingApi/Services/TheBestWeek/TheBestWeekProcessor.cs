@@ -1,4 +1,3 @@
-using System.Text.Json;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
@@ -17,7 +16,7 @@ namespace LooksRatingApi.Services.TheBestWeek
         private readonly IMemoryCache _memoryCache;
         private readonly TheBestWeekLockService _lockService;
         private readonly ArchivingLockService _archivingLockService;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
         private readonly ILogger<TheBestWeekProcessor> _logger;
         private readonly INormalizeCityNameService _normalizeCityNameService;
@@ -33,7 +32,7 @@ namespace LooksRatingApi.Services.TheBestWeek
             ISeasonRepository seasonRepository,
             INormalizeCityNameService normalizeCityNameService,
             IConnectionMultiplexer redis,
-            IPhotoUserRepository photoUserRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _theBestWeekRepository = theBestWeekRepository;
             _memoryCache = memoryCache;
@@ -44,7 +43,7 @@ namespace LooksRatingApi.Services.TheBestWeek
             _normalizeCityNameService = normalizeCityNameService;
             _redis = redis;
             _db = _redis.GetDatabase();
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task RefreshWeeklyAsync(CancellationToken cancellationToken)
@@ -73,6 +72,11 @@ namespace LooksRatingApi.Services.TheBestWeek
             try
             {
                 var currentSeason = await _seasonRepository.GetCurrent();
+                if (currentSeason is null)
+                {
+                    _logger.LogWarning("Текущий сезон не найден, обновление лучшей недели пропущено");
+                    return;
+                }
                 var currentWeek = await _theBestWeekRepository.GetCurrentWeek();
                 if(currentWeek != null)
                     await _theBestWeekRepository.Delete(currentWeek.Id);
@@ -91,8 +95,8 @@ namespace LooksRatingApi.Services.TheBestWeek
                         continue;
 
                     var ids = topIds.Select(x => Guid.Parse(x.ToString())).ToList();
-                    var photos = await _photoUserRepository.GetByIdsAsync(ids);
-                    var snapshotJson = JsonSerializer.Serialize(photos);
+                    var profiles = await _photoProfileRepository.GetByIdsAsync(ids);
+                    var snapshotJson = TheBestWeekSnapshotSerializer.Serialize(profiles);
 
                     var weekResult = Models.TheBestWeek.Create(
                         city,

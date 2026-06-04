@@ -56,9 +56,13 @@ namespace LooksRatingApi.Configurations
                    .WithMany(s => s.PhotoUsers)
                    .HasForeignKey(p => p.SeasonId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(p => p.PhotoProfile)
+                   .WithMany(pp => pp.LegacyPhotoUsers)
+                   .HasForeignKey(p => p.PhotoProfileId)
+                   .OnDelete(DeleteBehavior.SetNull);
                    
-            builder.HasIndex(p => new { p.UserId, p.SeasonId })
-                   .IsUnique();
+            builder.HasIndex(p => new { p.UserId, p.SeasonId });
         }
     }
 }

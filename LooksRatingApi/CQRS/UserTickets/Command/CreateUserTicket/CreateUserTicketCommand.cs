@@ -5,6 +5,6 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
 {
     public sealed record CreateUserTicketCommand(
         long ReporterTelegramId,
-        Guid PhotoUserId,
+        Guid PhotoProfileId,
         string Description) : IRequest<Result<CreateUserTicketResult>>;
 }

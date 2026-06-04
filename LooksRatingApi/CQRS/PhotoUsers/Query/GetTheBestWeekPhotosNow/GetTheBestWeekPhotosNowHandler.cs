@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Models;
 using LooksRatingApi.Services;
 using MediatR;
 
@@ -9,16 +10,16 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow
         : IRequestHandler<GetTheBestWeekPhotosNowQuery, Result<List<GetTheBestWeekPhotosNowResponse>>>
     {
         private readonly IGetTheBestWeekPhotosNowValidator _validator;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IPhotoTopReadService _photoTopReadService;
 
         public GetTheBestWeekPhotosNowHandler(
             IGetTheBestWeekPhotosNowValidator validator,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IPhotoTopReadService photoTopReadService)
         {
             _validator = validator;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _photoTopReadService = photoTopReadService;
         }
 
@@ -33,7 +34,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow
             }
 
             var context = validationResult.Value;
-            var (photoIds, _) = await _photoTopReadService.GetTopPhotoIdsAsync(
+            var (profileIds, _) = await _photoTopReadService.GetTopProfileIdsAsync(
                 context.CurrentSeason.Id,
                 context.CurrentSeason.IsClosed,
                 context.FeedCity,
@@ -41,29 +42,37 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTheBestWeekPhotosNow
                 context.Query.Age,
                 skip: 0,
                 take: GetTheBestWeekPhotosNowValidatedContext.TopPhotoCount,
-                cancellationToken);
+                cancellationToken: cancellationToken);
 
-            var photos = await _photoUserRepository.GetByIdsAsync(photoIds, cancellationToken);
-            var photosById = photos.ToDictionary(p => p.Id);
+            var profiles = await _photoProfileRepository.GetByIdsAsync(profileIds, cancellationToken);
+            var profilesById = profiles.ToDictionary(p => p.Id);
 
-            var items = new List<GetTheBestWeekPhotosNowResponse>(photoIds.Count);
-            foreach (var photoId in photoIds)
+            var items = new List<GetTheBestWeekPhotosNowResponse>(profileIds.Count);
+            foreach (var profileId in profileIds)
             {
-                if (!photosById.TryGetValue(photoId, out var photo))
+                if (!profilesById.TryGetValue(profileId, out var profile))
                 {
                     continue;
                 }
 
+                var files = profile.Photos
+                    .OrderBy(x => x.SortOrder)
+                    .Select(x => x.TelegramFileId)
+                    .ToList();
+                var firstFile = files.FirstOrDefault() ?? string.Empty;
+
                 items.Add(new GetTheBestWeekPhotosNowResponse
                 {
-                    Id = photo.Id,
+                    Id = profile.Id,
+                    ProfileId = profile.Id,
                     Place = items.Count + 1,
-                    Name = UserPublicDisplayName.Resolve(photo.User),
-                    TelegramFileId = photo.TelegramFileId,
-                    Rating = photo.Rating,
-                    RatingCount = photo.RatingCount,
-                    GenderNomination = GenderDisplay.GetGender(photo.GenderNomination),
-                    AgeNomination = photo.AgeNomination,
+                    Name = UserPublicDisplayName.Resolve(profile.User),
+                    TelegramFileId = firstFile,
+                    TelegramFileIds = files,
+                    Rating = profile.Rating,
+                    RatingCount = profile.RatingCount,
+                    GenderNomination = GenderDisplay.GetGender(profile.GenderNomination),
+                    AgeNomination = profile.AgeNomination,
                 });
             }
 

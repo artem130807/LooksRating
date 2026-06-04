@@ -12,5 +12,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
         public const string InvalidNominationCity = "InvalidNominationCity";
         public const string InvalidNominationAge = "InvalidNominationAge";
         public const string InvalidNominationGender = "InvalidNominationGender";
+        public const string VipPhotoLimitExceeded = "VipPhotoLimitExceeded";
+        public const string PhotoUploadInProgress = "PhotoUploadInProgress";
     }
 }

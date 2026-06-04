@@ -21,7 +21,7 @@ namespace LooksRatingApi.Configurations
             builder.Property(r => r.Rating)
                    .IsRequired();
 
-            builder.HasIndex(r => new { r.UserId, r.PhotoUserId })
+            builder.HasIndex(r => new { r.UserId, r.PhotoProfileId })
                    .IsUnique();
 
             builder.HasOne(r => r.User)
@@ -29,9 +29,9 @@ namespace LooksRatingApi.Configurations
                    .HasForeignKey(r => r.UserId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasOne(r => r.PhotoUser)
-                   .WithMany()
-                   .HasForeignKey(r => r.PhotoUserId)
+            builder.HasOne(r => r.PhotoProfile)
+                   .WithMany(p => p.Reviews)
+                   .HasForeignKey(r => r.PhotoProfileId)
                    .OnDelete(DeleteBehavior.Cascade);
         }
     }

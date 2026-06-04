@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services;
 using MediatR;
@@ -12,16 +13,16 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
         : IRequestHandler<GetUserByTelegramIdQuery, Result<GetUserByTelegramIdResponse>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
 
         public GetUserByTelegramIdHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
         }
 
@@ -41,10 +42,10 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
             }
 
             var season = await _seasonRepository.GetCurrent();
-            PhotoUser? photo = null;
+            List<PhotoProfile> photos = [];
             if (season is not null)
             {
-                photo = await _photoUserRepository.GetByTelegramIdAndSeasonIdAsync(
+                photos = await _photoProfileRepository.GetByTelegramAndSeasonListAsync(
                     request.TelegramId,
                     season.Id,
                     cancellationToken);
@@ -64,7 +65,8 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
                 Gender = hasSettings ? settings!.Gender : Enums.GenderEnum.Unknown,
                 City = hasSettings ? settings!.City.Value ?? string.Empty : string.Empty,
                 HasRecommendationSettings = hasSettings,
-                HasPhoto = photo is not null
+                HasPhoto = photos.Count > 0,
+                HasVip = user.Status == VipStatus.Availlable
             });
         }
     }

@@ -9,14 +9,14 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
     public sealed class GetUserStatsHandler : IRequestHandler<GetUserStatsQuery, Result<GetUserStatsResponse>>
     {
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public GetUserStatsHandler(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task<Result<GetUserStatsResponse>> Handle(
@@ -35,7 +35,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
                 return Result.Failure<GetUserStatsResponse>(SetUserPhotoErrors.UserNotFound);
             }
 
-            var seasonsWithPhoto = await _photoUserRepository.CountSeasonsWithPhotoAsync(
+            var seasonsWithPhoto = await _photoProfileRepository.CountSeasonsWithProfileAsync(
                 user.Id,
                 cancellationToken);
 

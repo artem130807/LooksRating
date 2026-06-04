@@ -9,8 +9,8 @@ namespace LooksRatingApi.CQRS.UserTickets.Query.GetUserTicketById
         public long ReporterTelegramId { get; set; }
         public string? ReporterDisplayName { get; set; }
         public string ReporterCity { get; set; } = string.Empty;
-        public Guid PhotoUserId { get; set; }
-        public string PhotoTelegramFileId { get; set; } = string.Empty;
+        public Guid PhotoProfileId { get; set; }
+        public IReadOnlyList<string> PhotoTelegramFileIds { get; set; } = Array.Empty<string>();
         public Guid PhotoOwnerUserId { get; set; }
     }
 }

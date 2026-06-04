@@ -1,11 +1,9 @@
-using System.ComponentModel;
-using System.Text.Json;
 using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services;
+using LooksRatingApi.Services.TheBestWeek;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
-using StackExchange.Redis;
 
 namespace LooksRatingApi.Repositories
 {
@@ -71,7 +69,25 @@ namespace LooksRatingApi.Repositories
             int limit,
             CancellationToken cancellationToken)
         {
-            return new List<TheBestWeek>();
+            var query = _context.TheBestWeeks
+                .AsNoTracking()
+                .Where(w => w.City == city);
+
+            if (year.HasValue)
+            {
+                query = query.Where(w => w.Year == year.Value);
+            }
+
+            if (weekOfYear.HasValue)
+            {
+                query = query.Where(w => w.WeekOfYear == weekOfYear.Value);
+            }
+
+            return await query
+                .OrderByDescending(w => w.Year)
+                .ThenByDescending(w => w.WeekOfYear)
+                .Take(limit)
+                .ToListAsync(cancellationToken);
         }
         public async Task<List<long>> GetIds()
         {
@@ -84,45 +100,56 @@ namespace LooksRatingApi.Repositories
             var currentTheBestWeek = await _context.TheBestWeeks.OrderByDescending(w => w.CreatedDate).FirstOrDefaultAsync();
             if(currentTheBestWeek == null)
                 return new List<long>();
-            var jsonPhotos = currentTheBestWeek.SnapshotJson;
-            var photos = JsonSerializer.Deserialize<List<PhotoUser>>(jsonPhotos);
-            if(photos == null)
+            var snapshotItems = TheBestWeekSnapshotSerializer.Deserialize(currentTheBestWeek.SnapshotJson);
+            if (snapshotItems.Count == 0)
                 return new List<long>();
             
-            var photosM = photos.Where(x => x.GenderNomination == Enums.GenderEnum.Male).ToList();
-            var photosG = photos.Where(x => x.GenderNomination == Enums.GenderEnum.Female).ToList();
+            var profilesM = snapshotItems.Where(x => x.GenderNomination == Enums.GenderEnum.Male).ToList();
+            var profilesG = snapshotItems.Where(x => x.GenderNomination == Enums.GenderEnum.Female).ToList();
             var ageList = TopService.GetIntsList();
             foreach(var city in cityNames)
             {
                 foreach(var age in ageList)
                 {
-                     var filteredM = photosM
-                    .Where(p => p.CityNomination.Value == city && age.Contains(p.AgeNomination))
+                     var filteredM = profilesM
+                    .Where(p => p.City == city && age.Contains(p.AgeNomination))
                     .ToList();
                 
-                    var filteredG = photosG
-                        .Where(p => p.CityNomination.Value == city && age.Contains(p.AgeNomination))
+                    var filteredG = profilesG
+                        .Where(p => p.City == city && age.Contains(p.AgeNomination))
                         .ToList();
                     
                     var top10M = filteredM
-                        .OrderByDescending(p => p.Rating * p.RatingCount)
+                        .OrderByDescending(p => p.RatingCount > 0 ? 1 : 0)
+                        .ThenByDescending(p => PhotoRankingScore.ToRankScore(p.Rating, p.RatingCount))
+                        .ThenByDescending(p => p.Rating)
+                        .ThenByDescending(p => p.RatingCount)
+                        .ThenByDescending(p => p.CreatedAt)
                         .Take(10)
                         .ToList();
                     
                     var top10G = filteredG
-                        .OrderByDescending(p => p.Rating * p.RatingCount)
+                        .OrderByDescending(p => p.RatingCount > 0 ? 1 : 0)
+                        .ThenByDescending(p => PhotoRankingScore.ToRankScore(p.Rating, p.RatingCount))
+                        .ThenByDescending(p => p.Rating)
+                        .ThenByDescending(p => p.RatingCount)
+                        .ThenByDescending(p => p.CreatedAt)
                         .Take(10)
                         .ToList();
                     
-                    ids.AddRange(top10M.Select(p => p.User.TelegramId));
-                    ids.AddRange(top10G.Select(p => p.User.TelegramId));
+                    ids.AddRange(top10M
+                        .Select(p => p.TelegramId)
+                        .Where(x => x > 0));
+                    ids.AddRange(top10G
+                        .Select(p => p.TelegramId)
+                        .Where(x => x > 0));
                 }
             }
             var uniqueIds = ids.Distinct().ToList();
             return uniqueIds;
         }
 
-        public async Task<TheBestWeek> GetCurrentWeek()
+        public async Task<TheBestWeek?> GetCurrentWeek()
         {
             return await _context.TheBestWeeks.OrderByDescending(w => w.CreatedDate).FirstOrDefaultAsync();
         }

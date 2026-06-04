@@ -21,10 +21,12 @@ class PhotoStates(StatesGroup):
 
 
 class RecreatePhotoStates(StatesGroup):
+    select_target = State()
     custom_city = State()
     custom_age = State()
     custom_gender = State()
     upload = State()
+    upload_many = State()
 
 
 class SettingsStates(StatesGroup):

@@ -5,6 +5,6 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 {
     public sealed record CreateReviewCommand(
         long ReviewerTelegramId,
-        Guid PhotoUserId,
+        Guid PhotoProfileId,
         int Rating) : IRequest<Result<CreateReviewResult>>;
 }

@@ -4,9 +4,9 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
     {
         public Guid ReviewId { get; init; }
         public Guid ReviewerUserId { get; init; }
-        public Guid PhotoUserId { get; init; }
+        public Guid PhotoProfileId { get; init; }
         public int Rating { get; init; }
-        public decimal UpdatedPhotoRating { get; init; }
-        public int UpdatedPhotoRatingCount { get; init; }
+        public decimal UpdatedProfileRating { get; init; }
+        public int UpdatedProfileRatingCount { get; init; }
     }
 }

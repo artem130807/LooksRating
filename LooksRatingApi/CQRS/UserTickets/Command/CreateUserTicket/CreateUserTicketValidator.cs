@@ -10,16 +10,16 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
         private const int MaxDescriptionLength = 500;
 
         private readonly IUserRepository _userRepository;
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IUserTicketRepository _userTicketRepository;
 
         public CreateUserTicketValidator(
             IUserRepository userRepository,
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             IUserTicketRepository userTicketRepository)
         {
             _userRepository = userRepository;
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _userTicketRepository = userTicketRepository;
         }
 
@@ -30,10 +30,11 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
                 return Result.Failure<string>(CreateUserTicketErrors.ReporterTelegramIdIsRequired);
             }
 
-            if (command.PhotoUserId == Guid.Empty)
+            if (command.PhotoProfileId == Guid.Empty)
             {
-                return Result.Failure<string>(CreateUserTicketErrors.PhotoUserIdIsRequired);
+                return Result.Failure<string>(CreateUserTicketErrors.PhotoProfileIdIsRequired);
             }
+            var profileId = command.PhotoProfileId;
 
             if (string.IsNullOrWhiteSpace(command.Description))
             {
@@ -51,18 +52,18 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
                 return Result.Failure<string>(CreateUserTicketErrors.ReporterNotFound);
             }
 
-            var photoUser = await _photoUserRepository.GePhotoUserById(command.PhotoUserId);
-            if (photoUser is null)
+            var photoProfile = await _photoProfileRepository.GetByIdAsync(profileId, cancellationToken);
+            if (photoProfile is null)
             {
-                return Result.Failure<string>(CreateUserTicketErrors.PhotoUserNotFound);
+                return Result.Failure<string>(CreateUserTicketErrors.PhotoProfileNotFound);
             }
 
-            if (photoUser.UserId == reporter.Id)
+            if (photoProfile.UserId == reporter.Id)
             {
                 return Result.Failure<string>(CreateUserTicketErrors.SelfComplaintIsNotAllowed);
             }
 
-            var alreadyExists = await _userTicketRepository.ExistsByReporterAndPhoto(reporter.Id, photoUser.Id);
+            var alreadyExists = await _userTicketRepository.ExistsByReporterAndProfile(reporter.Id, photoProfile.Id);
             if (alreadyExists)
             {
                 return Result.Failure<string>(CreateUserTicketErrors.TicketAlreadyExists);

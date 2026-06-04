@@ -15,7 +15,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
         private const int BatchSize = 5000;
         private static readonly TimeSpan LockTtl = TimeSpan.FromMinutes(2);
 
-        private readonly IPhotoUserRepository _photoUserRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
         private readonly IListSeasonsRepository _listSeasonsRepository;
         private readonly IMemoryCache _memoryCache;
@@ -25,7 +25,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
         private readonly ILogger<NewSeasonProcessor> _logger;
 
         public NewSeasonProcessor(
-            IPhotoUserRepository photoUserRepository,
+            IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository,
             IListSeasonsRepository listSeasonsRepository,
             IMemoryCache memoryCache,
@@ -34,7 +34,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             IConnectionMultiplexer redis,
             ILogger<NewSeasonProcessor> logger)
         {
-            _photoUserRepository = photoUserRepository;
+            _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
             _listSeasonsRepository = listSeasonsRepository;
             _memoryCache = memoryCache;
@@ -121,11 +121,11 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             var skip = 0;
             while (true)
             {
-                var ids = await _photoUserRepository.GetPhotoIdsBatch(seasonId, skip, BatchSize);
+                var ids = await _photoProfileRepository.GetProfileIdsBatchAsync(seasonId, skip, BatchSize, cancellationToken);
                 if (ids.Count == 0)
                     break;
 
-                await _photoUserRepository.ExecuteUpdateAsync(ids);
+                await _photoProfileRepository.ArchiveProfilesAsync(ids, cancellationToken);
                 skip += BatchSize;
 
                 if (ids.Count < BatchSize)

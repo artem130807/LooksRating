@@ -44,38 +44,19 @@ namespace LooksRatingApi.Repositories
             return await _context.Reviews.Include(x => x.User).Where(x => x.User.TelegramId == telegramId).ToListAsync();
         }
 
-        public async Task<bool> ExistsByUserAndPhoto(Guid userId, Guid photoUserId)
+        public async Task<bool> ExistsByUserAndProfile(Guid userId, Guid photoProfileId)
         {
-            return await _context.Reviews.AnyAsync(x => x.UserId == userId && x.PhotoUserId == photoUserId);
+            return await _context.Reviews.AnyAsync(x => x.UserId == userId && x.PhotoProfileId == photoProfileId);
         }
 
-        public async Task<HashSet<Guid>> GetReviewedPhotoUserIdsAsync(
+        public async Task<Review?> GetByUserAndProfileAsync(
             Guid userId,
-            IReadOnlyCollection<Guid> photoUserIds,
-            CancellationToken cancellationToken = default)
-        {
-            if (photoUserIds.Count == 0)
-            {
-                return new HashSet<Guid>();
-            }
-
-            var reviewedIds = await _context.Reviews
-                .AsNoTracking()
-                .Where(x => x.UserId == userId && photoUserIds.Contains(x.PhotoUserId))
-                .Select(x => x.PhotoUserId)
-                .ToListAsync(cancellationToken);
-
-            return reviewedIds.ToHashSet();
-        }
-
-        public async Task<Review?> GetByUserAndPhotoAsync(
-            Guid userId,
-            Guid photoUserId,
+            Guid photoProfileId,
             CancellationToken cancellationToken = default)
         {
             return await _context.Reviews
                 .FirstOrDefaultAsync(
-                    x => x.UserId == userId && x.PhotoUserId == photoUserId,
+                    x => x.UserId == userId && x.PhotoProfileId == photoProfileId,
                     cancellationToken);
         }
 
