@@ -100,5 +100,23 @@ services:
       API_KEY: ${API_KEY:-default_secret_api_key}
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-8696029869:AAE518GV7PXI4e9yf-521xbVSTrRXfdbP3A}
 
+  tgifts-buyer:
+    build:
+      context: ./TGgifts-buyer
+      dockerfile: Dockerfile
+    container_name: looksrating-tgifts-buyer
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    env_file:
+      - ./TGgifts-buyer/.env
+    environment:
+      LOOKSRATING_GRPC_ADDRESS: api:8080
+      APP_MODE: ${TGIFTS_APP_MODE:-vip_scheduler}
+      CHANNEL_ID: ${TGIFTS_CHANNEL_ID:-0}
+    volumes:
+      - ./TGgifts-buyer/data:/app/data
+
 volumes:
   looksrating-pgdata:
