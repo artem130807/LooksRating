@@ -2,6 +2,8 @@ using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Filters;
+using LooksRatingApi.Infrastructure.DistributedLock;
+using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Messages.Kafka.PhotoRated;
 using LooksRatingApi.Messages.Kafka.PhotoRated.Consumers;
 using LooksRatingApi.Messages.Kafka.PhotoRated.Producers;
@@ -16,6 +18,7 @@ using LooksRatingApi.Services.TheBestWeek;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Quartz;
 
 namespace LooksRatingApi
@@ -58,8 +61,18 @@ namespace LooksRatingApi
             var result = await query.Skip(skip).Take(PageSize).ToListAsync();
             return new PagedResult<T>(result, count); 
         }
+
         public static void AddQuartz(this IServiceCollection services, IConfiguration configuration)
         {
+            services.Configure<LooksRatingQuartzOptions>(configuration.GetSection("Quartz"));
+            services.AddSingleton(sp =>
+            {
+                var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<LooksRatingQuartzOptions>>().Value;
+                var timeZone = ApplicationTimeZoneResolver.Resolve(options.TimeZoneId);
+                return new ApplicationClock(timeZone);
+            });
+            services.AddSingleton<IRedisDistributedLock, RedisDistributedLock>();
+            services.AddSingleton<QuartzSchemaBootstrap>();
             services.AddSingleton<ArchivingLockService>();
             services.AddSingleton<TheBestWeekLockService>();
             services.AddScoped<INewListSeasonProcessor, NewListSeasonProcessor>();
@@ -67,53 +80,94 @@ namespace LooksRatingApi
             services.AddScoped<ITheBestWeekProcessor, TheBestWeekProcessor>();
             services.AddScoped<IVipStatusExpiryProcessor, VipStatusExpiryProcessor>();
 
-            var newListSeasonCron = configuration["Quartz:NewListSeasonCron"] ?? "0 0 0 1 1 ?";
-            var newSeasonCron = configuration["Quartz:NewSeasonCron"] ?? "0 0 0 1 2-12 ?";
-            var theBestWeekCron = configuration["Quartz:TheBestWeekCron"] ?? "0 0 0 ? * MON";
-            var vipStatusExpiryCron = configuration["Quartz:VipStatusExpiryCron"] ?? "0 0 * * * ?";
-
-            services.AddQuartz(q =>
+            services.AddQuartz((q, sp) =>
             {
+                var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
+                var quartzOptions = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<LooksRatingQuartzOptions>>().Value;
+                var connectionString = configuration.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("Connection string DefaultConnection is required.");
+
+                var useClustering = quartzOptions.UseClustering || hostEnvironment.IsProduction();
+                var scheduleTimeZone = ApplicationTimeZoneResolver.Resolve(quartzOptions.TimeZoneId);
+
                 q.UseSimpleTypeLoader();
-                q.UseInMemoryStore();
-                q.UseDefaultThreadPool(tp => tp.MaxConcurrency = 10);
+                q.UseDefaultThreadPool(tp => tp.MaxConcurrency = quartzOptions.MaxConcurrency);
+                q.SchedulerName = quartzOptions.SchedulerName;
+                q.SchedulerId = ResolveSchedulerInstanceId(quartzOptions);
+
+                if (useClustering)
+                {
+                    q.UsePersistentStore(store =>
+                    {
+                        store.UseProperties = true;
+                        store.RetryInterval = TimeSpan.FromSeconds(15);
+                        store.UsePostgres(pg => pg.ConnectionString = connectionString);
+                        store.UseNewtonsoftJsonSerializer();
+                        store.UseClustering(c =>
+                        {
+                            c.CheckinInterval = TimeSpan.FromSeconds(20);
+                            c.CheckinMisfireThreshold = TimeSpan.FromSeconds(40);
+                        });
+                    });
+                }
+                else
+                {
+                    q.UseInMemoryStore();
+                }
 
                 q.AddJob<NewListSeasonAddJob>(opts => opts
-                    .WithIdentity(NewListSeasonAddJob.JobName));
+                    .WithIdentity(NewListSeasonAddJob.JobName)
+                    .StoreDurably());
 
                 q.AddJob<NewSeasonAddJob>(opts => opts
-                    .WithIdentity(NewSeasonAddJob.JobName));
+                    .WithIdentity(NewSeasonAddJob.JobName)
+                    .StoreDurably());
 
                 q.AddJob<TheBestWeekRefreshJob>(opts => opts
-                    .WithIdentity(TheBestWeekRefreshJob.JobName));
+                    .WithIdentity(TheBestWeekRefreshJob.JobName)
+                    .StoreDurably());
+
                 q.AddJob<VipStatusExpiryJob>(opts => opts
-                    .WithIdentity(VipStatusExpiryJob.JobName));
+                    .WithIdentity(VipStatusExpiryJob.JobName)
+                    .StoreDurably());
 
                 q.AddTrigger(opts => opts
                     .ForJob(NewListSeasonAddJob.JobName)
                     .WithIdentity($"{NewListSeasonAddJob.JobName}-trigger")
-                    .WithCronSchedule(newListSeasonCron));
+                    .WithCronSchedule(quartzOptions.NewListSeasonCron, b => b.InTimeZone(scheduleTimeZone)));
 
                 q.AddTrigger(opts => opts
                     .ForJob(NewSeasonAddJob.JobName)
                     .WithIdentity($"{NewSeasonAddJob.JobName}-trigger")
-                    .WithCronSchedule(newSeasonCron));
+                    .WithCronSchedule(quartzOptions.NewSeasonCron, b => b.InTimeZone(scheduleTimeZone)));
 
                 q.AddTrigger(opts => opts
                     .ForJob(TheBestWeekRefreshJob.JobName)
                     .WithIdentity($"{TheBestWeekRefreshJob.JobName}-trigger")
-                    .WithCronSchedule(theBestWeekCron));
+                    .WithCronSchedule(quartzOptions.TheBestWeekCron, b => b.InTimeZone(scheduleTimeZone)));
 
                 q.AddTrigger(opts => opts
                     .ForJob(VipStatusExpiryJob.JobName)
                     .WithIdentity($"{VipStatusExpiryJob.JobName}-trigger")
-                    .WithCronSchedule(vipStatusExpiryCron));
+                    .WithCronSchedule(quartzOptions.VipStatusExpiryCron, b => b.InTimeZone(scheduleTimeZone)));
             });
 
             services.AddQuartzHostedService(options =>
             {
                 options.WaitForJobsToComplete = true;
             });
+        }
+
+        private static string ResolveSchedulerInstanceId(LooksRatingQuartzOptions options)
+        {
+            if (!string.IsNullOrWhiteSpace(options.InstanceId))
+                return options.InstanceId;
+
+            var hostName = Environment.GetEnvironmentVariable("HOSTNAME");
+            if (!string.IsNullOrWhiteSpace(hostName))
+                return $"{hostName}-{Environment.ProcessId}";
+
+            return $"{Environment.MachineName}-{Environment.ProcessId}";
         }
     }
 }

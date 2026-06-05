@@ -1,10 +1,9 @@
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Models;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
 
 namespace LooksRatingApi.Services.TheBestWeek
@@ -13,7 +12,7 @@ namespace LooksRatingApi.Services.TheBestWeek
     {
         private static readonly TimeSpan LockTtl = TimeSpan.FromMinutes(5);
         private readonly ITheBestWeekRepository _theBestWeekRepository;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ILoadingCityService _loadingCityService;
         private readonly TheBestWeekLockService _lockService;
         private readonly ArchivingLockService _archivingLockService;
         private readonly IPhotoProfileRepository _photoProfileRepository;
@@ -22,20 +21,22 @@ namespace LooksRatingApi.Services.TheBestWeek
         private readonly INormalizeCityNameService _normalizeCityNameService;
         private readonly StackExchange.Redis.IDatabase _db;
         private readonly IConnectionMultiplexer _redis;
+        private readonly ApplicationClock _clock;
 
         public TheBestWeekProcessor(
             ITheBestWeekRepository theBestWeekRepository,
-            IMemoryCache memoryCache,
+            ILoadingCityService loadingCityService,
             TheBestWeekLockService lockService,
             ArchivingLockService archivingLockService,
             ILogger<TheBestWeekProcessor> logger,
             ISeasonRepository seasonRepository,
             INormalizeCityNameService normalizeCityNameService,
             IConnectionMultiplexer redis,
-            IPhotoProfileRepository photoProfileRepository)
+            IPhotoProfileRepository photoProfileRepository,
+            ApplicationClock clock)
         {
             _theBestWeekRepository = theBestWeekRepository;
-            _memoryCache = memoryCache;
+            _loadingCityService = loadingCityService;
             _lockService = lockService;
             _archivingLockService = archivingLockService;
             _logger = logger;
@@ -44,13 +45,15 @@ namespace LooksRatingApi.Services.TheBestWeek
             _redis = redis;
             _db = _redis.GetDatabase();
             _photoProfileRepository = photoProfileRepository;
+            _clock = clock;
         }
 
         public async Task RefreshWeeklyAsync(CancellationToken cancellationToken)
         {
-            if (!_memoryCache.TryGetValue<HashSet<string>>("key_cities_names", out var cityNames) || cityNames is null)
+            var cityNames = _loadingCityService.GetCityNames();
+            if (cityNames.Count == 0)
             {
-                _logger.LogWarning("Список городов не загружен, обновление лучшей недели пропущено");
+                _logger.LogError("Список городов пуст, обновление лучшей недели невозможно");
                 return;
             }
 
@@ -60,67 +63,62 @@ namespace LooksRatingApi.Services.TheBestWeek
                 return;
             }
 
-            if (await _lockService.IsRefreshInProgressAsync())
+            var period = WeekPeriodCalculator.GetPreviousWeekPeriod(_clock.GetNow());
+
+            await using var lockHandle = await _lockService.TryAcquireAsync(LockTtl, cancellationToken);
+            if (lockHandle is null)
             {
-                _logger.LogWarning("Обновление лучшей недели уже выполняется");
+                _logger.LogWarning("Обновление лучшей недели пропущено: уже выполняется");
                 return;
             }
 
-            var period = WeekPeriodCalculator.GetPreviousWeekPeriod(DateTime.UtcNow);
-
-            await _lockService.StartRefreshAsync(LockTtl);
-            try
+            var currentSeason = await _seasonRepository.GetCurrent();
+            if (currentSeason is null)
             {
-                var currentSeason = await _seasonRepository.GetCurrent();
-                if (currentSeason is null)
-                {
-                    _logger.LogWarning("Текущий сезон не найден, обновление лучшей недели пропущено");
-                    return;
-                }
-                var currentWeek = await _theBestWeekRepository.GetCurrentWeek();
-                if(currentWeek != null)
-                    await _theBestWeekRepository.Delete(currentWeek.Id);
-                foreach (var city in cityNames)
-                {
-                    string normalizeCity = _normalizeCityNameService.Normalize(city);
-                    var sortedSetKey = PhotoRedisKeys.RatingSortedSet(normalizeCity, currentSeason.Id);
-                    var topIds = await _db.SortedSetRangeByRankAsync(
-                        sortedSetKey,
-                        start: 0,
-                        order: Order.Descending  
-                    );
-                    if (await _theBestWeekRepository.ExistsAsync(city, period.Year, period.WeekOfYear, cancellationToken))
-                        continue;
-                    if (topIds == null)
-                        continue;
-
-                    var ids = topIds.Select(x => Guid.Parse(x.ToString())).ToList();
-                    var profiles = await _photoProfileRepository.GetByIdsAsync(ids);
-                    var snapshotJson = TheBestWeekSnapshotSerializer.Serialize(profiles);
-
-                    var weekResult = Models.TheBestWeek.Create(
-                        city,
-                        period.Year,
-                        period.WeekOfYear,
-                        period.WeekLabel,
-                        snapshotJson);
-
-                    if (weekResult.IsFailure)
-                        continue;
-                    
-                    await _theBestWeekRepository.Create(weekResult.Value);
-
-                    _logger.LogInformation(
-                        "Лучшая неделя {Year}-W{Week} для {City}: {Count} фото",
-                        period.Year,
-                        period.WeekOfYear,
-                        city,
-                        ids.Count);
-                }
+                _logger.LogWarning("Текущий сезон не найден, обновление лучшей недели пропущено");
+                return;
             }
-            finally
+
+            var currentWeek = await _theBestWeekRepository.GetCurrentWeek();
+            if (currentWeek != null)
+                await _theBestWeekRepository.Delete(currentWeek.Id);
+
+            foreach (var city in cityNames)
             {
-                await _lockService.EndRefreshAsync();
+                var normalizeCity = _normalizeCityNameService.Normalize(city);
+                var sortedSetKey = PhotoRedisKeys.RatingSortedSet(normalizeCity, currentSeason.Id);
+                var topIds = await _db.SortedSetRangeByRankAsync(
+                    sortedSetKey,
+                    start: 0,
+                    order: Order.Descending);
+
+                if (await _theBestWeekRepository.ExistsAsync(city, period.Year, period.WeekOfYear, cancellationToken))
+                    continue;
+                if (topIds == null)
+                    continue;
+
+                var ids = topIds.Select(x => Guid.Parse(x.ToString())).ToList();
+                var profiles = await _photoProfileRepository.GetByIdsAsync(ids);
+                var snapshotJson = TheBestWeekSnapshotSerializer.Serialize(profiles);
+
+                var weekResult = Models.TheBestWeek.Create(
+                    city,
+                    period.Year,
+                    period.WeekOfYear,
+                    period.WeekLabel,
+                    snapshotJson);
+
+                if (weekResult.IsFailure)
+                    continue;
+
+                await _theBestWeekRepository.Create(weekResult.Value);
+
+                _logger.LogInformation(
+                    "Лучшая неделя {Year}-W{Week} для {City}: {Count} фото",
+                    period.Year,
+                    period.WeekOfYear,
+                    city,
+                    ids.Count);
             }
         }
     }

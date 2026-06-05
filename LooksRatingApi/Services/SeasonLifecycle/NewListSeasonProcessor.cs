@@ -1,6 +1,7 @@
 using LooksRatingApi.Contracts.ListSeasonsContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.SeasonLifecycle;
+using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Models;
 
 namespace LooksRatingApi.Services.SeasonLifecycle
@@ -12,23 +13,26 @@ namespace LooksRatingApi.Services.SeasonLifecycle
         private readonly IListSeasonsRepository _listSeasonsRepository;
         private readonly ISeasonRepository _seasonRepository;
         private readonly ArchivingLockService _lockService;
+        private readonly ApplicationClock _clock;
         private readonly ILogger<NewListSeasonProcessor> _logger;
 
         public NewListSeasonProcessor(
             IListSeasonsRepository listSeasonsRepository,
             ISeasonRepository seasonRepository,
             ArchivingLockService lockService,
+            ApplicationClock clock,
             ILogger<NewListSeasonProcessor> logger)
         {
             _listSeasonsRepository = listSeasonsRepository;
             _seasonRepository = seasonRepository;
             _lockService = lockService;
+            _clock = clock;
             _logger = logger;
         }
 
         public async Task<bool> TryCreateNewChapterAsync(CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _clock.GetNow();
             if (now.Month != 1 || now.Day != 1)
                 return false;
 
@@ -40,27 +44,20 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             if (currentSeason is null || currentSeason.Number != 12)
                 return false;
 
-            if (await _lockService.IsArchivingInProgressAsync())
+            await using var lockHandle = await _lockService.TryAcquireAsync(LockTtl, cancellationToken);
+            if (lockHandle is null)
             {
-                _logger.LogWarning("Создание главы пропущено: идёт архивация");
+                _logger.LogWarning("Создание главы пропущено: архивация уже выполняется");
                 return false;
             }
 
-            await _lockService.StartArchivingAsync(LockTtl);
-            try
-            {
-                var newListResult = ListSeasons.Create();
-                if (newListResult.IsFailure)
-                    return false;
+            var newListResult = ListSeasons.Create();
+            if (newListResult.IsFailure)
+                return false;
 
-                await _listSeasonsRepository.Create(newListResult.Value);
-                _logger.LogInformation("Создана новая глава {ListId}", newListResult.Value.Id);
-                return true;
-            }
-            finally
-            {
-                await _lockService.EndArchivingAsync();
-            }
+            await _listSeasonsRepository.Create(newListResult.Value);
+            _logger.LogInformation("Создана новая глава {ListId}", newListResult.Value.Id);
+            return true;
         }
     }
 }

@@ -14,7 +14,7 @@ RUN dotnet publish "LooksRatingApi.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends curl tzdata \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "LooksRatingApi.dll"]

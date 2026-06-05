@@ -1,6 +1,7 @@
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Infrastructure.Auth;
 using LooksRatingApi.Infrastructure.Health;
+using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Infrastructure.RateLimiting;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services.CityServices;
@@ -92,6 +93,9 @@ namespace LooksRatingApi.Infrastructure.Startup
             var dbContext = services.GetRequiredService<LooksRatingDbContext>();
             await dbContext.Database.MigrateAsync();
 
+            var quartzSchemaBootstrap = services.GetRequiredService<QuartzSchemaBootstrap>();
+            await quartzSchemaBootstrap.EnsureCreatedAsync();
+
             var vipProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductCode == VipProductCode);
             if (vipProduct is null)
             {
@@ -116,7 +120,12 @@ namespace LooksRatingApi.Infrastructure.Startup
             }
 
             var env = services.GetRequiredService<IWebHostEnvironment>();
-            services.GetRequiredService<ILoadingCityService>().CreateCityNames(env);
+            var cityNames = services.GetRequiredService<ILoadingCityService>().CreateCityNames(env);
+            if (cityNames.Count == 0)
+            {
+                throw new InvalidOperationException("Data/cities.json не содержит городов — фоновые задачи не могут работать.");
+            }
+
             services.GetRequiredService<ILoadingBadWordService>().CreateBadWord(env);
 
             await services.GetRequiredService<ISeasonDataSeeder>().SeedAsync();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.DtoModels.ValueObjectDto;
+using LooksRatingApi.Services.CityServices;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.RegularExpressions;
 
@@ -11,7 +12,7 @@ namespace LooksRatingApi.Services
     public class CityService : ICityService
     {
         private readonly IMemoryCache _memoryCache;
-        private const string CityNamesCacheKey = "key_cities_names";
+        private const string CityNamesCacheKey = CityNamesCacheKeys.Names;
 
         public CityService(IMemoryCache memoryCache)
         {

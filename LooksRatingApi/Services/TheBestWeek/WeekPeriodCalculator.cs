@@ -8,9 +8,9 @@ namespace LooksRatingApi.Services.TheBestWeek
         public const int TopPhotoCount = 10;
 
         public static (int Year, int WeekOfYear, DateTime PeriodStart, DateTime PeriodEnd, WeekEnum WeekLabel) GetPreviousWeekPeriod(
-            DateTime utcNow)
+            DateTime localNow)
         {
-            var periodEnd = utcNow.Date;
+            var periodEnd = localNow.Date;
             var periodStart = periodEnd.AddDays(-7);
             var anchor = periodEnd.AddDays(-1);
             var year = ISOWeek.GetYear(anchor);

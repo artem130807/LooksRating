@@ -8,20 +8,24 @@ namespace LooksRatingApi.Services.BackGroundServices.Jobs
     {
         public const string JobName = nameof(NewListSeasonAddJob);
 
-        private readonly INewListSeasonProcessor _processor;
+        private readonly INewListSeasonProcessor _listSeasonProcessor;
+        private readonly INewSeasonProcessor _seasonProcessor;
 
-        public NewListSeasonAddJob(INewListSeasonProcessor processor)
+        public NewListSeasonAddJob(
+            INewListSeasonProcessor listSeasonProcessor,
+            INewSeasonProcessor seasonProcessor)
         {
-            _processor = processor;
+            _listSeasonProcessor = listSeasonProcessor;
+            _seasonProcessor = seasonProcessor;
         }
 
         public async Task Execute(IJobExecutionContext context)
         {
-            await _processor.TryCreateNewChapterAsync(context.CancellationToken);
+            var created = await _listSeasonProcessor.TryCreateNewChapterAsync(context.CancellationToken);
+            if (!created)
+                return;
 
-            await context.Scheduler.TriggerJob(
-                new JobKey(NewSeasonAddJob.JobName),
-                context.CancellationToken);
+            await _seasonProcessor.ProcessMonthlyRolloverAsync(context.CancellationToken);
         }
     }
 }

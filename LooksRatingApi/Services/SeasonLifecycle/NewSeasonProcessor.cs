@@ -4,8 +4,9 @@ using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.SeasonLifecycle;
 using LooksRatingApi.Models;
+using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Services;
-using Microsoft.Extensions.Caching.Memory;
+using LooksRatingApi.Services.CityServices;
 using StackExchange.Redis;
 
 namespace LooksRatingApi.Services.SeasonLifecycle
@@ -18,9 +19,10 @@ namespace LooksRatingApi.Services.SeasonLifecycle
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
         private readonly IListSeasonsRepository _listSeasonsRepository;
-        private readonly IMemoryCache _memoryCache;
+        private readonly ILoadingCityService _loadingCityService;
         private readonly INormalizeCityNameService _normalizeCityName;
         private readonly ArchivingLockService _lockService;
+        private readonly ApplicationClock _clock;
         private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<NewSeasonProcessor> _logger;
 
@@ -28,31 +30,34 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository,
             IListSeasonsRepository listSeasonsRepository,
-            IMemoryCache memoryCache,
+            ILoadingCityService loadingCityService,
             INormalizeCityNameService normalizeCityName,
             ArchivingLockService lockService,
+            ApplicationClock clock,
             IConnectionMultiplexer redis,
             ILogger<NewSeasonProcessor> logger)
         {
             _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
             _listSeasonsRepository = listSeasonsRepository;
-            _memoryCache = memoryCache;
+            _loadingCityService = loadingCityService;
             _normalizeCityName = normalizeCityName;
             _lockService = lockService;
+            _clock = clock;
             _redis = redis;
             _logger = logger;
         }
 
         public async Task ProcessMonthlyRolloverAsync(CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            var now = _clock.GetNow();
             if (now.Day != 1)
                 return;
 
-            if (!_memoryCache.TryGetValue<HashSet<string>>("key_cities_names", out var cityNames) || cityNames is null)
+            var cityNames = _loadingCityService.GetCityNames();
+            if (cityNames.Count == 0)
             {
-                _logger.LogWarning("Список городов не загружен, смена сезона отложена");
+                _logger.LogError("Список городов пуст, смена сезона невозможна");
                 return;
             }
 
@@ -60,60 +65,53 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             if (latestList is null)
                 return;
 
-            if (await _lockService.IsArchivingInProgressAsync())
+            await using var lockHandle = await _lockService.TryAcquireAsync(LockTtl, cancellationToken);
+            if (lockHandle is null)
             {
-                _logger.LogWarning("Смена сезона пропущена: идёт архивация");
+                _logger.LogWarning("Смена сезона пропущена: архивация уже выполняется");
                 return;
             }
 
-            await _lockService.StartArchivingAsync(LockTtl);
-            try
+            var listForNewSeason = latestList;
+            Season? seasonToClose = null;
+
+            if (now.Month == 1)
             {
-                var listForNewSeason = latestList;
-                Season? seasonToClose = null;
-
-                if (now.Month == 1)
-                {
-                    var previousList = await _listSeasonsRepository.GetPreviousToLatest();
-                    if (previousList is not null)
-                        seasonToClose = await _seasonRepository.GetCurrentByList(previousList.Id);
-                }
-                else
-                {
-                    seasonToClose = await _seasonRepository.GetCurrentByList(latestList.Id);
-                }
-
-                if (seasonToClose is not null)
-                {
-                    await ArchivePhotosAsync(seasonToClose.Id, cityNames, cancellationToken);
-                    seasonToClose.IsClosed = true;
-                    await _seasonRepository.Update(seasonToClose);
-                    await ClearCityCachesAsync(cityNames, seasonToClose.Id);
-                }
-
-                var existingOpen = await _seasonRepository.GetCurrentByList(listForNewSeason.Id);
-                if (existingOpen is not null && existingOpen.Number == now.Month && !existingOpen.IsClosed)
-                    return;
-
-                var newSeasonResult = Season.Create(
-                    SeasonMonthNames.Get(now.Month),
-                    now.Month,
-                    listForNewSeason.Id);
-
-                if (newSeasonResult.IsFailure)
-                    return;
-
-                await _seasonRepository.Create(newSeasonResult.Value);
-                _logger.LogInformation(
-                    "Создан сезон {SeasonId} ({Number}) в главе {ListId}",
-                    newSeasonResult.Value.Id,
-                    newSeasonResult.Value.Number,
-                    listForNewSeason.Id);
+                var previousList = await _listSeasonsRepository.GetPreviousToLatest();
+                if (previousList is not null)
+                    seasonToClose = await _seasonRepository.GetCurrentByList(previousList.Id);
             }
-            finally
+            else
             {
-                await _lockService.EndArchivingAsync();
+                seasonToClose = await _seasonRepository.GetCurrentByList(latestList.Id);
             }
+
+            if (seasonToClose is not null)
+            {
+                await ArchivePhotosAsync(seasonToClose.Id, cityNames, cancellationToken);
+                seasonToClose.IsClosed = true;
+                await _seasonRepository.Update(seasonToClose);
+                await ClearCityCachesAsync(cityNames, seasonToClose.Id);
+            }
+
+            var existingOpen = await _seasonRepository.GetCurrentByList(listForNewSeason.Id);
+            if (existingOpen is not null && existingOpen.Number == now.Month && !existingOpen.IsClosed)
+                return;
+
+            var newSeasonResult = Season.Create(
+                SeasonMonthNames.Get(now.Month),
+                now.Month,
+                listForNewSeason.Id);
+
+            if (newSeasonResult.IsFailure)
+                return;
+
+            await _seasonRepository.Create(newSeasonResult.Value);
+            _logger.LogInformation(
+                "Создан сезон {SeasonId} ({Number}) в главе {ListId}",
+                newSeasonResult.Value.Id,
+                newSeasonResult.Value.Number,
+                listForNewSeason.Id);
         }
 
         private async Task ArchivePhotosAsync(Guid seasonId, HashSet<string> cityNames, CancellationToken cancellationToken)

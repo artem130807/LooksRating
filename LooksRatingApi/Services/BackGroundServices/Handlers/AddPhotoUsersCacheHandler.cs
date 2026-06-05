@@ -7,6 +7,7 @@ using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Services;
+using LooksRatingApi.Services.CityServices;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using StackExchange.Redis;
@@ -49,7 +50,7 @@ namespace LooksRatingApi.Services.BackGroundServices.Handlers
                     return;
                 }
 
-                var cacheKey  = "key_cities_names";
+                var cacheKey = CityNamesCacheKeys.Names;
                 if (!_memoryCache.TryGetValue<HashSet<string>>(cacheKey, out var cityNames) || cityNames is null)
                 {
                     return;

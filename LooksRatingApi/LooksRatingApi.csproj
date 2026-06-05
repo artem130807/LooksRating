@@ -46,4 +46,8 @@
     <ProjectReference Include="..\LooksRating.Contracts\LooksRating.Contracts.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Infrastructure\Quartz\quartz_postgres_create.sql" />
+  </ItemGroup>
+
 </Project>

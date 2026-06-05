@@ -1,22 +1,22 @@
-using StackExchange.Redis;
+using LooksRatingApi.Infrastructure.DistributedLock;
 
 namespace LooksRatingApi.Services
 {
     public sealed class TheBestWeekLockService
     {
-        private const string LockKey = "thebestweek:refresh_lock";
-        private readonly IDatabase _redis;
+        private readonly IRedisDistributedLock _distributedLock;
 
-        public TheBestWeekLockService(IConnectionMultiplexer redis)
+        public TheBestWeekLockService(IRedisDistributedLock distributedLock)
         {
-            _redis = redis.GetDatabase();
+            _distributedLock = distributedLock;
         }
 
-        public Task<bool> IsRefreshInProgressAsync() => _redis.KeyExistsAsync(LockKey);
+        public Task<bool> IsRefreshInProgressAsync(CancellationToken cancellationToken = default) =>
+            _distributedLock.IsLockedAsync(DistributedLockKeys.TheBestWeekRefresh, cancellationToken);
 
-        public Task StartRefreshAsync(TimeSpan ttl) =>
-            _redis.StringSetAsync(LockKey, "locked", ttl);
-
-        public Task EndRefreshAsync() => _redis.KeyDeleteAsync(LockKey);
+        public Task<IRedisDistributedLockHandle?> TryAcquireAsync(
+            TimeSpan ttl,
+            CancellationToken cancellationToken = default) =>
+            _distributedLock.TryAcquireAsync(DistributedLockKeys.TheBestWeekRefresh, ttl, cancellationToken);
     }
 }

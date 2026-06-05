@@ -1,6 +1,7 @@
 using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services;
+using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.TheBestWeek;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -92,7 +93,7 @@ namespace LooksRatingApi.Repositories
         public async Task<List<long>> GetIds()
         {
             var ids = new List<long>();
-            string CityNamesCacheKey = "key_cities_names";
+            const string CityNamesCacheKey = CityNamesCacheKeys.Names;
             if (!_memoryCache.TryGetValue<HashSet<string>>(CityNamesCacheKey, out var cityNames) || cityNames is null)
             {
                 return new List<long>();
