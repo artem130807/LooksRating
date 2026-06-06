@@ -96,14 +96,14 @@ services:
       api:
         condition: service_healthy
     environment:
-      API_URL: http://api:8080
+      API_BASE_URL: http://api:8080
       API_KEY: ${API_KEY:-default_secret_api_key}
-      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-8696029869:AAE518GV7PXI4e9yf-521xbVSTrRXfdbP3A}
+      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
 
   tgifts-buyer:
     build:
-      context: ./TGgifts-buyer
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: TGgifts-buyer/Dockerfile
     container_name: looksrating-tgifts-buyer
     restart: unless-stopped
     depends_on:

@@ -6,16 +6,16 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
     public sealed class RedisRateLimitService : IRateLimitService
     {
         private const string AcquireScript = """
-            local current = tonumber(redis.call('INCR', KEYS[1]))
+            local current = tonumber(redis.call('INCR', @key))
             if current == 1 then
-                redis.call('EXPIRE', KEYS[1], ARGV[1])
+                redis.call('EXPIRE', @key, @expiry)
             end
-            local limit = tonumber(ARGV[2])
+            local limit = tonumber(@limit)
             if current > limit then
-                redis.call('DECR', KEYS[1])
-                local ttl = redis.call('TTL', KEYS[1])
+                redis.call('DECR', @key)
+                local ttl = redis.call('TTL', @key)
                 if ttl < 0 then
-                    ttl = tonumber(ARGV[1])
+                    ttl = tonumber(@expiry)
                 end
                 return { 0, ttl }
             end
@@ -90,9 +90,14 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
 
             try
             {
-                var result = (RedisResult[]?)await _database.ScriptEvaluateAsync(
-                    _acquireScript,
-                    new { key = (RedisKey)redisKey, expiry = (RedisValue)expirySeconds, limit = (RedisValue)permitLimit });
+                var result = (RedisResult[]?)await _acquireScript.EvaluateAsync(
+                    _database,
+                    new
+                    {
+                        key = (RedisKey)redisKey,
+                        expiry = (RedisValue)expirySeconds,
+                        limit = (RedisValue)permitLimit,
+                    });
 
                 if (result is null || result.Length < 2)
                 {

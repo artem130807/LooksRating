@@ -5,12 +5,12 @@ namespace LooksRatingApi.Infrastructure.DistributedLock
     public sealed class RedisDistributedLock : IRedisDistributedLock
     {
         private const string AcquireScript = """
-            return redis.call('SET', KEYS[1], ARGV[1], 'NX', 'EX', ARGV[2]) and 1 or 0
+            return redis.call('SET', @key, @token, 'NX', 'EX', @expiry) and 1 or 0
             """;
 
         private const string ReleaseScript = """
-            if redis.call('GET', KEYS[1]) == ARGV[1] then
-                return redis.call('DEL', KEYS[1])
+            if redis.call('GET', @key) == @token then
+                return redis.call('DEL', @key)
             end
             return 0
             """;
@@ -40,13 +40,13 @@ namespace LooksRatingApi.Infrastructure.DistributedLock
             var token = Guid.NewGuid().ToString("N");
             var ttlSeconds = Math.Max(1, (int)Math.Ceiling(ttl.TotalSeconds));
 
-            var acquired = (int)await _database.ScriptEvaluateAsync(
-                _acquireScript,
+            var acquired = (int)await _acquireScript.EvaluateAsync(
+                _database,
                 new
                 {
                     key = (RedisKey)key,
                     token = (RedisValue)token,
-                    expiry = (RedisValue)ttlSeconds
+                    expiry = (RedisValue)ttlSeconds,
                 });
 
             if (acquired != 1)
@@ -83,8 +83,8 @@ namespace LooksRatingApi.Infrastructure.DistributedLock
             if (Interlocked.Exchange(ref _released, 1) != 0)
                 return;
 
-            await _database.ScriptEvaluateAsync(
-                _releaseScript,
+            await _releaseScript.EvaluateAsync(
+                _database,
                 new { key = (RedisKey)Key, token = (RedisValue)Token });
         }
     }
