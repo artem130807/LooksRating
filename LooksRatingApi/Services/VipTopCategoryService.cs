@@ -11,31 +11,38 @@ namespace LooksRatingApi.Services
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ICityService _cityService;
         private readonly ISeasonRepository _seasonRepository;
+        private readonly ILogger<VipTopCategoryService> _logger;
 
         public VipTopCategoryService(
             IPhotoTopReadService photoTopReadService,
             IPhotoProfileRepository photoProfileRepository,
             ICityService cityService,
-            ISeasonRepository seasonRepository)
+            ISeasonRepository seasonRepository,
+            ILogger<VipTopCategoryService> logger)
         {
             _photoTopReadService = photoTopReadService;
             _photoProfileRepository = photoProfileRepository;
             _cityService = cityService;
             _seasonRepository = seasonRepository;
+            _logger = logger;
         }
 
         public async Task<IReadOnlyList<VipTopCategory>> GetQualifiedCategoriesAsync(
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("VIP-топ: сбор квалифицированных категорий");
+
             var season = await _seasonRepository.GetCurrent();
             if (season is null)
             {
+                _logger.LogWarning("VIP-топ: текущий сезон не найден");
                 return Array.Empty<VipTopCategory>();
             }
 
             var cities = _cityService.GetAllCities();
             if (cities.Count == 0)
             {
+                _logger.LogWarning("VIP-топ: список городов пуст");
                 return Array.Empty<VipTopCategory>();
             }
 
@@ -79,6 +86,10 @@ namespace LooksRatingApi.Services
 
             if (categoryProfileIds.Count == 0)
             {
+                _logger.LogInformation(
+                    "VIP-топ: нет категорий с минимум {MinCount} VIP-профилями (сезон {SeasonId})",
+                    VipTopRules.MinCategoryCount,
+                    season.Id);
                 return Array.Empty<VipTopCategory>();
             }
 
@@ -140,6 +151,12 @@ namespace LooksRatingApi.Services
 
                 result.Add(new VipTopCategory(season.Id, city, gender, ageBracket, ranked));
             }
+
+            _logger.LogInformation(
+                "VIP-топ: найдено {CategoryCount} категорий, {ProfileCount} профилей (сезон {SeasonId})",
+                result.Count,
+                result.Sum(category => category.RankedProfiles.Count),
+                season.Id);
 
             return result;
         }

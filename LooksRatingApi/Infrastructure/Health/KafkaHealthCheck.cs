@@ -1,4 +1,5 @@
 using Confluent.Kafka;
+using LooksRatingApi.Infrastructure.Kafka;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
 using LooksRatingApi.Messages.Kafka.PhotoRated.Consumers;
@@ -7,10 +8,14 @@ namespace LooksRatingApi.Infrastructure.Health
 {
     public sealed class KafkaHealthCheck : IHealthCheck
     {
+        private readonly IConfiguration _configuration;
         private readonly KafkaConsumerSettings _settings;
 
-        public KafkaHealthCheck(IOptions<KafkaConsumerSettings> settings)
+        public KafkaHealthCheck(
+            IConfiguration configuration,
+            IOptions<KafkaConsumerSettings> settings)
         {
+            _configuration = configuration;
             _settings = settings.Value;
         }
 
@@ -18,9 +23,14 @@ namespace LooksRatingApi.Infrastructure.Health
             HealthCheckContext context,
             CancellationToken cancellationToken = default)
         {
+            if (!KafkaFeature.IsEnabled(_configuration))
+            {
+                return Task.FromResult(HealthCheckResult.Healthy("Kafka disabled"));
+            }
+
             if (string.IsNullOrWhiteSpace(_settings.BootstrapServers))
             {
-                return Task.FromResult(HealthCheckResult.Unhealthy("Kafka bootstrap servers are not configured"));
+                return Task.FromResult(HealthCheckResult.Healthy("Kafka bootstrap servers are not configured"));
             }
 
             try

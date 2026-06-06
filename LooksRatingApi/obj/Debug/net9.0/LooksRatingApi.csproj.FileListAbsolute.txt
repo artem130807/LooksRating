@@ -478,3 +478,5 @@ E:/AAAAA1111222C#/LooksRating/LooksRatingApi/obj/Debug/net9.0/ref/LooksRatingApi
 /home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/LooksRating.Contracts.dll
 /home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/LooksRating.Contracts.pdb
 /home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/swae.build.ex.cache
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/appsettings.TestQuartz.json
+/home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/Infrastructure/TestQuartz/test-quartz-users.json

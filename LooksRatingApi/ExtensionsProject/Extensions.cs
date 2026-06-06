@@ -3,6 +3,7 @@ using LooksRatingApi.Contracts;
 using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Filters;
 using LooksRatingApi.Infrastructure.DistributedLock;
+using LooksRatingApi.Infrastructure.Kafka;
 using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Messages.Kafka.PhotoRated;
 using LooksRatingApi.Messages.Kafka.PhotoRated.Consumers;
@@ -19,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Quartz;
 
 namespace LooksRatingApi
@@ -38,15 +40,17 @@ namespace LooksRatingApi
             services.Configure<KafkaProducerSettings>(configuration.GetSection("Kafka"));
             services.Configure<KafkaConsumerSettings>(configuration.GetSection("KafkaConsumer:PhotoConsume"));
 
-            services.AddHostedService<KafkaEnsureTopicsHostedService>();
-
-            services.AddSingleton<IKafkaPhotoRatedProducer<PhotoRatedEvent>, KafkaPhotoRatedProducer<PhotoRatedEvent>>();
-            services.AddScoped<IKafkaPhotoRatedConsumer<PhotoRatedEvent>, KafkaPhotoRatedConsumer<PhotoRatedEvent>>();
+            if (KafkaFeature.IsEnabled(configuration))
+            {
+                services.AddHostedService<KafkaEnsureTopicsHostedService>();
+                services.AddSingleton<IKafkaPhotoRatedProducer<PhotoRatedEvent>, KafkaPhotoRatedProducer<PhotoRatedEvent>>();
+                services.AddScoped<IKafkaPhotoRatedConsumer<PhotoRatedEvent>, KafkaPhotoRatedConsumer<PhotoRatedEvent>>();
+                services.AddHostedService<PhotoRatedBackgroundService<PhotoRatedEvent>>();
+            }
 
             services.AddScoped<IPhotoRecommendationService, PhotoRecommendationService>();
             services.AddScoped<IAddPhotoUsersCacheHandler, AddPhotoUsersCacheHandler>();
 
-            services.AddHostedService<PhotoRatedBackgroundService<PhotoRatedEvent>>();
             services.AddHostedService<AddPhotoUsersCacheBackround>();
         }
 
@@ -65,6 +69,7 @@ namespace LooksRatingApi
         public static void AddQuartz(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<LooksRatingQuartzOptions>(configuration.GetSection("Quartz"));
+            services.AddSingleton<IConfigureOptions<LooksRatingQuartzOptions>, TestQuartzQuartzOptionsConfigurer>();
             services.AddSingleton(sp =>
             {
                 var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<LooksRatingQuartzOptions>>().Value;
@@ -87,7 +92,9 @@ namespace LooksRatingApi
                 var connectionString = configuration.GetConnectionString("DefaultConnection")
                     ?? throw new InvalidOperationException("Connection string DefaultConnection is required.");
 
-                var useClustering = quartzOptions.UseClustering || hostEnvironment.IsProduction();
+                var useClustering = quartzOptions.UseClustering
+                    || hostEnvironment.IsProduction()
+                    || hostEnvironment.IsEnvironment("TestQuartz");
                 var scheduleTimeZone = ApplicationTimeZoneResolver.Resolve(quartzOptions.TimeZoneId);
 
                 q.UseSimpleTypeLoader();
@@ -156,6 +163,8 @@ namespace LooksRatingApi
             {
                 options.WaitForJobsToComplete = true;
             });
+
+            services.AddHostedService<QuartzSchedulerStartupLogger>();
         }
 
         private static string ResolveSchedulerInstanceId(LooksRatingQuartzOptions options)

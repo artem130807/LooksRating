@@ -1,0 +1,365 @@
+{
+  "seedVersion": 3,
+  "description": "TestQuartz v3: ~280 пользователей, 11 городов, покупки VIP (bot), extension, expiry",
+  "city": "самара",
+  "categories": [
+    {
+      "label": "VIP Самара · мужчины 20",
+      "city": "самара",
+      "gender": "Male",
+      "age": 20,
+      "vip": true,
+      "users": [
+        { "telegramId": 910001, "name": "Артём", "rating": 9.4, "ratingCount": 52, "vipPaidDaysAgo": 8 },
+        { "telegramId": 910002, "name": "Борис", "rating": 9.1, "ratingCount": 41, "vipPaidDaysAgo": 12 },
+        { "telegramId": 910003, "name": "Виктор", "rating": 8.9, "ratingCount": 38, "vipPaidDaysAgo": 5 },
+        { "telegramId": 910004, "name": "Глеб", "rating": 8.7, "ratingCount": 35, "vipPaidDaysAgo": 15 }
+      ]
+    },
+    {
+      "label": "VIP Самара · мужчины 21",
+      "city": "самара",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "users": [
+        { "telegramId": 910005, "name": "Денис", "rating": 8.5, "ratingCount": 30, "vipPaidDaysAgo": 7 },
+        { "telegramId": 910006, "name": "Егор", "rating": 8.3, "ratingCount": 28, "vipPaidDaysAgo": 9 },
+        { "telegramId": 910007, "name": "Женя", "rating": 8.1, "ratingCount": 25, "vipPaidDaysAgo": 11 },
+        { "telegramId": 910008, "name": "Илья", "rating": 7.9, "ratingCount": 22, "vipPaidDaysAgo": 6 }
+      ]
+    },
+    {
+      "label": "VIP Самара · мужчины 22",
+      "city": "самара",
+      "gender": "Male",
+      "age": 22,
+      "vip": true,
+      "users": [
+        { "telegramId": 910009, "name": "Кирилл", "rating": 7.7, "ratingCount": 20, "vipPaidDaysAgo": 10 },
+        { "telegramId": 910010, "name": "Леонид", "rating": 7.5, "ratingCount": 18, "vipPaidDaysAgo": 14 },
+        { "telegramId": 910011, "name": "Максим", "rating": 7.3, "ratingCount": 16, "vipPaidDaysAgo": 4 },
+        { "telegramId": 910012, "name": "Никита", "rating": 7.1, "ratingCount": 14, "vipPaidDaysAgo": 13 }
+      ]
+    },
+    {
+      "label": "VIP истёкшие · Самара",
+      "city": "самара",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "vipExpired": true,
+      "users": [
+        { "telegramId": 910020, "name": "Олег", "rating": 6.8, "ratingCount": 10, "vipPaidDaysAgo": 45 },
+        { "telegramId": 910021, "name": "Павел", "rating": 6.5, "ratingCount": 8, "vipPaidDaysAgo": 60 }
+      ]
+    },
+    {
+      "label": "Обычные · Самара женщины",
+      "city": "самара",
+      "gender": "Female",
+      "age": 20,
+      "vip": false,
+      "users": [
+        { "telegramId": 910101, "name": "Алина", "rating": 8.8, "ratingCount": 33 },
+        { "telegramId": 910102, "name": "Белла", "rating": 8.4, "ratingCount": 27 },
+        { "telegramId": 910103, "name": "Вера", "rating": 8.0, "ratingCount": 21 },
+        { "telegramId": 910104, "name": "Галина", "rating": 7.6, "ratingCount": 19 }
+      ]
+    },
+    {
+      "label": "VIP Москва · мужчины 21 (топ-12)",
+      "city": "москва",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "vipPaymentKind": "bot",
+      "users": [
+        { "telegramId": 911001, "name": "М_01", "rating": 9.5, "ratingCount": 55, "vipPaidDaysAgo": 6 },
+        { "telegramId": 911002, "name": "М_02", "rating": 9.3, "ratingCount": 48, "vipPaidDaysAgo": 8 },
+        { "telegramId": 911003, "name": "М_03", "rating": 9.0, "ratingCount": 44, "vipPaidDaysAgo": 10 },
+        { "telegramId": 911004, "name": "М_04", "rating": 8.8, "ratingCount": 40, "vipPaidDaysAgo": 7 },
+        { "telegramId": 911005, "name": "М_05", "rating": 8.6, "ratingCount": 36, "vipPaidDaysAgo": 9 },
+        { "telegramId": 911006, "name": "М_06", "rating": 8.4, "ratingCount": 32, "vipPaidDaysAgo": 11 },
+        { "telegramId": 911007, "name": "М_07", "rating": 8.2, "ratingCount": 30, "vipPaidDaysAgo": 5 },
+        { "telegramId": 911008, "name": "М_08", "rating": 8.0, "ratingCount": 28, "vipPaidDaysAgo": 12 },
+        { "telegramId": 911009, "name": "М_09", "rating": 7.8, "ratingCount": 26, "vipPaidDaysAgo": 8 },
+        { "telegramId": 911010, "name": "М_10", "rating": 7.6, "ratingCount": 24, "vipPaidDaysAgo": 14 },
+        { "telegramId": 911011, "name": "М_11", "rating": 7.4, "ratingCount": 22, "vipPaidDaysAgo": 6 },
+        { "telegramId": 911012, "name": "М_12", "rating": 7.2, "ratingCount": 20, "vipPaidDaysAgo": 10 }
+      ]
+    },
+    {
+      "label": "VIP Москва · женщины 20",
+      "city": "москва",
+      "gender": "Female",
+      "age": 20,
+      "vip": true,
+      "users": [
+        { "telegramId": 911101, "name": "МЖ_01", "rating": 9.2, "ratingCount": 42, "vipPaidDaysAgo": 7 },
+        { "telegramId": 911102, "name": "МЖ_02", "rating": 8.9, "ratingCount": 38, "vipPaidDaysAgo": 9 },
+        { "telegramId": 911103, "name": "МЖ_03", "rating": 8.6, "ratingCount": 34, "vipPaidDaysAgo": 11 },
+        { "telegramId": 911104, "name": "МЖ_04", "rating": 8.3, "ratingCount": 30, "vipPaidDaysAgo": 5 },
+        { "telegramId": 911105, "name": "МЖ_05", "rating": 8.0, "ratingCount": 26, "vipPaidDaysAgo": 13 },
+        { "telegramId": 911106, "name": "МЖ_06", "rating": 7.7, "ratingCount": 22, "vipPaidDaysAgo": 8 },
+        { "telegramId": 911107, "name": "МЖ_07", "rating": 7.4, "ratingCount": 18, "vipPaidDaysAgo": 10 },
+        { "telegramId": 911108, "name": "МЖ_08", "rating": 7.1, "ratingCount": 15, "vipPaidDaysAgo": 12 }
+      ]
+    },
+    {
+      "label": "Обычные · Москва",
+      "city": "москва",
+      "gender": "Male",
+      "age": 25,
+      "vip": false,
+      "users": [
+        { "telegramId": 911201, "name": "МО_01", "rating": 7.5, "ratingCount": 20 },
+        { "telegramId": 911202, "name": "МО_02", "rating": 7.2, "ratingCount": 18 },
+        { "telegramId": 911203, "name": "МО_03", "rating": 6.9, "ratingCount": 16 },
+        { "telegramId": 911204, "name": "МО_04", "rating": 6.6, "ratingCount": 14 },
+        { "telegramId": 911205, "name": "МО_05", "rating": 6.3, "ratingCount": 12 },
+        { "telegramId": 911206, "name": "МО_06", "rating": 6.0, "ratingCount": 10 },
+        { "telegramId": 911207, "name": "МО_07", "rating": 5.8, "ratingCount": 9 },
+        { "telegramId": 911208, "name": "МО_08", "rating": 5.5, "ratingCount": 8 },
+        { "telegramId": 911209, "name": "МО_09", "rating": 5.2, "ratingCount": 7 },
+        { "telegramId": 911210, "name": "МО_10", "rating": 5.0, "ratingCount": 6 }
+      ]
+    },
+    {
+      "label": "VIP СПб · женщины 20 (топ-12)",
+      "city": "санкт-петербург",
+      "gender": "Female",
+      "age": 20,
+      "vip": true,
+      "users": [
+        { "telegramId": 912001, "name": "СП_01", "rating": 9.3, "ratingCount": 50, "vipPaidDaysAgo": 6 },
+        { "telegramId": 912002, "name": "СП_02", "rating": 9.1, "ratingCount": 46, "vipPaidDaysAgo": 8 },
+        { "telegramId": 912003, "name": "СП_03", "rating": 8.9, "ratingCount": 42, "vipPaidDaysAgo": 10 },
+        { "telegramId": 912004, "name": "СП_04", "rating": 8.7, "ratingCount": 38, "vipPaidDaysAgo": 7 },
+        { "telegramId": 912005, "name": "СП_05", "rating": 8.5, "ratingCount": 34, "vipPaidDaysAgo": 9 },
+        { "telegramId": 912006, "name": "СП_06", "rating": 8.3, "ratingCount": 30, "vipPaidDaysAgo": 11 },
+        { "telegramId": 912007, "name": "СП_07", "rating": 8.1, "ratingCount": 28, "vipPaidDaysAgo": 5 },
+        { "telegramId": 912008, "name": "СП_08", "rating": 7.9, "ratingCount": 26, "vipPaidDaysAgo": 12 },
+        { "telegramId": 912009, "name": "СП_09", "rating": 7.7, "ratingCount": 24, "vipPaidDaysAgo": 8 },
+        { "telegramId": 912010, "name": "СП_10", "rating": 7.5, "ratingCount": 22, "vipPaidDaysAgo": 14 },
+        { "telegramId": 912011, "name": "СП_11", "rating": 7.3, "ratingCount": 20, "vipPaidDaysAgo": 6 },
+        { "telegramId": 912012, "name": "СП_12", "rating": 7.1, "ratingCount": 18, "vipPaidDaysAgo": 10 }
+      ]
+    },
+    {
+      "label": "VIP СПб · мужчины 22",
+      "city": "санкт-петербург",
+      "gender": "Male",
+      "age": 22,
+      "vip": true,
+      "users": [
+        { "telegramId": 912101, "name": "СПМ_01", "rating": 8.4, "ratingCount": 28, "vipPaidDaysAgo": 7 },
+        { "telegramId": 912102, "name": "СПМ_02", "rating": 8.1, "ratingCount": 25, "vipPaidDaysAgo": 9 },
+        { "telegramId": 912103, "name": "СПМ_03", "rating": 7.8, "ratingCount": 22, "vipPaidDaysAgo": 11 },
+        { "telegramId": 912104, "name": "СПМ_04", "rating": 7.5, "ratingCount": 19, "vipPaidDaysAgo": 5 },
+        { "telegramId": 912105, "name": "СПМ_05", "rating": 7.2, "ratingCount": 16, "vipPaidDaysAgo": 13 },
+        { "telegramId": 912106, "name": "СПМ_06", "rating": 6.9, "ratingCount": 14, "vipPaidDaysAgo": 8 },
+        { "telegramId": 912107, "name": "СПМ_07", "rating": 6.6, "ratingCount": 12, "vipPaidDaysAgo": 10 },
+        { "telegramId": 912108, "name": "СПМ_08", "rating": 6.3, "ratingCount": 10, "vipPaidDaysAgo": 12 }
+      ]
+    },
+    {
+      "label": "VIP Казань · мужчины 21 (топ-12)",
+      "city": "казань",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "users": [
+        { "telegramId": 913001, "name": "КЗ_01", "rating": 9.2, "ratingCount": 45, "vipPaidDaysAgo": 6 },
+        { "telegramId": 913002, "name": "КЗ_02", "rating": 9.0, "ratingCount": 41, "vipPaidDaysAgo": 8 },
+        { "telegramId": 913003, "name": "КЗ_03", "rating": 8.8, "ratingCount": 37, "vipPaidDaysAgo": 10 },
+        { "telegramId": 913004, "name": "КЗ_04", "rating": 8.6, "ratingCount": 33, "vipPaidDaysAgo": 7 },
+        { "telegramId": 913005, "name": "КЗ_05", "rating": 8.4, "ratingCount": 29, "vipPaidDaysAgo": 9 },
+        { "telegramId": 913006, "name": "КЗ_06", "rating": 8.2, "ratingCount": 27, "vipPaidDaysAgo": 11 },
+        { "telegramId": 913007, "name": "КЗ_07", "rating": 8.0, "ratingCount": 25, "vipPaidDaysAgo": 5 },
+        { "telegramId": 913008, "name": "КЗ_08", "rating": 7.8, "ratingCount": 23, "vipPaidDaysAgo": 12 },
+        { "telegramId": 913009, "name": "КЗ_09", "rating": 7.6, "ratingCount": 21, "vipPaidDaysAgo": 8 },
+        { "telegramId": 913010, "name": "КЗ_10", "rating": 7.4, "ratingCount": 19, "vipPaidDaysAgo": 14 },
+        { "telegramId": 913011, "name": "КЗ_11", "rating": 7.2, "ratingCount": 17, "vipPaidDaysAgo": 6 },
+        { "telegramId": 913012, "name": "КЗ_12", "rating": 7.0, "ratingCount": 15, "vipPaidDaysAgo": 10 }
+      ]
+    },
+    {
+      "label": "Обычные · Казань",
+      "city": "казань",
+      "gender": "Female",
+      "age": 22,
+      "vip": false,
+      "users": [
+        { "telegramId": 913101, "name": "КЗЖ_01", "rating": 8.0, "ratingCount": 24 },
+        { "telegramId": 913102, "name": "КЗЖ_02", "rating": 7.7, "ratingCount": 21 },
+        { "telegramId": 913103, "name": "КЗЖ_03", "rating": 7.4, "ratingCount": 18 },
+        { "telegramId": 913104, "name": "КЗЖ_04", "rating": 7.1, "ratingCount": 15 },
+        { "telegramId": 913105, "name": "КЗЖ_05", "rating": 6.8, "ratingCount": 12 },
+        { "telegramId": 913106, "name": "КЗЖ_06", "rating": 6.5, "ratingCount": 10 },
+        { "telegramId": 913107, "name": "КЗЖ_07", "rating": 6.2, "ratingCount": 9 },
+        { "telegramId": 913108, "name": "КЗЖ_08", "rating": 5.9, "ratingCount": 8 },
+        { "telegramId": 913109, "name": "КЗЖ_09", "rating": 5.6, "ratingCount": 7 },
+        { "telegramId": 913110, "name": "КЗЖ_10", "rating": 5.3, "ratingCount": 6 }
+      ]
+    },
+    {
+      "label": "VIP Краснодар · мужчины 21",
+      "city": "краснодар",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "users": [
+        { "telegramId": 914001, "name": "КР_01", "rating": 9.1, "ratingCount": 43, "vipPaidDaysAgo": 7 },
+        { "telegramId": 914002, "name": "КР_02", "rating": 8.8, "ratingCount": 39, "vipPaidDaysAgo": 9 },
+        { "telegramId": 914003, "name": "КР_03", "rating": 8.5, "ratingCount": 35, "vipPaidDaysAgo": 11 },
+        { "telegramId": 914004, "name": "КР_04", "rating": 8.2, "ratingCount": 31, "vipPaidDaysAgo": 6 },
+        { "telegramId": 914005, "name": "КР_05", "rating": 7.9, "ratingCount": 27, "vipPaidDaysAgo": 8 },
+        { "telegramId": 914006, "name": "КР_06", "rating": 7.6, "ratingCount": 23, "vipPaidDaysAgo": 10 },
+        { "telegramId": 914007, "name": "КР_07", "rating": 7.3, "ratingCount": 19, "vipPaidDaysAgo": 12 },
+        { "telegramId": 914008, "name": "КР_08", "rating": 7.0, "ratingCount": 17, "vipPaidDaysAgo": 5 },
+        { "telegramId": 914009, "name": "КР_09", "rating": 6.7, "ratingCount": 15, "vipPaidDaysAgo": 13 },
+        { "telegramId": 914010, "name": "КР_10", "rating": 6.4, "ratingCount": 13, "vipPaidDaysAgo": 9 }
+      ]
+    },
+    {
+      "label": "Обычные · Краснодар",
+      "city": "краснодар",
+      "gender": "Female",
+      "age": 20,
+      "vip": false,
+      "users": [
+        { "telegramId": 914101, "name": "КРЖ_01", "rating": 8.2, "ratingCount": 26 },
+        { "telegramId": 914102, "name": "КРЖ_02", "rating": 7.9, "ratingCount": 23 },
+        { "telegramId": 914103, "name": "КРЖ_03", "rating": 7.6, "ratingCount": 20 },
+        { "telegramId": 914104, "name": "КРЖ_04", "rating": 7.3, "ratingCount": 17 },
+        { "telegramId": 914105, "name": "КРЖ_05", "rating": 7.0, "ratingCount": 14 },
+        { "telegramId": 914106, "name": "КРЖ_06", "rating": 6.7, "ratingCount": 12 },
+        { "telegramId": 914107, "name": "КРЖ_07", "rating": 6.4, "ratingCount": 10 },
+        { "telegramId": 914108, "name": "КРЖ_08", "rating": 6.1, "ratingCount": 8 }
+      ]
+    },
+    {
+      "label": "VIP Новосибирск · женщины 21",
+      "city": "новосибирск",
+      "gender": "Female",
+      "age": 21,
+      "vip": true,
+      "users": [
+        { "telegramId": 915001, "name": "НС_01", "rating": 9.0, "ratingCount": 40, "vipPaidDaysAgo": 6 },
+        { "telegramId": 915002, "name": "НС_02", "rating": 8.7, "ratingCount": 36, "vipPaidDaysAgo": 8 },
+        { "telegramId": 915003, "name": "НС_03", "rating": 8.4, "ratingCount": 32, "vipPaidDaysAgo": 10 },
+        { "telegramId": 915004, "name": "НС_04", "rating": 8.1, "ratingCount": 28, "vipPaidDaysAgo": 7 },
+        { "telegramId": 915005, "name": "НС_05", "rating": 7.8, "ratingCount": 24, "vipPaidDaysAgo": 9 },
+        { "telegramId": 915006, "name": "НС_06", "rating": 7.5, "ratingCount": 20, "vipPaidDaysAgo": 11 },
+        { "telegramId": 915007, "name": "НС_07", "rating": 7.2, "ratingCount": 18, "vipPaidDaysAgo": 5 },
+        { "telegramId": 915008, "name": "НС_08", "rating": 6.9, "ratingCount": 16, "vipPaidDaysAgo": 13 },
+        { "telegramId": 915009, "name": "НС_09", "rating": 6.6, "ratingCount": 14, "vipPaidDaysAgo": 8 },
+        { "telegramId": 915010, "name": "НС_10", "rating": 6.3, "ratingCount": 12, "vipPaidDaysAgo": 10 }
+      ]
+    },
+    {
+      "label": "Обычные · Новосибирск",
+      "city": "новосибирск",
+      "gender": "Male",
+      "age": 23,
+      "vip": false,
+      "users": [
+        { "telegramId": 915101, "name": "НСМ_01", "rating": 7.8, "ratingCount": 22 },
+        { "telegramId": 915102, "name": "НСМ_02", "rating": 7.5, "ratingCount": 19 },
+        { "telegramId": 915103, "name": "НСМ_03", "rating": 7.2, "ratingCount": 16 },
+        { "telegramId": 915104, "name": "НСМ_04", "rating": 6.9, "ratingCount": 14 },
+        { "telegramId": 915105, "name": "НСМ_05", "rating": 6.6, "ratingCount": 12 },
+        { "telegramId": 915106, "name": "НСМ_06", "rating": 6.3, "ratingCount": 10 },
+        { "telegramId": 915107, "name": "НСМ_07", "rating": 6.0, "ratingCount": 8 },
+        { "telegramId": 915108, "name": "НСМ_08", "rating": 5.7, "ratingCount": 7 }
+      ]
+    },
+    {
+      "label": "VIP истёкшие · Москва",
+      "city": "москва",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "vipExpired": true,
+      "users": [
+        { "telegramId": 911301, "name": "М_Exp1", "rating": 6.5, "ratingCount": 9, "vipPaidDaysAgo": 50 },
+        { "telegramId": 911302, "name": "М_Exp2", "rating": 6.2, "ratingCount": 7, "vipPaidDaysAgo": 55 }
+      ]
+    },
+    {
+      "label": "BULK VIP · Екатеринбург · мужчины 21",
+      "city": "екатеринбург",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "vipPaymentKind": "bot",
+      "generate": { "count": 15, "telegramIdStart": 916001, "namePrefix": "ЕК", "ratingFrom": 9.1, "ratingStep": -0.12, "ratingCountFrom": 42, "vipPaidDaysAgo": 9 }
+    },
+    {
+      "label": "BULK VIP · Ростов · мужчины 22",
+      "city": "ростов-на-дону",
+      "gender": "Male",
+      "age": 22,
+      "vip": true,
+      "vipPaymentKind": "bot",
+      "generate": { "count": 15, "telegramIdStart": 917001, "namePrefix": "РН", "ratingFrom": 9.0, "ratingStep": -0.11, "ratingCountFrom": 40, "vipPaidDaysAgo": 11 }
+    },
+    {
+      "label": "BULK VIP · Уфа · женщины 20",
+      "city": "уфа",
+      "gender": "Female",
+      "age": 20,
+      "vip": true,
+      "vipPaymentKind": "bot",
+      "generate": { "count": 15, "telegramIdStart": 918001, "namePrefix": "УФ", "ratingFrom": 8.9, "ratingStep": -0.1, "ratingCountFrom": 38, "vipPaidDaysAgo": 8 }
+    },
+    {
+      "label": "BULK VIP · Нижний Новгород · мужчины 21",
+      "city": "нижний новгород",
+      "gender": "Male",
+      "age": 21,
+      "vip": true,
+      "vipPaymentKind": "bot",
+      "generate": { "count": 15, "telegramIdStart": 919001, "namePrefix": "НН", "ratingFrom": 8.8, "ratingStep": -0.1, "ratingCountFrom": 36, "vipPaidDaysAgo": 10 }
+    },
+    {
+      "label": "BULK · Воронеж · женщины 21",
+      "city": "воронеж",
+      "gender": "Female",
+      "age": 21,
+      "vip": true,
+      "vipPaymentKind": "bot",
+      "generate": { "count": 12, "telegramIdStart": 919101, "namePrefix": "ВР", "ratingFrom": 8.7, "ratingStep": -0.09, "ratingCountFrom": 34, "vipPaidDaysAgo": 7 }
+    },
+    {
+      "label": "BULK обычные · Екатеринбург",
+      "city": "екатеринбург",
+      "gender": "Male",
+      "age": 25,
+      "vip": false,
+      "generate": { "count": 10, "telegramIdStart": 916101, "namePrefix": "ЕКО", "ratingFrom": 7.5, "ratingStep": -0.08, "ratingCountFrom": 20, "vipPaidDaysAgo": 0 }
+    },
+    {
+      "label": "BULK обычные · Ростов",
+      "city": "ростов-на-дону",
+      "gender": "Female",
+      "age": 22,
+      "vip": false,
+      "generate": { "count": 10, "telegramIdStart": 917101, "namePrefix": "РНО", "ratingFrom": 7.3, "ratingStep": -0.07, "ratingCountFrom": 18, "vipPaidDaysAgo": 0 }
+    }
+  ],
+  "vipPayments": [
+    { "telegramId": 911006, "kind": "bot", "vipPaidDaysAgo": 28, "replaceExisting": true },
+    { "telegramId": 911007, "kind": "bot", "vipPaidDaysAgo": 28, "replaceExisting": true },
+    { "telegramId": 911008, "kind": "bot", "vipPaidDaysAgo": 28, "replaceExisting": true },
+    { "telegramId": 911009, "kind": "bot", "vipPaidDaysAgo": 28, "replaceExisting": true },
+    { "telegramId": 911010, "kind": "bot", "vipPaidDaysAgo": 28, "replaceExisting": true },
+    { "telegramId": 911011, "kind": "bot", "vipPaidDaysAgo": 27, "replaceExisting": true },
+    { "telegramId": 911012, "kind": "bot", "vipPaidDaysAgo": 27, "replaceExisting": true },
+    { "telegramId": 910020, "kind": "bot", "vipPaidDaysAgo": 45, "replaceExisting": true },
+    { "telegramId": 910021, "kind": "bot", "vipPaidDaysAgo": 60, "replaceExisting": true },
+    { "telegramId": 911301, "kind": "bot", "vipPaidDaysAgo": 50, "replaceExisting": true },
+    { "telegramId": 911302, "kind": "bot", "vipPaidDaysAgo": 55, "replaceExisting": true }
+  ]
+}

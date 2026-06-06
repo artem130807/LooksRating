@@ -18,12 +18,16 @@ namespace LooksRatingApi.Infrastructure.DistributedLock
         private readonly IDatabase _database;
         private readonly LuaScript _acquireScript;
         private readonly LuaScript _releaseScript;
+        private readonly ILogger<RedisDistributedLock> _logger;
 
-        public RedisDistributedLock(IConnectionMultiplexer redis)
+        public RedisDistributedLock(
+            IConnectionMultiplexer redis,
+            ILogger<RedisDistributedLock> logger)
         {
             _database = redis.GetDatabase();
             _acquireScript = LuaScript.Prepare(AcquireScript);
             _releaseScript = LuaScript.Prepare(ReleaseScript);
+            _logger = logger;
         }
 
         public Task<bool> IsLockedAsync(string key, CancellationToken cancellationToken = default) =>
@@ -50,8 +54,12 @@ namespace LooksRatingApi.Infrastructure.DistributedLock
                 });
 
             if (acquired != 1)
+            {
+                _logger.LogDebug("Redis lock занят: {Key}", key);
                 return null;
+            }
 
+            _logger.LogDebug("Redis lock получен: {Key}, ttl={TtlSeconds}s", key, ttlSeconds);
             return new RedisDistributedLockHandle(key, token, _database, _releaseScript);
         }
     }

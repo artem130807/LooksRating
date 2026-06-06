@@ -21,9 +21,12 @@ namespace LooksRatingApi.Services
         public async Task<IReadOnlyList<VipTopProfileCandidate>> ProcessAndGetProfilesAsync(
             CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation("VIP-топ награды: обработка запроса");
+
             var categories = await _vipTopCategoryService.GetQualifiedCategoriesAsync(cancellationToken);
             if (categories.Count == 0)
             {
+                _logger.LogInformation("VIP-топ награды: квалифицированных категорий нет");
                 return Array.Empty<VipTopProfileCandidate>();
             }
 

@@ -3,6 +3,7 @@ using LooksRatingApi.Infrastructure.Auth;
 using LooksRatingApi.Infrastructure.Health;
 using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Infrastructure.RateLimiting;
+using LooksRatingApi.Infrastructure.TestQuartz;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.GrpcService;
@@ -49,6 +50,7 @@ namespace LooksRatingApi.Infrastructure.Startup
             services.AddRedisRateLimiting(configuration);
             services.AddInfrastructureHealthChecks(configuration);
             services.AddScoped<ISeasonDataSeeder, SeasonDataSeeder>();
+            services.AddScoped<ITestQuartzDataSeeder, TestQuartzDataSeeder>();
 
             services.AddSwaggerGen(options =>
             {
@@ -129,6 +131,11 @@ namespace LooksRatingApi.Infrastructure.Startup
             services.GetRequiredService<ILoadingBadWordService>().CreateBadWord(env);
 
             await services.GetRequiredService<ISeasonDataSeeder>().SeedAsync();
+
+            if (env.IsEnvironment("TestQuartz"))
+            {
+                await services.GetRequiredService<ITestQuartzDataSeeder>().SeedAsync();
+            }
         }
 
         public static WebApplication ConfigureApplicationPipeline(this WebApplication app)

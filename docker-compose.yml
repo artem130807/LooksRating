@@ -1,26 +1,28 @@
+name: looksrating-testquartz
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: looksrating-postgres
+    container_name: looksrating-testquartz-postgres
     environment:
-      POSTGRES_DB: LooksRatingDb
+      POSTGRES_DB: LooksRatingDb_TestQuartz
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - looksrating-pgdata:/var/lib/postgresql/data
+      - looksrating-testquartz-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d LooksRatingDb"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d LooksRatingDb_TestQuartz"]
       interval: 5s
       timeout: 5s
       retries: 10
 
   redis:
     image: redis:7-alpine
-    container_name: looksrating-redis
+    container_name: looksrating-testquartz-redis
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
@@ -28,57 +30,58 @@ services:
       retries: 10
 
   zookeeper:
+    profiles: ["kafka"]
     image: confluentinc/cp-zookeeper:7.6.1
-    container_name: looksrating-zookeeper
+    container_name: looksrating-testquartz-zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     ports:
-      - "2181:2181"
+      - "2182:2181"
 
   kafka:
+    profiles: ["kafka"]
     image: confluentinc/cp-kafka:7.6.1
-    container_name: looksrating-kafka
+    container_name: looksrating-testquartz-kafka
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "9093:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     healthcheck:
       test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 10s
-      retries: 10
+      retries: 18
+      start_period: 60s
 
   api:
     build:
       context: .
       dockerfile: LooksRatingApi/Dockerfile
-    container_name: looksrating-api
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      kafka:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
+    # Порт не публикуем: при --scale api=3 иначе конфликт 8081.
+    # Доступ с хоста: docker compose --profile gateway up -d api-gateway
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=LooksRatingDb;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
+      ASPNETCORE_ENVIRONMENT: TestQuartz
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=LooksRatingDb_TestQuartz;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
       ConnectionStrings__Redis: redis:6379,abortConnect=false
-      Kafka__BootstrapServers: kafka:29092
-      KafkaConsumer__PhotoConsume__BootstrapServers: kafka:29092
-      Security__ApiKey: ${API_KEY:-default_secret_api_key}
+      Security__ApiKey: ${API_KEY:-testquartz_api_key}
       Security__RequireApiKey: "true"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
@@ -87,24 +90,36 @@ services:
       retries: 10
       start_period: 40s
 
+  api-gateway:
+    profiles: ["gateway"]
+    image: nginx:alpine
+    depends_on:
+      - api
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./docker/testquartz-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
   bot:
+    profiles: ["full"]
     build:
       context: .
       dockerfile: LooksRatingBot/Dockerfile
-    container_name: looksrating-bot
+    container_name: looksrating-testquartz-bot
     depends_on:
       api:
         condition: service_healthy
     environment:
       API_BASE_URL: http://api:8080
-      API_KEY: ${API_KEY:-default_secret_api_key}
-      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
+      API_KEY: ${API_KEY:-testquartz_api_key}
+      BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env for profile full}
 
   tgifts-buyer:
+    profiles: ["full"]
     build:
       context: .
       dockerfile: TGgifts-buyer/Dockerfile
-    container_name: looksrating-tgifts-buyer
+    container_name: looksrating-testquartz-tgifts-buyer
     restart: unless-stopped
     depends_on:
       api:
@@ -119,4 +134,4 @@ services:
       - ./TGgifts-buyer/data:/app/data
 
 volumes:
-  looksrating-pgdata:
+  looksrating-testquartz-pgdata:

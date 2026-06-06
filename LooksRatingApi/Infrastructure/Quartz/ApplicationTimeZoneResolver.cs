@@ -4,17 +4,19 @@ namespace LooksRatingApi.Infrastructure.Quartz
     {
         public const string DefaultTimeZoneId = "Europe/Moscow";
 
-        private static readonly string[] MoscowFallbackIds =
+        private static readonly string[] KnownTimeZoneIds =
         [
+            "Europe/Samara",
             "Europe/Moscow",
-            "Russian Standard Time"
+            "Russian Standard Time",
+            "Samara Standard Time"
         ];
 
         public static TimeZoneInfo Resolve(string? timeZoneId)
         {
             var candidates = string.IsNullOrWhiteSpace(timeZoneId)
-                ? MoscowFallbackIds
-                : [timeZoneId, ..MoscowFallbackIds.Where(id => !id.Equals(timeZoneId, StringComparison.OrdinalIgnoreCase))];
+                ? KnownTimeZoneIds
+                : [timeZoneId, ..KnownTimeZoneIds.Where(id => !id.Equals(timeZoneId, StringComparison.OrdinalIgnoreCase))];
 
             foreach (var candidate in candidates)
             {
