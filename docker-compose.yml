@@ -1,3 +1,8 @@
+# Staging / production stack.
+# API: 3 реплики + nginx (failover при падении инстанса):
+#   docker compose up -d --build --scale api=3
+# С хоста API доступен на http://localhost:8080 (через api-gateway).
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -62,7 +67,6 @@ services:
     build:
       context: .
       dockerfile: LooksRatingApi/Dockerfile
-    container_name: looksrating-api
     depends_on:
       postgres:
         condition: service_healthy
@@ -70,8 +74,6 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
-    ports:
-      - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=LooksRatingDb;Username=postgres;Password=${POSTGRES_PASSWORD:-postgres}
@@ -87,16 +89,32 @@ services:
       retries: 10
       start_period: 40s
 
+  api-gateway:
+    build:
+      context: ./docker/nginx
+      dockerfile: Dockerfile
+    container_name: looksrating-api-gateway
+    depends_on:
+      - api
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:8080/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
+
   bot:
     build:
       context: .
       dockerfile: LooksRatingBot/Dockerfile
     container_name: looksrating-bot
     depends_on:
-      api:
+      api-gateway:
         condition: service_healthy
     environment:
-      API_BASE_URL: http://api:8080
+      API_BASE_URL: http://api-gateway:8080
       API_KEY: ${API_KEY:-default_secret_api_key}
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
 
