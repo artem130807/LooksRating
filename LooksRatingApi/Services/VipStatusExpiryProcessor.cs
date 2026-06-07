@@ -28,6 +28,8 @@ namespace LooksRatingApi.Services
 
         public async Task ProcessAsync(CancellationToken cancellationToken)
         {
+            _logger.LogInformation("VIP expiry: проверка истечения статуса");
+
             await using var lockHandle = await _distributedLock.TryAcquireAsync(
                 DistributedLockKeys.VipStatusExpiry,
                 LockTtl,
@@ -35,7 +37,7 @@ namespace LooksRatingApi.Services
 
             if (lockHandle is null)
             {
-                _logger.LogDebug("VIP expiry пропущен: выполняется на другом инстансе");
+                _logger.LogInformation("VIP expiry пропущен: lock занят другим инстансом");
                 return;
             }
 
@@ -49,8 +51,11 @@ namespace LooksRatingApi.Services
 
             if (activeVipUserIds.Count == 0)
             {
+                _logger.LogInformation("VIP expiry: активных VIP-пользователей нет");
                 return;
             }
+
+            _logger.LogInformation("VIP expiry: проверяется {Count} активных VIP", activeVipUserIds.Count);
 
             var expirations = await _vipExpirationReadService.GetExpirationUtcByUserIdsAsync(
                 activeVipUserIds,
@@ -62,6 +67,7 @@ namespace LooksRatingApi.Services
 
             if (toDeactivateIds.Count == 0)
             {
+                _logger.LogInformation("VIP expiry: истёкших VIP не найдено");
                 return;
             }
 

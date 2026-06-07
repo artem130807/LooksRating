@@ -156,6 +156,8 @@ namespace LooksRatingApi
             {
                 options.WaitForJobsToComplete = true;
             });
+
+            services.AddHostedService<QuartzSchedulerStartupLogger>();
         }
 
         private static string ResolveSchedulerInstanceId(LooksRatingQuartzOptions options)
