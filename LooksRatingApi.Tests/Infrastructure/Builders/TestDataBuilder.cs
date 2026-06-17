@@ -2,6 +2,7 @@ using LooksRatingApi;
 using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
+using LooksRatingApi.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace LooksRatingApi.Tests.Infrastructure.Builders;
@@ -101,7 +102,7 @@ internal static class TestDataBuilder
         LooksRatingDbContext context,
         CancellationToken cancellationToken = default)
     {
-        var product = Product.Create("VIP", 1001, 100, "XTR", 30).Value;
+        var product = Product.Create("VIP", VipTopRules.VipProductCode, VipTopRules.VipStarsPrice, "XTR", VipTopRules.DefaultVipDays).Value;
         context.Products.Add(product);
         await context.SaveChangesAsync(cancellationToken);
         return product;

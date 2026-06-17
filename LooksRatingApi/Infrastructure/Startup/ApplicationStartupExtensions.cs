@@ -5,6 +5,7 @@ using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Infrastructure.RateLimiting;
 using LooksRatingApi.Models;
 using LooksRatingApi.Infrastructure.SparksWallet;
+using LooksRatingApi.Services;
 using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.GrpcService;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -16,9 +17,9 @@ namespace LooksRatingApi.Infrastructure.Startup
 {
     public static class ApplicationStartupExtensions
     {
-        private const int VipProductCode = 1001;
-        private const int VipTestStarsPrice = 1;
-        private const int VipDays = 30;
+        private const int VipProductCode = VipTopRules.VipProductCode;
+        private const int VipStarsPrice = VipTopRules.VipStarsPrice;
+        private const int VipDays = VipTopRules.DefaultVipDays;
 
         public static WebApplicationBuilder ConfigureHost(this WebApplicationBuilder builder)
         {
@@ -106,19 +107,19 @@ namespace LooksRatingApi.Infrastructure.Startup
             var vipProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductCode == VipProductCode);
             if (vipProduct is null)
             {
-                var productResult = Product.Create("VIP-статус", VipProductCode, VipTestStarsPrice, "XTR", VipDays);
+                var productResult = Product.Create("VIP-статус", VipProductCode, VipStarsPrice, "XTR", VipDays);
                 if (productResult.IsSuccess)
                 {
                     dbContext.Products.Add(productResult.Value);
                     await dbContext.SaveChangesAsync();
                 }
             }
-            else if (vipProduct.CountStars != VipTestStarsPrice
+            else if (vipProduct.CountStars != VipStarsPrice
                 || !vipProduct.IsActive
                 || !string.Equals(vipProduct.Currency, "XTR", StringComparison.OrdinalIgnoreCase)
                 || vipProduct.VipDays != VipDays)
             {
-                dbContext.Entry(vipProduct).Property(nameof(Product.CountStars)).CurrentValue = VipTestStarsPrice;
+                dbContext.Entry(vipProduct).Property(nameof(Product.CountStars)).CurrentValue = VipStarsPrice;
                 dbContext.Entry(vipProduct).Property(nameof(Product.IsActive)).CurrentValue = true;
                 dbContext.Entry(vipProduct).Property(nameof(Product.Currency)).CurrentValue = "XTR";
                 dbContext.Entry(vipProduct).Property(nameof(Product.VipDays)).CurrentValue = VipDays;
