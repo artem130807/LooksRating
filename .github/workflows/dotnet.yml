@@ -161,6 +161,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate deploy secrets
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TICKET_BOT_TOKEN: ${{ secrets.TICKET_BOT_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY }}
+          TICKET_API_KEY: ${{ secrets.TICKET_API_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          TICKET_POSTGRES_PASSWORD: ${{ secrets.TICKET_POSTGRES_PASSWORD }}
+          TGIFTS_API_ID: ${{ secrets.TGIFTS_API_ID }}
+          TGIFTS_API_HASH: ${{ secrets.TGIFTS_API_HASH }}
+          TGIFTS_APP_MODE: ${{ vars.TGIFTS_APP_MODE }}
+          TGIFTS_CHANNEL_ID: ${{ vars.TGIFTS_CHANNEL_ID }}
+          COMPOSE_PROJECT_NAME: ${{ vars.COMPOSE_PROJECT_NAME }}
+          DEPLOY_GIT_REF: ${{ github.ref_name }}
+        run: bash scripts/validate-deploy-secrets.sh
+
       - name: Deploy to VPS via SSH
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

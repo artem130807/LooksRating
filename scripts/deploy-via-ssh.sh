@@ -6,24 +6,8 @@
 
 set -euo pipefail
 
-require_var() {
-  if [[ -z "${!1:-}" ]]; then
-    echo "Missing required environment variable: $1" >&2
-    exit 1
-  fi
-}
-
-require_var SSH_PRIVATE_KEY
-require_var VPS_HOST
-require_var VPS_USER
-require_var TELEGRAM_BOT_TOKEN
-require_var API_KEY
-require_var POSTGRES_PASSWORD
-require_var TICKET_BOT_TOKEN
-require_var TICKET_API_KEY
-require_var TICKET_POSTGRES_PASSWORD
-require_var TGIFTS_API_ID
-require_var TGIFTS_API_HASH
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+bash "$SCRIPT_DIR/validate-deploy-secrets.sh"
 
 APP_DIR="${VPS_APP_DIR:-/home/${VPS_USER}/LooksRating}"
 GIT_REF="${DEPLOY_GIT_REF:-main}"
