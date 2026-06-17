@@ -375,6 +375,31 @@ namespace LooksRatingApi.Migrations
                     b.ToTable("RecomendationSettings", (string)null);
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.ReferralInvite", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("InvitedUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ReferrerUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InvitedUserId")
+                        .IsUnique();
+
+                    b.HasIndex("ReferrerUserId");
+
+                    b.ToTable("ReferralInvite", (string)null);
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.Review", b =>
                 {
                     b.Property<Guid>("Id")
@@ -570,6 +595,33 @@ namespace LooksRatingApi.Migrations
                     b.ToTable("User", (string)null);
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.UserReferenceLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CountInvited")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("DateTime")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Link")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("UserReferenceLink", (string)null);
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.UserSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -761,6 +813,17 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.UserReferenceLink", b =>
+                {
+                    b.HasOne("LooksRatingApi.Models.User", "User")
+                        .WithOne("UserReferenceLink")
+                        .HasForeignKey("LooksRatingApi.Models.UserReferenceLink", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.UserSession", b =>
                 {
                     b.HasOne("LooksRatingApi.Models.User", "User")
@@ -833,6 +896,8 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("Reviews");
 
                     b.Navigation("SparksWallet");
+
+                    b.Navigation("UserReferenceLink");
 
                     b.Navigation("UserTickets");
                 });

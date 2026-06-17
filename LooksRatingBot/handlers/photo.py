@@ -30,6 +30,11 @@ from bot.services import (
     send_settings_menu,
     set_bot_state,
 )
+from bot.photo_upload import (
+    PHOTO_UPLOAD_STATE,
+    VIDEO_UPLOAD,
+    reply_photo_upload_required,
+)
 from bot.states import PhotoStates, RecreatePhotoStates
 
 logger = logging.getLogger(__name__)
@@ -292,6 +297,16 @@ async def go_upload(message: Message, state: FSMContext, api: LooksRatingApiClie
 )
 async def photo_flow_cancel(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
     await _finish_photo_flow(message, state, api, message.from_user.id, texts.PHOTO_CANCEL)
+
+
+@router.message(PHOTO_UPLOAD_STATE, VIDEO_UPLOAD)
+async def photo_upload_reject_video(message: Message, state: FSMContext) -> None:
+    await reply_photo_upload_required(message, state, text=texts.PHOTO_VIDEO_NOT_ALLOWED)
+
+
+@router.message(PHOTO_UPLOAD_STATE, F.document.mime_type.startswith("video"))
+async def photo_upload_reject_video_document(message: Message, state: FSMContext) -> None:
+    await reply_photo_upload_required(message, state, text=texts.PHOTO_VIDEO_NOT_ALLOWED)
 
 
 @router.message(PhotoStates.upload, F.photo)

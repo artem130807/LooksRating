@@ -78,6 +78,7 @@ class LooksRatingApiClient:
         *,
         use_telegram_username_as_display: bool,
         display_name: str | None = None,
+        referral_link: str | None = None,
     ) -> dict[str, Any]:
         return await self._request(
             "POST",
@@ -87,6 +88,7 @@ class LooksRatingApiClient:
                 "telegramUsername": telegram_username,
                 "useTelegramUsernameAsDisplay": use_telegram_username_as_display,
                 "name": display_name,
+                "link": referral_link,
             },
         )
 
@@ -453,6 +455,19 @@ class LooksRatingApiClient:
                 "telegramPaymentChargeId": telegram_payment_charge_id,
                 "providerPaymentChargeId": provider_payment_charge_id,
             },
+        )
+
+    async def get_user_reference_link(self, telegram_id: int) -> dict[str, Any] | None:
+        return await self._request(
+            "GET",
+            f"/api/user-reference-links/{telegram_id}",
+            allow_404=True,
+        )
+
+    async def create_user_reference_link(self, telegram_id: int) -> dict[str, Any]:
+        return await self._request(
+            "POST",
+            f"/api/user-reference-links/{telegram_id}",
         )
 
     async def get_pending_review_milestone_notifications(self) -> list[dict[str, Any]]:

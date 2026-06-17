@@ -28,6 +28,12 @@ class FakeApiClient:
     session_states: list[str] = field(default_factory=list)
     set_photo_calls: list[dict[str, Any]] = field(default_factory=list)
     register_calls: list[dict[str, Any]] = field(default_factory=list)
+    referral_link: str | None = None
+    referral_get_error: ApiError | None = None
+    referral_create_error: ApiError | None = None
+    get_referral_link_calls: list[int] = field(default_factory=list)
+    create_referral_link_calls: list[int] = field(default_factory=list)
+    payment_orders: list[dict[str, Any]] = field(default_factory=list)
 
     async def get_cities(self) -> list[str]:
         if self.cities_error:
@@ -61,6 +67,7 @@ class FakeApiClient:
         *,
         use_telegram_username_as_display: bool,
         display_name: str | None = None,
+        referral_link: str | None = None,
     ) -> dict[str, Any]:
         self.register_calls.append(
             {
@@ -68,6 +75,7 @@ class FakeApiClient:
                 "telegram_username": telegram_username,
                 "use_telegram_username_as_display": use_telegram_username_as_display,
                 "display_name": display_name,
+                "referral_link": referral_link,
             }
         )
         if self.register_error:
@@ -114,6 +122,42 @@ class FakeApiClient:
         if self.set_photo_error:
             raise self.set_photo_error
         return dict(self.set_photo_result)
+
+    async def get_user_reference_link(self, telegram_id: int) -> dict[str, Any] | None:
+        self.get_referral_link_calls.append(telegram_id)
+        if self.referral_get_error:
+            raise self.referral_get_error
+        if self.referral_link is None:
+            return None
+        return {"link": self.referral_link}
+
+    async def create_user_reference_link(self, telegram_id: int) -> dict[str, Any]:
+        self.create_referral_link_calls.append(telegram_id)
+        if self.referral_create_error:
+            raise self.referral_create_error
+        if self.referral_link is None:
+            self.referral_link = f"https://t.me/LooksRatingBot?start={telegram_id:012x}"
+        return {"link": self.referral_link}
+
+    async def create_payment_order(self, telegram_id: int, product_code: int) -> dict[str, Any]:
+        order = {
+            "payload": f"vip-{telegram_id}",
+            "amountStars": 100,
+            "currency": "XTR",
+            "productCode": product_code,
+            "productName": "VIP",
+        }
+        self.payment_orders.append(order)
+        return order
+
+    async def confirm_payment_order(
+        self,
+        telegram_id: int,
+        payload: str,
+        telegram_payment_charge_id: str,
+        provider_payment_charge_id: str | None = None,
+    ) -> dict[str, Any]:
+        return {"ok": True}
 
     async def upsert_recommendation_settings(
         self,

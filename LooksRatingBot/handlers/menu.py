@@ -6,20 +6,19 @@ from aiogram.exceptions import TelegramBadRequest
 import logging
 
 from api.client import ApiError, LooksRatingApiClient
-from bot import texts
+from bot import callbacks, texts
 from bot.filters import NOT_DURING_RATING_OR_TICKET
 from bot.keyboards import (
     MENU_ABOUT,
+    MENU_PRIVILEGES,
     MENU_PROFILE,
     MENU_RATE,
     MENU_SETTINGS,
-    MENU_SHOP,
     MENU_TOP,
     rating_flow_keyboard,
-    shop_keyboard,
 )
 from bot.states import FeedSetupStates, RatingStates, TicketStates
-from bot.services import SessionState, format_api_error, main_menu_for, send_main_menu, set_bot_state
+from bot.services import SessionState, format_api_error, main_menu_for, set_bot_state
 from config import Settings
 from handlers.feed_setup import begin_feed_setup
 from handlers.rating import show_next_photo
@@ -33,7 +32,7 @@ _MENU_BUTTONS = {
     MENU_TOP,
     MENU_PROFILE,
     MENU_SETTINGS,
-    MENU_SHOP,
+    MENU_PRIVILEGES,
 }
 
 
@@ -83,14 +82,7 @@ async def menu_about(message: Message, api: LooksRatingApiClient) -> None:
     await message.answer(texts.BOT_INFO)
 
 
-@router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_SHOP)
-async def menu_shop(message: Message, api: LooksRatingApiClient) -> None:
-    user = await api.get_user(message.from_user.id)
-    has_vip = bool(user and user.get("hasVip"))
-    await message.answer(texts.SHOP_MENU, reply_markup=shop_keyboard(has_vip=has_vip))
-
-
-@router.callback_query(F.data == "shop:vip:buy")
+@router.callback_query(F.data == callbacks.SHOP_VIP_BUY)
 async def shop_buy_vip(callback: CallbackQuery, api: LooksRatingApiClient) -> None:
     settings = Settings.from_env()
     try:
@@ -152,10 +144,3 @@ async def shop_successful_payment(message: Message, api: LooksRatingApiClient) -
         await message.answer(texts.SHOP_VIP_PRECHECKOUT_FAILED)
         return
     await message.answer(texts.SHOP_VIP_PAID, reply_markup=await main_menu_for(api, message.from_user.id))
-
-
-@router.callback_query(F.data == "shop:menu")
-async def shop_back_menu(callback: CallbackQuery, api: LooksRatingApiClient) -> None:
-    if callback.message:
-        await send_main_menu(callback.message, api, callback.from_user.id, texts.MAIN_MENU)
-    await callback.answer()

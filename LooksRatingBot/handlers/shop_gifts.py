@@ -7,13 +7,14 @@ from aiogram import F, Router
 from aiogram.types import CallbackQuery
 
 from api.client import LooksRatingApiClient
-from bot import texts
-from bot.keyboards import shop_gift_confirm_keyboard, shop_gifts_keyboard, shop_keyboard
+from bot import callbacks, texts
+from bot.keyboards import shop_gift_confirm_keyboard, shop_gifts_keyboard
 from bot.services import (
     format_gift_failure_details,
     format_insufficient_sparks_alert,
     format_sparks_amount,
 )
+from handlers.privileges import show_vip_shop
 from services.gift_purchase_saga import (
     ALLOWED_STAR_TIERS,
     GiftPurchaseSagaOrchestrator,
@@ -43,7 +44,7 @@ async def _require_vip_user(api: LooksRatingApiClient, telegram_id: int) -> dict
     return user
 
 
-@router.callback_query(F.data == "shop:gifts")
+@router.callback_query(F.data == callbacks.SHOP_GIFTS)
 async def shop_gifts_menu(callback: CallbackQuery, api: LooksRatingApiClient) -> None:
     user = await _require_vip_user(api, callback.from_user.id)
     if not user:
@@ -58,15 +59,10 @@ async def shop_gifts_menu(callback: CallbackQuery, api: LooksRatingApiClient) ->
     await callback.answer()
 
 
-@router.callback_query(F.data == "shop:back")
+@router.callback_query(F.data == callbacks.SHOP_BACK)
 async def shop_back(callback: CallbackQuery, api: LooksRatingApiClient) -> None:
-    user = await api.get_user(callback.from_user.id)
-    has_vip = bool(user and user.get("hasVip"))
     if callback.message:
-        await callback.message.edit_text(
-            texts.SHOP_MENU,
-            reply_markup=shop_keyboard(has_vip=has_vip),
-        )
+        await show_vip_shop(callback.message, api, callback.from_user.id)
     await callback.answer()
 
 
