@@ -35,6 +35,13 @@ done
 
 if [[ ${#missing[@]} -eq 0 ]]; then
   echo "Deploy secrets: all ${#REQUIRED_VARS[@]} required variables are set."
+  if [[ -z "${VPS_APP_DIR:-}" ]]; then
+    if [[ "${VPS_USER:-}" == "root" ]]; then
+      echo "VPS_APP_DIR not set — will use default /root/LooksRating for root user."
+    else
+      echo "VPS_APP_DIR not set — will use default /home/${VPS_USER}/LooksRating."
+    fi
+  fi
   exit 0
 fi
 
@@ -59,6 +66,7 @@ for var in "${OPTIONAL_VARS[@]}"; do
 done
 echo "" >&2
 echo "Tip: SSH_PRIVATE_KEY must be the full private key (BEGIN/END lines), not the .pub file." >&2
-echo "Tip: set VPS_APP_DIR=/root/LooksRating when VPS_USER=root." >&2
+echo "Tip: set VPS_APP_DIR explicitly if the repo lives elsewhere (e.g. /opt/LooksRating)." >&2
+echo "Tip: values must be under Secrets, not Variables (workflow reads secrets.* only)." >&2
 
 exit 1

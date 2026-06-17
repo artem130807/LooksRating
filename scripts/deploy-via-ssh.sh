@@ -9,7 +9,13 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 bash "$SCRIPT_DIR/validate-deploy-secrets.sh"
 
-APP_DIR="${VPS_APP_DIR:-/home/${VPS_USER}/LooksRating}"
+if [[ -n "${VPS_APP_DIR:-}" ]]; then
+  APP_DIR="$VPS_APP_DIR"
+elif [[ "${VPS_USER}" == "root" ]]; then
+  APP_DIR="/root/LooksRating"
+else
+  APP_DIR="/home/${VPS_USER}/LooksRating"
+fi
 GIT_REF="${DEPLOY_GIT_REF:-main}"
 SSH_OPTS=(-o StrictHostKeyChecking=accept-new -o BatchMode=yes)
 
