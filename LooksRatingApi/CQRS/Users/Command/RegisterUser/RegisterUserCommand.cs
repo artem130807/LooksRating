@@ -8,5 +8,6 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
         long TelegramId,
         string? TelegramUsername,
         bool UseTelegramUsernameAsDisplay,
-        string? Name) : IRequest<Result<RegisterUserResult>>;
+        string? Name,
+        string? Link) : IRequest<Result<RegisterUserResult>>;
 }

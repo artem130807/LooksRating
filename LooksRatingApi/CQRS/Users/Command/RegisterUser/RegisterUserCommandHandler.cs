@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.SparksLedgerContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Contracts.UserSessionContracts;
@@ -12,21 +13,21 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
     public sealed class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, Result<RegisterUserResult>>
     {
         private const decimal RegistrationBonusSparks = 10m;
-
         private readonly IUserRepository _userRepository;
         private readonly IUserRegisterValidator _validator;
         private readonly IUserSessionRepository _userSessionRepository;
         private readonly ISparksLedgerRepository _sparksLedgerRepository;
         private readonly LooksRatingDbContext _context;
         private readonly ILogger<RegisterUserCommandHandler> _logger;
-
+        private readonly ICurrencyCreditedSparksByLinkService _currencyCreditedSparksByLinkService;
         public RegisterUserCommandHandler(
             IUserRepository userRepository,
             IUserRegisterValidator validator,
             IUserSessionRepository userSessionRepository,
             ISparksLedgerRepository sparksLedgerRepository,
             LooksRatingDbContext context,
-            ILogger<RegisterUserCommandHandler> logger)
+            ILogger<RegisterUserCommandHandler> logger,
+            ICurrencyCreditedSparksByLinkService currencyCreditedSparksByLinkService)
         {
             _userRepository = userRepository;
             _validator = validator;
@@ -34,6 +35,7 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
             _sparksLedgerRepository = sparksLedgerRepository;
             _context = context;
             _logger = logger;
+            _currencyCreditedSparksByLinkService = currencyCreditedSparksByLinkService;
         }
 
         public async Task<Result<RegisterUserResult>> Handle(
@@ -98,7 +100,7 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
                     request.TelegramId);
                 return Result.Failure<RegisterUserResult>(RegisterUserErrors.RegistrationFailed);
             }
-
+            await _currencyCreditedSparksByLinkService.Currency(request.Link);
             return Result.Success(new RegisterUserResult
             {
                 UserId = user.Id,
