@@ -29,5 +29,13 @@ namespace LooksRatingApi.Models
             return userReference;
         }
         public void AddCountInvited() => CountInvited++;
+
+        public void RemoveCountInvited()
+        {
+            if (CountInvited > 0)
+            {
+                CountInvited--;
+            }
+        }
     }
 }

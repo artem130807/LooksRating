@@ -31,7 +31,8 @@ namespace LooksRatingApi.Controllers
                 request.TelegramId,
                 request.TelegramUsername,
                 request.UseTelegramUsernameAsDisplay,
-                request.Name);
+                request.Name,
+                request.Link);
 
             var result = await _sender.Send(command, cancellationToken);
             if (result.IsFailure)

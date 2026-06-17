@@ -27,6 +27,7 @@ namespace LooksRatingApi
         public DbSet<SparksWallet> SparksLedgers {get; set;}
         public DbSet<EventStore> EventStores {get; set;}
         public DbSet<UserReferenceLink> UserReferenceLinks {get; set;}
+        public DbSet<ReferralInvite> ReferralInvites {get; set;}
         public DbSet<ReviewMilestoneNotification> ReviewMilestoneNotifications {get; set;}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +48,7 @@ namespace LooksRatingApi
             modelBuilder.ApplyConfiguration(new EventStoreConfigurations());
             modelBuilder.ApplyConfiguration(new ReviewMilestoneNotificationConfigurations());
             modelBuilder.ApplyConfiguration(new UserReferenceLinkConfigurations());
+            modelBuilder.ApplyConfiguration(new ReferralInviteConfigurations());
         }
     }
 }

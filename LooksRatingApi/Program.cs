@@ -76,6 +76,7 @@ builder.Services.AddScoped<IListSeasonsRepository, ListSeasonsRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IPaymentOrderRepository, PaymentOrderRepository>();
 builder.Services.AddScoped<ISparksLedgerRepository, SparksLedgerRepository>();
+builder.Services.AddScoped<IUserReferenceLinkRepository, UserReferenceLinkRepository>();
 builder.Services.AddScoped<IUserRegisterValidator, UserRegisterValidator>();
 builder.Services.AddScoped<IUpdateGenderUserValidator, UpdateGenderUserValidator>();
 builder.Services.AddScoped<ISetUserPhotoValidator, SetUserPhotoValidator>();

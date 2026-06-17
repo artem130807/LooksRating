@@ -10,6 +10,8 @@ internal static class DatabaseCleaner
         await context.Database.ExecuteSqlRawAsync(
             """
             TRUNCATE TABLE
+                "ReferralInvite",
+                "UserReferenceLink",
                 "PhotoProfilePhoto",
                 "PhotoProfile",
                 "PhotoUser",

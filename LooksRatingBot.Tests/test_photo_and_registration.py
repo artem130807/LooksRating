@@ -7,13 +7,15 @@ from api.client import ApiError
 
 from bot.keyboards import BTN_DISPLAY_USE_TELEGRAM, BTN_YES
 from bot.services import SessionState
-from bot.states import PhotoStates, RegistrationStates
+from bot.states import PhotoStates, RecreatePhotoStates, RegistrationStates
 from handlers.photo import (
     go_upload,
     nomination_custom_age,
     nomination_custom_city,
     nomination_custom_gender,
     offer_photo_creation_prompt,
+    photo_upload_reject_video,
+    photo_upload_reject_video_document,
     photo_uploaded,
     photo_yes,
 )
@@ -242,3 +244,67 @@ class TestPhotoNominationFlow:
         assert api.set_photo_calls == []
         message.answer.assert_awaited()
         assert "альбом" in message.answer.await_args.args[0].lower()
+
+    async def test_photo_upload_rejects_video(self) -> None:
+        api = FakeApiClient()
+        state = await make_fsm_context(
+            data={
+                "recreate": False,
+                "nomination": {
+                    "useProfileNomination": False,
+                    "city": "moscow",
+                    "age": 25,
+                    "gender": "Male",
+                },
+            }
+        )
+        await state.set_state(PhotoStates.upload)
+        message = make_message(video_file_id="video-1")
+
+        await photo_upload_reject_video(message, state)
+
+        assert api.set_photo_calls == []
+        message.answer.assert_awaited_once()
+        assert "видео" in message.answer.await_args.args[0].lower()
+        assert await state.get_state() == PhotoStates.upload.state
+
+    async def test_photo_upload_rejects_video_note(self) -> None:
+        api = FakeApiClient()
+        state = await make_fsm_context(data={"recreate": False, "nomination": {"city": "moscow", "age": 25, "gender": "Male"}})
+        await state.set_state(PhotoStates.upload)
+        message = make_message(video_note_file_id="note-1")
+
+        await photo_upload_reject_video(message, state)
+
+        assert api.set_photo_calls == []
+        assert "видео" in message.answer.await_args.args[0].lower()
+
+    async def test_photo_upload_rejects_video_document(self) -> None:
+        api = FakeApiClient()
+        state = await make_fsm_context(data={"recreate": False, "nomination": {"city": "moscow", "age": 25, "gender": "Male"}})
+        await state.set_state(PhotoStates.upload)
+        message = make_message(document_mime="video/mp4")
+
+        await photo_upload_reject_video_document(message, state)
+
+        assert api.set_photo_calls == []
+        assert "видео" in message.answer.await_args.args[0].lower()
+
+    async def test_photo_upload_many_rejects_video(self) -> None:
+        api = FakeApiClient()
+        state = await make_fsm_context(
+            data={
+                "recreate": True,
+                "replace_all": True,
+                "nomination": {"city": "moscow", "age": 25, "gender": "Male"},
+                "replace_all_file_ids": [],
+            }
+        )
+        await state.set_state(RecreatePhotoStates.upload_many)
+        message = make_message(video_file_id="video-1")
+
+        await photo_upload_reject_video(message, state)
+
+        assert api.set_photo_calls == []
+        assert "видео" in message.answer.await_args.args[0].lower()
+        assert await state.get_state() == RecreatePhotoStates.upload_many.state

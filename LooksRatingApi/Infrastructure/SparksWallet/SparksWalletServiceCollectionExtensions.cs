@@ -9,6 +9,7 @@ using LooksRatingApi.Repositories;
 using LooksRatingApi.Services.BackGroundServices;
 using LooksRatingApi.Services.Orchestrators;
 using LooksRatingApi.Services.SparksLedger;
+using LooksRatingApi.Services.SparksWallet;
 using Microsoft.Extensions.Options;
 
 namespace LooksRatingApi.Infrastructure.SparksWallet
@@ -33,6 +34,7 @@ namespace LooksRatingApi.Infrastructure.SparksWallet
             services.AddScoped<ISparksWalletProvisioner, SparksWalletProvisioner>();
             services.AddScoped<IReviewSparksRewardService, ReviewSparksRewardService>();
             services.AddScoped<IRatedProfileSparksRewardService, RatedProfileSparksRewardService>();
+            services.AddScoped<ICurrencyCreditedSparksByLinkService, CurrencyCreditedSparksByLinkService>();
             services.AddScoped<ICurrencyDebitCompensatedService, CurrencyDebitCompensatedService>();
             services.AddScoped<IChangeSparksLedgersService, ChangeSparksLedgersService>();
             services.AddScoped<ISparksLedgerEventDispatcher, SparksLedgerEventDispatcher>();

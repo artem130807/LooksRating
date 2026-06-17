@@ -14,9 +14,14 @@ namespace LooksRatingApi.Configurations
         {
             builder.ToTable("UserReferenceLink");
             builder.HasKey(u => u.Id);
-            builder.Property(u => u.CountInvited);
-            builder.Property(u => u.Link);
-            builder.HasOne(u => u.User).WithOne();
+        builder.Property(u => u.CountInvited).IsRequired();
+        builder.Property(u => u.Link).IsRequired();
+        builder.Property(u => u.DateTime).IsRequired();
+            builder.HasIndex(u => u.UserId).IsUnique();
+            builder.HasOne(u => u.User)
+                .WithOne(u => u.UserReferenceLink)
+                .HasForeignKey<UserReferenceLink>(u => u.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

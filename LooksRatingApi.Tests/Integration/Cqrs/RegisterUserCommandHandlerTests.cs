@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Contracts.UserSessionContracts;
 using LooksRatingApi.Cqrs.Users.Command.RegisterUser;
@@ -34,16 +35,19 @@ public sealed class RegisterUserCommandHandlerTests
         validator.ValidateAsync(Arg.Any<RegisterUserCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success(string.Empty));
 
+        var referralService = Substitute.For<ICurrencyCreditedSparksByLinkService>();
+
         var handler = new RegisterUserCommandHandler(
             new UserRepository(context),
             validator,
             new UserSessionRepository(context),
             new SparksLedgerRepository(context),
             context,
-            NullLogger<RegisterUserCommandHandler>.Instance);
+            NullLogger<RegisterUserCommandHandler>.Instance,
+            referralService);
 
         var result = await handler.Handle(
-            new RegisterUserCommand(7001, "test_user", true, null),
+            new RegisterUserCommand(7001, "test_user", true, null, null),
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
@@ -73,16 +77,19 @@ public sealed class RegisterUserCommandHandlerTests
         validator.ValidateAsync(Arg.Any<RegisterUserCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result.Failure<string>("invalid"));
 
+        var referralService = Substitute.For<ICurrencyCreditedSparksByLinkService>();
+
         var handler = new RegisterUserCommandHandler(
             new UserRepository(context),
             validator,
             new UserSessionRepository(context),
             new SparksLedgerRepository(context),
             context,
-            NullLogger<RegisterUserCommandHandler>.Instance);
+            NullLogger<RegisterUserCommandHandler>.Instance,
+            referralService);
 
         var result = await handler.Handle(
-            new RegisterUserCommand(7002, "broken", true, null),
+            new RegisterUserCommand(7002, "broken", true, null, null),
             CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();

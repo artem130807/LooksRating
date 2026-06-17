@@ -6,12 +6,14 @@ from aiogram.types import (
     ReplyKeyboardRemove,
 )
 
+from bot import callbacks
+
 MENU_RATE = "⭐ Оценить"
 MENU_ABOUT = "ℹ️ О боте"
 MENU_TOP = "🏆 Топы"
 MENU_PROFILE = "👤 Профиль"
 MENU_SETTINGS = "⚙️ Настройки"
-MENU_SHOP = "🛍 Покупки"
+MENU_PRIVILEGES = "✨ Привилегии"
 MENU_PHOTO_ADD = "📷 Добавить фото"
 MENU_PHOTO_REPLACE = "📷 Заменить фото"
 MENU_PHOTO_REPLACE_ALL = "🖼 Сменить все фото"
@@ -47,6 +49,11 @@ BTN_SEASON_TOP = "🏆 Топ сезона"
 BTN_SEASON_MY_PHOTO = "📸 Моё фото"
 BTN_SHOP_VIP = "⭐ Купить VIP"
 BTN_SHOP_GIFTS = "🎁 Подарок за искры"
+BTN_PRIVILEGES_VIP = "⭐ VIP-статус"
+BTN_PRIVILEGES_REFERRAL = "🔗 Реферальная программа"
+BTN_PRIVILEGES_BACK = "◀️ К привилегиям"
+BTN_MAIN_MENU = "📱 В меню"
+BTN_REFERRAL_SHARE = "📤 Поделиться"
 
 
 def main_menu() -> ReplyKeyboardMarkup:
@@ -55,7 +62,7 @@ def main_menu() -> ReplyKeyboardMarkup:
             [KeyboardButton(text=MENU_RATE)],
             [KeyboardButton(text=MENU_ABOUT), KeyboardButton(text=MENU_TOP)],
             [KeyboardButton(text=MENU_PROFILE), KeyboardButton(text=MENU_SETTINGS)],
-            [KeyboardButton(text=MENU_SHOP)],
+            [KeyboardButton(text=MENU_PRIVILEGES)],
         ],
         resize_keyboard=True,
         input_field_placeholder="Выберите действие в меню",
@@ -339,16 +346,54 @@ def top_gender_pick_keyboard(scope: str, season_id: str | None = None) -> Inline
     )
 
 
-def shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
+def privileges_hub_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
+    vip_label = BTN_PRIVILEGES_VIP
+    if has_vip:
+        vip_label = f"{BTN_PRIVILEGES_VIP} · активен"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=vip_label, callback_data=callbacks.PRIVILEGES_VIP)],
+            [InlineKeyboardButton(text=BTN_PRIVILEGES_REFERRAL, callback_data=callbacks.PRIVILEGES_REFERRAL)],
+            [InlineKeyboardButton(text=BTN_MAIN_MENU, callback_data=callbacks.SHOP_MAIN_MENU)],
+        ]
+    )
+
+
+def vip_shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = [
-        [InlineKeyboardButton(text=BTN_SHOP_VIP, callback_data="shop:vip:buy")],
+        [InlineKeyboardButton(text=BTN_SHOP_VIP, callback_data=callbacks.SHOP_VIP_BUY)],
     ]
     if has_vip:
         rows.append(
-            [InlineKeyboardButton(text=BTN_SHOP_GIFTS, callback_data="shop:gifts")]
+            [InlineKeyboardButton(text=BTN_SHOP_GIFTS, callback_data=callbacks.SHOP_GIFTS)]
         )
-    rows.append([InlineKeyboardButton(text="📱 В меню", callback_data="shop:menu")])
+    rows.append(
+        [InlineKeyboardButton(text=BTN_PRIVILEGES_BACK, callback_data=callbacks.PRIVILEGES_HUB)]
+    )
+    rows.append(
+        [InlineKeyboardButton(text=BTN_MAIN_MENU, callback_data=callbacks.SHOP_MAIN_MENU)]
+    )
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def referral_program_keyboard(*, link: str | None) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
+    if link:
+        rows.append(
+            [InlineKeyboardButton(text=BTN_REFERRAL_SHARE, url=link)]
+        )
+    rows.append(
+        [InlineKeyboardButton(text=BTN_PRIVILEGES_BACK, callback_data=callbacks.PRIVILEGES_HUB)]
+    )
+    rows.append(
+        [InlineKeyboardButton(text=BTN_MAIN_MENU, callback_data=callbacks.SHOP_MAIN_MENU)]
+    )
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
+    """Backward-compatible alias for the VIP shop inline keyboard."""
+    return vip_shop_keyboard(has_vip=has_vip)
 
 
 def shop_gifts_keyboard() -> InlineKeyboardMarkup:
@@ -358,7 +403,7 @@ def shop_gifts_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="200★ · 2 000 искр", callback_data="shop:gift:select:200")],
             [InlineKeyboardButton(text="300★ · 3 000 искр", callback_data="shop:gift:select:300")],
             [InlineKeyboardButton(text="400★ · 4 000 искр", callback_data="shop:gift:select:400")],
-            [InlineKeyboardButton(text="◀️ Назад", callback_data="shop:back")],
+            [InlineKeyboardButton(text="◀️ Назад", callback_data=callbacks.SHOP_BACK)],
         ]
     )
 
@@ -372,7 +417,7 @@ def shop_gift_confirm_keyboard(stars_count: int) -> InlineKeyboardMarkup:
                     callback_data=f"shop:gift:confirm:{stars_count}",
                 )
             ],
-            [InlineKeyboardButton(text="❌ Отмена", callback_data="shop:gifts")],
+            [InlineKeyboardButton(text="❌ Отмена", callback_data=callbacks.SHOP_GIFTS)],
         ]
     )
 

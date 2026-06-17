@@ -100,7 +100,22 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
                     request.TelegramId);
                 return Result.Failure<RegisterUserResult>(RegisterUserErrors.RegistrationFailed);
             }
-            await _currencyCreditedSparksByLinkService.Currency(request.Link);
+
+            try
+            {
+                await _currencyCreditedSparksByLinkService.CreditReferrerForRegistrationAsync(
+                    user.Id,
+                    request.Link,
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Referral sparks credit failed for new user {UserId}",
+                    user.Id);
+            }
+
             return Result.Success(new RegisterUserResult
             {
                 UserId = user.Id,

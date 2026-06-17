@@ -58,7 +58,21 @@ async def handle_start(
         await send_main_menu(message, api, telegram_id, texts.WELCOME_BACK)
         return
 
-    await begin_registration(message, state, api, telegram_id, username)
+    referral_link = _extract_referral_link(message)
+    await begin_registration(message, state, api, telegram_id, username, referral_link)
+
+
+def _extract_referral_link(message: Message) -> str | None:
+    text = (message.text or "").strip()
+    if not text.startswith("/start"):
+        return None
+
+    parts = text.split(maxsplit=1)
+    if len(parts) < 2:
+        return None
+
+    payload = parts[1].strip()
+    return payload or None
 
 
 async def handle_menu(

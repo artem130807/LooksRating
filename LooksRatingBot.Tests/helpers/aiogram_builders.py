@@ -22,6 +22,10 @@ def make_message(
     username: str | None = "test_user",
     photo_file_id: str | None = None,
     media_group_id: str | None = None,
+    video_file_id: str | None = None,
+    video_note_file_id: str | None = None,
+    animation_file_id: str | None = None,
+    document_mime: str | None = None,
 ) -> MagicMock:
     message = MagicMock()
     message.text = text
@@ -37,6 +41,35 @@ def make_message(
         message.photo = [photo]
     else:
         message.photo = None
+
+    if video_file_id is not None:
+        video = MagicMock()
+        video.file_id = video_file_id
+        message.video = video
+    else:
+        message.video = None
+
+    if video_note_file_id is not None:
+        video_note = MagicMock()
+        video_note.file_id = video_note_file_id
+        message.video_note = video_note
+    else:
+        message.video_note = None
+
+    if animation_file_id is not None:
+        animation = MagicMock()
+        animation.file_id = animation_file_id
+        message.animation = animation
+    else:
+        message.animation = None
+
+    if document_mime is not None:
+        document = MagicMock()
+        document.mime_type = document_mime
+        document.file_id = "document-file"
+        message.document = document
+    else:
+        message.document = None
 
     return message
 

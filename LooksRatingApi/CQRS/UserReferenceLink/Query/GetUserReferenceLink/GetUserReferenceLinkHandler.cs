@@ -24,7 +24,7 @@ namespace LooksRatingApi.CQRS.UserReferenceLink.Query.GetUserReferenceLink
             var user = await _userRepository.GetUserByTelegramId(query.telegramId);
             if(user == null)
                 return Result.Failure<string>("Пользователь не найден");
-            var userReference = await _userReferenceLinkRepository.GetByUserId(user.Id);
+            var userReference = await _userReferenceLinkRepository.GetByUserIdAsync(user.Id, cancellationToken);
             if(userReference == null)
                 return Result.Failure<string>("Сссылка не найдена");
             return userReference.Link;

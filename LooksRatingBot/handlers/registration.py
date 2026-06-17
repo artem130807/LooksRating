@@ -33,8 +33,9 @@ async def begin_registration(
     api: LooksRatingApiClient,
     telegram_id: int,
     username: str | None,
+    referral_link: str | None = None,
 ) -> None:
-    await state.update_data(username=username)
+    await state.update_data(username=username, referral_link=referral_link)
     try:
         await set_bot_state(api, telegram_id, SessionState.AWAITING_DISPLAY_NAME)
     except ApiError as exc:
@@ -124,6 +125,7 @@ async def complete_registration(
             username,
             use_telegram_username_as_display=use_telegram_username_as_display,
             display_name=display_name,
+            referral_link=data.get("referral_link"),
         )
     except ApiError as exc:
         if exc.code == "UserAlreadyExists":

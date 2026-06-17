@@ -15,9 +15,20 @@ def test_bot_info_includes_season_rewards() -> None:
 
 
 def test_shop_menu_is_vip_only() -> None:
-    assert texts.SEASON_TOP_REWARDS_PROGRAM not in texts.SHOP_MENU
-    assert texts.VIP_REWARDS_PROGRAM in texts.SHOP_MENU
-    assert texts.VIP_FEATURES in texts.SHOP_MENU
+    assert texts.SEASON_TOP_REWARDS_PROGRAM not in texts.VIP_SHOP_MENU
+    assert texts.VIP_REWARDS_PROGRAM in texts.VIP_SHOP_MENU
+    assert texts.VIP_FEATURES in texts.VIP_SHOP_MENU
+    assert texts.VIP_SHOP_MENU == texts.SHOP_MENU
+
+
+def test_privileges_hub_mentions_vip_and_referral() -> None:
+    assert "VIP" in texts.PRIVILEGES_HUB
+    assert "реферальная программа" in texts.PRIVILEGES_HUB.lower()
+
+
+def test_referral_program_describes_reward() -> None:
+    assert "15" in texts.REFERRAL_PROGRAM_INTRO
+    assert "5" in texts.REFERRAL_PROGRAM_INTRO
 
 
 def test_shop_vip_paid_excludes_season_rewards() -> None:
