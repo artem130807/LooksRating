@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CSharpFunctionalExtensions;
 
 namespace LooksRatingApi.Models
 {
@@ -13,6 +14,15 @@ namespace LooksRatingApi.Models
         public ListSeasons()
         {
             Seasons = new List<Season>();
+        }
+        public static Result<ListSeasons> Create()
+        {
+            var list = new ListSeasons
+            {
+                Id = Guid.NewGuid(),
+                CreatedDate = DateTime.UtcNow  
+            };
+            return list;
         }
     }
 }

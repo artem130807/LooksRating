@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
 
 namespace LooksRatingApi.Models
@@ -12,16 +9,15 @@ namespace LooksRatingApi.Models
         public Guid Id { get; set; }
         public long TelegramId { get; set; }
         public string? TelegramUsername { get; set; }
-        public int? Age { get; set; }
-        public GenderEnum Gender { get; set; }
-        public CityVo City { get; set; }
-        public int TimesInTop { get; set; }
-
-        public Guid PhotoUserId { get; set; }
-        public PhotoUser PhotoUser { get; set; } = null!;
+        public string? Name { get; set; }
+        public int CountInTop {get; set;}
+        public SparksWallet? SparksWallet { get; set; }
+        public VipStatus Status {get; set;} = VipStatus.Unavaillable;
+        public RecomendationSettings? RecomendationSettings { get; set; }
+        public ICollection<PhotoUser> PhotoUsers { get; set; } = new List<PhotoUser>();
+        public ICollection<PhotoProfile> PhotoProfiles { get; set; } = new List<PhotoProfile>();
         public ICollection<UserTicket> UserTickets { get; set; } = new List<UserTicket>();
-        public ICollection<TheBestWeek> TheBestWeeks { get; set; } = new List<TheBestWeek>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
-        public ICollection<PhotoSeason> PhotoSeasons { get; set; } = new List<PhotoSeason>();
+        public void UpdateVipStatus() => Status = VipStatus.Availlable;
     }
 }

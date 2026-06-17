@@ -15,10 +15,16 @@ namespace LooksRatingApi.Repositories
         {
             _context = context;
         }
+
+        public async Task AddCountInTop(List<long> ids)
+        {
+            await _context.Users.Where(u => ids.Contains(u.TelegramId))
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.CountInTop, u => u.CountInTop + 1));
+        }
+
         public async Task Create(User user)
         {
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
         }
 
         public async Task Delete(Guid Id)
@@ -27,19 +33,35 @@ namespace LooksRatingApi.Repositories
             .ExecuteDeleteAsync();
         }
 
-        public async Task<User> GetUserById(Guid Id)
+        public async Task<User?> GetUserById(Guid Id)
         {
             return await _context.Users.FindAsync(Id);
         }
 
-        public async Task<User> GetUserByTelegramId(long TelegramId)
+        public async Task<User?> GetUserByTelegramId(long TelegramId)
         {
-            return await _context.Users.FirstOrDefaultAsync(x => x.TelegramId == TelegramId);
+            return await _context.Users
+                .Include(x => x.RecomendationSettings)
+                .FirstOrDefaultAsync(x => x.TelegramId == TelegramId);
         }
+
+        // public async Task<int> CountTimesInTopAsync(Guid userId, CancellationToken cancellationToken = default)
+        // {
+        //     return await _context.PhotoUsers
+        //         .AsNoTracking()
+        //         .Where(p => p.UserId == userId)
+        //         .SelectMany(p => p.TheBestWeeks)
+        //         .CountAsync(cancellationToken);
+        // }
 
         public async Task<List<User>> GetUsers()
         {
             return await _context.Users.ToListAsync();
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
 
         public async Task Update(User user)

@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using LooksRatingApi.Domain.Vo;
-using LooksRatingApi.DtoModels.ValueObjectDto;
+using CSharpFunctionalExtensions;
 using LooksRatingApi.Enums;
 
 namespace LooksRatingApi.Models
@@ -11,9 +8,28 @@ namespace LooksRatingApi.Models
     public class TheBestWeek
     {
         public Guid Id { get; set; }
-        public CityVo City {get; set;}
-        public GenderEnum GenderEnumed {get; set;}
+        public string City { get; set; } = string.Empty;
+        public int Year { get; set; }
+        public int WeekOfYear { get; set; }
+        public WeekEnum Week { get; set; }
+        public string SnapshotJson { get; set; }
         public DateTime CreatedDate { get; set; }
-        public ICollection<PhotoUser> PhotoUsers { get; set; } = new List<PhotoUser>();
+
+        public static Result<TheBestWeek> Create(string city, int year, int weekOfYear, WeekEnum week, string snapshotJson)
+        {
+            if (string.IsNullOrWhiteSpace(city))
+                return Result.Failure<TheBestWeek>("Город обязателен");
+
+            return new TheBestWeek
+            {
+                Id = Guid.NewGuid(),
+                City = city.Trim(),
+                Year = year,
+                SnapshotJson = snapshotJson,
+                WeekOfYear = weekOfYear,
+                Week = week,
+                CreatedDate = DateTime.UtcNow
+            };
+        }
     }
 }

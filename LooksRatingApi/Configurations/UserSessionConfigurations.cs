@@ -18,7 +18,8 @@ namespace LooksRatingApi.Configurations
             builder.Property(s => s.TelegramId)
                    .IsRequired();
 
-            builder.HasIndex(s => s.TelegramId);
+            builder.HasIndex(s => s.TelegramId)
+                   .IsUnique();
 
             builder.Property(s => s.State)
                    .IsRequired()

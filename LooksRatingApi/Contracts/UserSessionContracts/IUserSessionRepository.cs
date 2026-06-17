@@ -1,15 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using LooksRatingApi.Models;
 
 namespace LooksRatingApi.Contracts.UserSessionContracts
 {
     public interface IUserSessionRepository
     {
-        Task<UserSession?> GetByTelegramId(long telegramId);
-        Task Create(UserSession session);
-        Task Update(UserSession session);
+        Task<UserSession?> GetByTelegramIdAsync(long telegramId, CancellationToken cancellationToken = default);
+        Task<UserSession?> GetByTelegramIdForUpdateAsync(long telegramId, CancellationToken cancellationToken = default);
+        Task<bool> ExistsByTelegramIdAsync(long telegramId, CancellationToken cancellationToken = default);
+        Task CreateAsync(UserSession session, CancellationToken cancellationToken = default);
+        Task UpdateAsync(UserSession session, CancellationToken cancellationToken = default);
     }
 }

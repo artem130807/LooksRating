@@ -1,0 +1,2 @@
+obj/Debug/net9.0/Proto/RemoveTicketsPhotoprofile.cs \
+obj/Debug/net9.0/Proto/RemoveTicketsPhotoprofileGrpc.cs: Proto/remove_tickets_photoprofile.proto

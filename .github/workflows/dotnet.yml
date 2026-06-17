@@ -1,0 +1,182 @@
+# CI/CD: staging — автоматические проверки; main — только через PR из staging + ручное подтверждение деплоя.
+#
+# Рекомендуемый flow:
+#   feature/* → PR → staging  (CI)
+#   staging   → PR → main     (CI + release-gate + approval → deploy)
+#
+# В GitHub: Settings → Environments → production → Required reviewers (для ручного approve деплоя).
+
+name: CI/CD
+
+on:
+  push:
+    branches:
+      - staging
+      - main
+      - master
+  pull_request:
+    branches:
+      - staging
+      - main
+      - master
+  workflow_dispatch:
+    inputs:
+      deploy_production:
+        description: Deploy to production (after successful checks)
+        type: boolean
+        default: false
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_VERSION: "9.0.x"
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  dotnet:
+    name: .NET build & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore LooksRating.sln
+
+      - name: Build
+        run: dotnet build LooksRating.sln --configuration Release --no-restore
+
+      - name: Test unit
+        run: >
+          dotnet test LooksRatingApi.Tests/LooksRatingApi.Tests.csproj
+          --configuration Release --no-build --verbosity normal
+          --filter "FullyQualifiedName!~Integration"
+
+      - name: Test integration
+        env:
+          LOOKSRATING_INTEGRATION_TESTS_REQUIRED: "true"
+        run: >
+          dotnet test LooksRatingApi.Tests/LooksRatingApi.Tests.csproj
+          --configuration Release --no-build --verbosity normal
+          --filter "FullyQualifiedName~Integration"
+
+  python-bot:
+    name: LooksRatingBot tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: LooksRatingBot.Tests/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r LooksRatingBot.Tests/requirements.txt
+
+      - name: Run tests
+        working-directory: LooksRatingBot.Tests
+        run: pytest -v --strict-markers
+
+  python-buyer:
+    name: TGgifts-buyer tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: TGgifts-buyer.Tests/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r TGgifts-buyer.Tests/requirements.txt
+
+      - name: Run tests
+        working-directory: TGgifts-buyer.Tests
+        run: pytest -v --strict-markers
+
+  # В main можно попасть только через PR из staging (не напрямую с feature-веток).
+  release-gate:
+    name: Release gate (staging → main)
+    if: github.event_name == 'pull_request' && (github.base_ref == 'main' || github.base_ref == 'master')
+    runs-on: ubuntu-latest
+    needs:
+      - dotnet
+      - python-bot
+      - python-buyer
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require PR from staging branch
+        run: |
+          if [ "${{ github.head_ref }}" != "staging" ]; then
+            echo "::error::В main/master можно мержить только из ветки 'staging'."
+            exit 1
+          fi
+          echo "PR source branch: staging ✓"
+
+      - name: Verify staging tip is included in this PR
+        run: |
+          git fetch origin staging
+          STAGING_SHA="$(git rev-parse origin/staging)"
+          PR_SHA="${{ github.event.pull_request.head.sha }}"
+          if ! git merge-base --is-ancestor "$STAGING_SHA" "$PR_SHA"; then
+            echo "::error::PR не содержит актуальный tip ветки staging ($STAGING_SHA)."
+            exit 1
+          fi
+          echo "Staging tip is ancestor of PR head ✓"
+
+  # Деплой в production: ручное подтверждение через GitHub Environment "production".
+  # Срабатывает после merge в main или по workflow_dispatch.
+  deploy-production:
+    name: Deploy production
+    if: |
+      always() &&
+      needs.dotnet.result == 'success' &&
+      needs.python-bot.result == 'success' &&
+      needs.python-buyer.result == 'success' &&
+      (
+        (github.event_name == 'workflow_dispatch' && inputs.deploy_production == true) ||
+        (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'))
+      )
+    runs-on: ubuntu-latest
+    needs:
+      - dotnet
+      - python-bot
+      - python-buyer
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TICKET_BOT_TOKEN: ${{ secrets.TICKET_BOT_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY }}
+          TICKET_API_KEY: ${{ secrets.TICKET_API_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          TICKET_POSTGRES_PASSWORD: ${{ secrets.TICKET_POSTGRES_PASSWORD }}
+          TGIFTS_API_ID: ${{ secrets.TGIFTS_API_ID }}
+          TGIFTS_API_HASH: ${{ secrets.TGIFTS_API_HASH }}
+          TGIFTS_APP_MODE: ${{ vars.TGIFTS_APP_MODE }}
+          TGIFTS_CHANNEL_ID: ${{ vars.TGIFTS_CHANNEL_ID }}
+          COMPOSE_PROJECT_NAME: ${{ vars.COMPOSE_PROJECT_NAME }}
+          DEPLOY_GIT_REF: ${{ github.ref_name }}
+        run: bash scripts/deploy-via-ssh.sh

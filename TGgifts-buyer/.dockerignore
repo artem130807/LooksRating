@@ -1,0 +1,16 @@
+.venv
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+.env
+.env.*
+!.env.example
+example.env
+data/account.session
+data/account.session-journal
+README.md
+README-RU.md
+SETUP-LOOKSRATING-RU.md
+LICENSE

@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service DebitedSparksService {
+    rpc DebitedSparks(DebitedSparksRequest) returns (DebitedSparksResponse);
+}
+
+message DebitedSparksRequest {
+    int64 telegram_id = 1;
+    int32 sparks_count = 2;
+}
+
+message DebitedSparksResponse {
+    bool success = 1;
+    string message = 2;
+}

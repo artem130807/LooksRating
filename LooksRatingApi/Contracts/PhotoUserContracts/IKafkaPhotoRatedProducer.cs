@@ -1,0 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using LooksRatingApi.Domain.Base;
+
+namespace LooksRatingApi.Contracts.PhotoUserContracts
+{
+    public interface IKafkaPhotoRatedProducer<TMessage>:IDisposable where TMessage:DomainEvent
+    {
+        Task ProduceAsync(TMessage message ,CancellationToken cancellationToken);
+    }
+}

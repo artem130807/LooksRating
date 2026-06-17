@@ -27,14 +27,75 @@ namespace LooksRatingApi.Repositories
             await _context.Reviews.Where(x => x.Id == Id).ExecuteDeleteAsync();
         }
 
-        public async Task<Review> GetReviewById(Guid Id)
+        public async Task DeleteByUserIdAsync(Guid userId, CancellationToken cancellationToken = default)
+        {
+            await _context.Reviews
+                .Where(x => x.UserId == userId)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        public async Task<Review?> GetReviewById(Guid Id)
         {
             return await _context.Reviews.FindAsync(Id);
         }
 
-        public async Task<List<Review>> GetReviewsByTelegramId(long? telegramId)
+        public async Task<List<Review>> GetReviewsByTelegramId(long telegramId)
         {
             return await _context.Reviews.Include(x => x.User).Where(x => x.User.TelegramId == telegramId).ToListAsync();
+        }
+
+        public async Task<bool> ExistsByUserAndProfile(Guid userId, Guid photoProfileId)
+        {
+            return await _context.Reviews.AnyAsync(x => x.UserId == userId && x.PhotoProfileId == photoProfileId);
+        }
+
+        public async Task<Review?> GetByUserAndProfileAsync(
+            Guid userId,
+            Guid photoProfileId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Reviews
+                .FirstOrDefaultAsync(
+                    x => x.UserId == userId && x.PhotoProfileId == photoProfileId,
+                    cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<Guid>> GetReviewerUserIdsByPhotoProfileIdAsync(
+            Guid photoProfileId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Reviews
+                .Where(x => x.PhotoProfileId == photoProfileId)
+                .Select(x => x.UserId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task DeleteByPhotoProfileIdAsync(
+            Guid photoProfileId,
+            CancellationToken cancellationToken = default)
+        {
+            await _context.Reviews
+                .Where(x => x.PhotoProfileId == photoProfileId)
+                .ExecuteDeleteAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<Review>> GetReviewersForProfileCycleAsync(
+            Guid photoProfileId,
+            int cycleNumber,
+            int reviewsPerCycle,
+            CancellationToken cancellationToken = default)
+        {
+            var skip = Math.Max(0, (cycleNumber - 1) * reviewsPerCycle);
+
+            return await _context.Reviews
+                .Include(x => x.User)
+                .Where(x => x.PhotoProfileId == photoProfileId)
+                .OrderBy(x => x.CreatedAt)
+                .ThenBy(x => x.Id)
+                .Skip(skip)
+                .Take(reviewsPerCycle)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task Update(Review review)

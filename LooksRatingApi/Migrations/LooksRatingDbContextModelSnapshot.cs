@@ -23,6 +23,40 @@ namespace LooksRatingApi.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("LooksRatingApi.Models.EventStore", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AggregateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("EventData")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt");
+
+                    b.HasIndex("AggregateId", "Version")
+                        .IsUnique();
+
+                    b.ToTable("EventStores", (string)null);
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.ListSeasons", b =>
                 {
                     b.Property<Guid>("Id")
@@ -37,44 +71,165 @@ namespace LooksRatingApi.Migrations
                     b.ToTable("ListSeasons", (string)null);
                 });
 
-            modelBuilder.Entity("LooksRatingApi.Models.PhotoSeason", b =>
+            modelBuilder.Entity("LooksRatingApi.Models.PaymentOrder", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Rank")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("character varying(64)");
-
-                    b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(4,2)");
-
-                    b.Property<int>("RatingCount")
+                    b.Property<int>("AmountStars")
                         .HasColumnType("integer");
 
-                    b.Property<Guid>("SeasonId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime>("SnapshotAt")
+                    b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("TelegramFileId")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
                         .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<DateTime?>("FailedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProviderPaymentChargeId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TelegramPaymentChargeId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SeasonId");
+                    b.HasIndex("Payload")
+                        .IsUnique();
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ProductId");
 
-                    b.ToTable("PhotoSeason", (string)null);
+                    b.HasIndex("TelegramPaymentChargeId")
+                        .IsUnique()
+                        .HasFilter("\"TelegramPaymentChargeId\" IS NOT NULL");
+
+                    b.HasIndex("UserId", "Status", "CreatedAt");
+
+                    b.ToTable("PaymentOrder", (string)null);
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.PhotoProfile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AgeNomination")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GenderNomination")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Rating")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(4,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("RatingCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.ComplexProperty<Dictionary<string, object>>("CityNomination", "LooksRatingApi.Models.PhotoProfile.CityNomination#CityVo", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("City");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SeasonId", "Status");
+
+                    b.HasIndex("UserId", "SeasonId")
+                        .IsUnique();
+
+                    b.HasIndex("SeasonId", "GenderNomination", "AgeNomination");
+
+                    b.ToTable("PhotoProfile", (string)null);
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.PhotoProfilePhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PhotoProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TelegramFileId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PhotoProfileId");
+
+                    b.HasIndex("PhotoProfileId", "SortOrder")
+                        .IsUnique();
+
+                    b.ToTable("PhotoProfilePhoto", (string)null);
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.PhotoUser", b =>
@@ -83,10 +238,35 @@ namespace LooksRatingApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<int>("AgeNomination")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("GenderNomination")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PhotoProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("Rating")
-                        .HasColumnType("decimal(4,2)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(4,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<int>("RatingCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid>("SeasonId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
                         .HasColumnType("integer");
 
                     b.Property<string>("TelegramFileId")
@@ -94,17 +274,105 @@ namespace LooksRatingApi.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<Guid?>("TheBestWeekId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
+
+                    b.ComplexProperty<Dictionary<string, object>>("CityNomination", "LooksRatingApi.Models.PhotoUser.CityNomination#CityVo", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("City");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PhotoProfileId");
+
+                    b.HasIndex("SeasonId");
+
+                    b.HasIndex("UserId", "SeasonId");
+
+                    b.ToTable("PhotoUser", (string)null);
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("CountStars")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<int>("ProductCode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("VipDays")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductCode")
+                        .IsUnique();
+
+                    b.ToTable("Product", (string)null);
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.RecomendationSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("Age")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Gender")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.ComplexProperty<Dictionary<string, object>>("City", "LooksRatingApi.Models.RecomendationSettings.City#CityVo", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(255)
+                                .HasColumnType("character varying(255)")
+                                .HasColumnName("City");
+                        });
+
                     b.HasKey("Id");
 
-                    b.HasIndex("TheBestWeekId");
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
-                    b.ToTable("PhotoUser", (string)null);
+                    b.ToTable("RecomendationSettings", (string)null);
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.Review", b =>
@@ -113,7 +381,10 @@ namespace LooksRatingApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("PhotoUserId")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PhotoProfileId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Rating")
@@ -124,11 +395,49 @@ namespace LooksRatingApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PhotoUserId");
+                    b.HasIndex("PhotoProfileId", "CreatedAt");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId", "PhotoProfileId")
+                        .IsUnique();
 
-                    b.ToTable("Review", (string)null);
+                    b.ToTable("Review", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Review_Rating_Range", "\"Rating\" >= 1 AND \"Rating\" <= 10");
+                        });
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.ReviewMilestoneNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("CycleNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("OwnerTelegramId")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("PhotoProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("PhotoProfileId", "CycleNumber")
+                        .IsUnique();
+
+                    b.ToTable("ReviewMilestoneNotifications", (string)null);
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.Season", b =>
@@ -161,71 +470,73 @@ namespace LooksRatingApi.Migrations
                     b.ToTable("Season", (string)null);
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.SparksWallet", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<decimal>("SparksCount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("numeric(18,4)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdempotencyKey")
+                        .IsUnique();
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.ToTable("SparksLedger", (string)null);
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.TheBestWeek", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("GenderEnumed")
+                    b.Property<string>("SnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Week")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("WeekOfYear")
+                        .HasColumnType("integer");
 
-                    b.ComplexProperty<Dictionary<string, object>>("City", "LooksRatingApi.Models.TheBestWeek.City#CityVo", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("City");
-                        });
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TheBestWeek", (string)null);
-                });
-
-            modelBuilder.Entity("LooksRatingApi.Models.TopPhotoSeason", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("GenderEnum")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("PhotoSeasonId")
-                        .HasColumnType("uuid");
-
-                    b.Property<int>("Place")
-                        .HasColumnType("integer");
-
-                    b.ComplexProperty<Dictionary<string, object>>("City", "LooksRatingApi.Models.TopPhotoSeason.City#CityVo", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("City");
-                        });
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PhotoSeasonId", "GenderEnum")
+                    b.HasIndex("City", "Year", "WeekOfYear")
                         .IsUnique();
 
-                    b.ToTable("TopPhotoSeason", (string)null);
+                    b.ToTable("TheBestWeek", (string)null);
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.User", b =>
@@ -234,14 +545,15 @@ namespace LooksRatingApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("Age")
+                    b.Property<int>("CountInTop")
                         .HasColumnType("integer");
 
-                    b.Property<int>("Gender")
-                        .HasColumnType("integer");
+                    b.Property<string>("Name")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
 
-                    b.Property<Guid>("PhotoUserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
                     b.Property<long>("TelegramId")
                         .HasColumnType("bigint");
@@ -250,26 +562,7 @@ namespace LooksRatingApi.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<int>("TimesInTop")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(0);
-
-                    b.ComplexProperty<Dictionary<string, object>>("City", "LooksRatingApi.Models.User.City#CityVo", b1 =>
-                        {
-                            b1.IsRequired();
-
-                            b1.Property<string>("Value")
-                                .IsRequired()
-                                .HasMaxLength(255)
-                                .HasColumnType("character varying(255)")
-                                .HasColumnName("City");
-                        });
-
                     b.HasKey("Id");
-
-                    b.HasIndex("PhotoUserId")
-                        .IsUnique();
 
                     b.HasIndex("TelegramId")
                         .IsUnique();
@@ -299,7 +592,8 @@ namespace LooksRatingApi.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("TelegramId");
+                    b.HasIndex("TelegramId")
+                        .IsUnique();
 
                     b.HasIndex("UserId");
 
@@ -320,28 +614,58 @@ namespace LooksRatingApi.Migrations
                     b.Property<DateTime>("OccuredAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("PhotoProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("PhotoUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("PhotoProfileId");
+
+                    b.HasIndex("PhotoUserId");
+
+                    b.HasIndex("UserId", "PhotoProfileId")
+                        .IsUnique();
 
                     b.ToTable("UserTicket", (string)null);
                 });
 
-            modelBuilder.Entity("LooksRatingApi.Models.PhotoSeason", b =>
+            modelBuilder.Entity("LooksRatingApi.Models.PaymentOrder", b =>
+                {
+                    b.HasOne("LooksRatingApi.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LooksRatingApi.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.PhotoProfile", b =>
                 {
                     b.HasOne("LooksRatingApi.Models.Season", "Season")
-                        .WithMany("PhotoSeasons")
+                        .WithMany("PhotoProfiles")
                         .HasForeignKey("SeasonId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("LooksRatingApi.Models.User", "User")
-                        .WithMany("PhotoSeasons")
+                        .WithMany("PhotoProfiles")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Season");
@@ -349,19 +673,58 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.PhotoProfilePhoto", b =>
+                {
+                    b.HasOne("LooksRatingApi.Models.PhotoProfile", "PhotoProfile")
+                        .WithMany("Photos")
+                        .HasForeignKey("PhotoProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PhotoProfile");
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.PhotoUser", b =>
                 {
-                    b.HasOne("LooksRatingApi.Models.TheBestWeek", null)
+                    b.HasOne("LooksRatingApi.Models.PhotoProfile", "PhotoProfile")
+                        .WithMany("LegacyPhotoUsers")
+                        .HasForeignKey("PhotoProfileId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("LooksRatingApi.Models.Season", "Season")
                         .WithMany("PhotoUsers")
-                        .HasForeignKey("TheBestWeekId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LooksRatingApi.Models.User", "User")
+                        .WithMany("PhotoUsers")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("PhotoProfile");
+
+                    b.Navigation("Season");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LooksRatingApi.Models.RecomendationSettings", b =>
+                {
+                    b.HasOne("LooksRatingApi.Models.User", "User")
+                        .WithOne("RecomendationSettings")
+                        .HasForeignKey("LooksRatingApi.Models.RecomendationSettings", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.Review", b =>
                 {
-                    b.HasOne("LooksRatingApi.Models.PhotoUser", "PhotoUser")
-                        .WithMany()
-                        .HasForeignKey("PhotoUserId")
+                    b.HasOne("LooksRatingApi.Models.PhotoProfile", "PhotoProfile")
+                        .WithMany("Reviews")
+                        .HasForeignKey("PhotoProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -371,7 +734,7 @@ namespace LooksRatingApi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("PhotoUser");
+                    b.Navigation("PhotoProfile");
 
                     b.Navigation("User");
                 });
@@ -387,33 +750,15 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("ListSeasons");
                 });
 
-            modelBuilder.Entity("LooksRatingApi.Models.TheBestWeek", b =>
+            modelBuilder.Entity("LooksRatingApi.Models.SparksWallet", b =>
                 {
-                    b.HasOne("LooksRatingApi.Models.User", null)
-                        .WithMany("TheBestWeeks")
-                        .HasForeignKey("UserId");
-                });
-
-            modelBuilder.Entity("LooksRatingApi.Models.TopPhotoSeason", b =>
-                {
-                    b.HasOne("LooksRatingApi.Models.PhotoSeason", "PhotoSeason")
-                        .WithMany("TopPhotoSeasons")
-                        .HasForeignKey("PhotoSeasonId")
+                    b.HasOne("LooksRatingApi.Models.User", "User")
+                        .WithOne("SparksWallet")
+                        .HasForeignKey("LooksRatingApi.Models.SparksWallet", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("PhotoSeason");
-                });
-
-            modelBuilder.Entity("LooksRatingApi.Models.User", b =>
-                {
-                    b.HasOne("LooksRatingApi.Models.PhotoUser", "PhotoUser")
-                        .WithOne("User")
-                        .HasForeignKey("LooksRatingApi.Models.User", "PhotoUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PhotoUser");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.UserSession", b =>
@@ -428,11 +773,23 @@ namespace LooksRatingApi.Migrations
 
             modelBuilder.Entity("LooksRatingApi.Models.UserTicket", b =>
                 {
+                    b.HasOne("LooksRatingApi.Models.PhotoProfile", "PhotoProfile")
+                        .WithMany("UserTickets")
+                        .HasForeignKey("PhotoProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LooksRatingApi.Models.PhotoUser", null)
+                        .WithMany("UserTickets")
+                        .HasForeignKey("PhotoUserId");
+
                     b.HasOne("LooksRatingApi.Models.User", "User")
                         .WithMany("UserTickets")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("PhotoProfile");
 
                     b.Navigation("User");
                 });
@@ -442,34 +799,40 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("Seasons");
                 });
 
-            modelBuilder.Entity("LooksRatingApi.Models.PhotoSeason", b =>
+            modelBuilder.Entity("LooksRatingApi.Models.PhotoProfile", b =>
                 {
-                    b.Navigation("TopPhotoSeasons");
+                    b.Navigation("LegacyPhotoUsers");
+
+                    b.Navigation("Photos");
+
+                    b.Navigation("Reviews");
+
+                    b.Navigation("UserTickets");
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.PhotoUser", b =>
                 {
-                    b.Navigation("User")
-                        .IsRequired();
+                    b.Navigation("UserTickets");
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.Season", b =>
                 {
-                    b.Navigation("PhotoSeasons");
-                });
+                    b.Navigation("PhotoProfiles");
 
-            modelBuilder.Entity("LooksRatingApi.Models.TheBestWeek", b =>
-                {
                     b.Navigation("PhotoUsers");
                 });
 
             modelBuilder.Entity("LooksRatingApi.Models.User", b =>
                 {
-                    b.Navigation("PhotoSeasons");
+                    b.Navigation("PhotoProfiles");
+
+                    b.Navigation("PhotoUsers");
+
+                    b.Navigation("RecomendationSettings");
 
                     b.Navigation("Reviews");
 
-                    b.Navigation("TheBestWeeks");
+                    b.Navigation("SparksWallet");
 
                     b.Navigation("UserTickets");
                 });

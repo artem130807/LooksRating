@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using LooksRatingApi.Models;
 
@@ -11,8 +11,11 @@ namespace LooksRatingApi.Contracts.UserContracts
         Task Create(User user);
         Task Delete(Guid Id);
         Task Update(User user);
-        Task<User> GetUserById(Guid Id);
-        Task<User> GetUserByTelegramId(long TelegramId);
+        Task<User?> GetUserById(Guid Id);
+        Task<User?> GetUserByTelegramId(long TelegramId);
+        Task AddCountInTop(List<long> ids);
+        // Task<int> CountTimesInTopAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<List<User>> GetUsers();
+        Task SaveChangesAsync();
     }
 }

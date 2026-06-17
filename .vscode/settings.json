@@ -1,0 +1,18 @@
+{
+  "go.goroot": "/usr/local/go",
+  "go.alternateTools": {
+    "go": "/usr/local/go/bin/go"
+  },
+  "go.gopath": "/home/shade/go",
+  "go.toolsManagement.autoUpdate": false,
+  "go.useLanguageServer": true,
+  "gopls": {
+    "build.directoryFilters": [
+      "-LooksRatingApi",
+      "-LooksRatingBot",
+      "-LooksRatingTicketBot",
+      "-TGgifts-buyer",
+      "-node_modules"
+    ]
+  }
+}

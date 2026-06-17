@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+option go_package = "looksrating/ticketapi/internal/gen/looksratingpb;looksratingpb";
+
+service RemoveTicketsPhotoprofileService {
+    rpc RemoveTicketsPhotoprofile(RemoveTicketsPhotoprofileRequest) returns (RemoveTicketsPhotoprofileResponse);
+}
+
+message RemoveTicketsPhotoprofileRequest {
+    string photo_profile_id = 1;
+}
+
+message RemoveTicketsPhotoprofileResponse {
+    bool is_success = 1;
+    string message = 2;
+}

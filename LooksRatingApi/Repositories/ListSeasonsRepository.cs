@@ -38,42 +38,61 @@ namespace LooksRatingApi.Repositories
 
         public async Task<ListSeasons?> GetById(Guid id)
         {
+            return await GetByIdAsync(id);
+        }
+
+        public async Task<ListSeasons?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+        {
             return await _context.ListSeasons
+                .AsNoTracking()
                 .Include(l => l.Seasons)
-                .ThenInclude(s => s.PhotoSeasons)
-                .FirstOrDefaultAsync(l => l.Id == id);
+                .FirstOrDefaultAsync(l => l.Id == id, cancellationToken);
         }
 
         public async Task<ListSeasons?> GetLatest(bool includeSeasons = true)
         {
-            var query = _context.ListSeasons.AsQueryable();
+            return await GetLatestAsync(includeSeasons);
+        }
+
+        public async Task<ListSeasons?> GetLatestAsync(
+            bool includeSeasons = true,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.ListSeasons.AsNoTracking().AsQueryable();
 
             if (includeSeasons)
-            {
-                query = query
-                    .Include(l => l.Seasons)
-                    .ThenInclude(s => s.PhotoSeasons);
-            }
+                query = query.Include(l => l.Seasons);
 
             return await query
                 .OrderByDescending(l => l.CreatedDate)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        public async Task<ListSeasons?> GetPreviousToLatest()
+        {
+            return await _context.ListSeasons
+                .OrderByDescending(l => l.CreatedDate)
+                .Skip(1)
                 .FirstOrDefaultAsync();
         }
 
         public async Task<List<ListSeasons>> GetLists(bool includeSeasons = false)
         {
-            var query = _context.ListSeasons.AsQueryable();
+            return await GetListsAsync(includeSeasons);
+        }
+
+        public async Task<List<ListSeasons>> GetListsAsync(
+            bool includeSeasons = false,
+            CancellationToken cancellationToken = default)
+        {
+            var query = _context.ListSeasons.AsNoTracking().AsQueryable();
 
             if (includeSeasons)
-            {
-                query = query
-                    .Include(l => l.Seasons)
-                    .ThenInclude(s => s.PhotoSeasons);
-            }
+                query = query.Include(l => l.Seasons);
 
             return await query
                 .OrderByDescending(l => l.CreatedDate)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

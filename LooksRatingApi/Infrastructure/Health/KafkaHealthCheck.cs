@@ -1,0 +1,48 @@
+using Confluent.Kafka;
+using LooksRatingApi.Messages.Kafka.PhotoRated.Producers;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Options;
+
+namespace LooksRatingApi.Infrastructure.Health
+{
+    public sealed class KafkaHealthCheck : IHealthCheck
+    {
+        private readonly KafkaProducerSettings _settings;
+
+        public KafkaHealthCheck(IOptions<KafkaProducerSettings> settings)
+        {
+            _settings = settings.Value;
+        }
+
+        public Task<HealthCheckResult> CheckHealthAsync(
+            HealthCheckContext context,
+            CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(_settings.BootstrapServers))
+            {
+                return Task.FromResult(HealthCheckResult.Unhealthy("Kafka bootstrap servers are not configured"));
+            }
+
+            try
+            {
+                using var admin = new AdminClientBuilder(new AdminClientConfig
+                {
+                    BootstrapServers = _settings.BootstrapServers
+                }).Build();
+
+                var metadata = admin.GetMetadata(TimeSpan.FromSeconds(5));
+                if (metadata.Brokers.Count == 0)
+                {
+                    return Task.FromResult(HealthCheckResult.Unhealthy("Kafka cluster has no brokers"));
+                }
+
+                return Task.FromResult(HealthCheckResult.Healthy(
+                    $"Kafka reachable ({metadata.Brokers.Count} broker(s))"));
+            }
+            catch (Exception ex)
+            {
+                return Task.FromResult(HealthCheckResult.Unhealthy("Kafka is unreachable", ex));
+            }
+        }
+    }
+}

@@ -1,0 +1,9 @@
+asyncio~=3.4.3
+pyfiglet~=1.0.2
+pytz~=2024.2
+python-dotenv~=1.0.1
+pyrofork==2.3.48
+tgcrypto-pyrofork==1.2.7
+grpcio>=1.81.1
+protobuf~=6.33.5
+APScheduler~=3.10.4

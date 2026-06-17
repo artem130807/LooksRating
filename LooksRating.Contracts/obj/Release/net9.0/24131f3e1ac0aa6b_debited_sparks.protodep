@@ -1,0 +1,2 @@
+obj/Release/net9.0/Proto/DebitedSparks.cs \
+obj/Release/net9.0/Proto/DebitedSparksGrpc.cs: Proto/debited_sparks.proto

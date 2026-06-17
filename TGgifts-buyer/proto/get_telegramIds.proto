@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service GetTelegramIdsService {
+    rpc GetTelegramIds(GetTelegramIdsRequest) returns (GetTelegramIdsResponse);
+}
+
+message GetTelegramIdsRequest {
+}
+
+message VipTopProfileEntry {
+    int64 telegram_id = 1;
+    string city = 2;
+    double rating = 3;
+    int32 rating_count = 4;
+    int32 age = 5;
+    int32 gender = 6;
+    int64 created_at_unix = 7;
+}
+
+message GetTelegramIdsResponse {
+    repeated VipTopProfileEntry profiles = 1;
+}

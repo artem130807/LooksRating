@@ -13,5 +13,7 @@ namespace LooksRatingApi.Models
         public DateTime OccuredAt { get; set; }
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
+        public Guid PhotoProfileId { get; set; }
+        public PhotoProfile PhotoProfile { get; set; } = null!;
     }
 }
