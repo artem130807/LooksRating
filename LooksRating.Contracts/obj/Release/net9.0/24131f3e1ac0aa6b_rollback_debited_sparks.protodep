@@ -1,0 +1,2 @@
+obj/Release/net9.0/Proto/RollbackDebitedSparks.cs \
+obj/Release/net9.0/Proto/RollbackDebitedSparksGrpc.cs: Proto/rollback_debited_sparks.proto

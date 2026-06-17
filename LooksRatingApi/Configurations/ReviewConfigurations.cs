@@ -21,8 +21,13 @@ namespace LooksRatingApi.Configurations
             builder.Property(r => r.Rating)
                    .IsRequired();
 
+            builder.Property(r => r.CreatedAt)
+                   .IsRequired();
+
             builder.HasIndex(r => new { r.UserId, r.PhotoProfileId })
                    .IsUnique();
+
+            builder.HasIndex(r => new { r.PhotoProfileId, r.CreatedAt });
 
             builder.HasOne(r => r.User)
                    .WithMany(u => u.Reviews)

@@ -11,6 +11,7 @@ namespace LooksRatingApi.Models
         public string? TelegramUsername { get; set; }
         public string? Name { get; set; }
         public int CountInTop {get; set;}
+        public SparksWallet? SparksWallet { get; set; }
         public VipStatus Status {get; set;} = VipStatus.Unavaillable;
         public RecomendationSettings? RecomendationSettings { get; set; }
         public ICollection<PhotoUser> PhotoUsers { get; set; } = new List<PhotoUser>();

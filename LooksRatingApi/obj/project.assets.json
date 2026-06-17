@@ -281,6 +281,13 @@
           }
         }
       },
+      "Grpc.Tools/2.67.0": {
+        "type": "package",
+        "build": {
+          "build/Grpc.Tools.props": {},
+          "build/Grpc.Tools.targets": {}
+        }
+      },
       "Humanizer.Core/2.14.1": {
         "type": "package",
         "compile": {
@@ -2949,6 +2956,55 @@
         "lib/netstandard2.1/Grpc.Net.Common.pdb",
         "lib/netstandard2.1/Grpc.Net.Common.xml",
         "packageIcon.png"
+      ]
+    },
+    "Grpc.Tools/2.67.0": {
+      "sha512": "AQwGGe1dhCWlO72dTW4XtZBsvE9+mHt5rUpVOPjX9Q6sYZZ0GFyqs+7DjFeulaHKjsOg7Wteob1oq7a++SJWgA==",
+      "type": "package",
+      "path": "grpc.tools/2.67.0",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "build/Grpc.Tools.props",
+        "build/Grpc.Tools.targets",
+        "build/_grpc/Grpc.CSharp.xml",
+        "build/_grpc/_Grpc.Tools.props",
+        "build/_grpc/_Grpc.Tools.targets",
+        "build/_protobuf/Google.Protobuf.Tools.props",
+        "build/_protobuf/Google.Protobuf.Tools.targets",
+        "build/_protobuf/Protobuf.CSharp.xml",
+        "build/_protobuf/net45/Protobuf.MSBuild.dll",
+        "build/_protobuf/net45/Protobuf.MSBuild.pdb",
+        "build/_protobuf/netstandard1.3/Protobuf.MSBuild.dll",
+        "build/_protobuf/netstandard1.3/Protobuf.MSBuild.pdb",
+        "build/native/include/google/protobuf/any.proto",
+        "build/native/include/google/protobuf/api.proto",
+        "build/native/include/google/protobuf/descriptor.proto",
+        "build/native/include/google/protobuf/duration.proto",
+        "build/native/include/google/protobuf/empty.proto",
+        "build/native/include/google/protobuf/field_mask.proto",
+        "build/native/include/google/protobuf/source_context.proto",
+        "build/native/include/google/protobuf/struct.proto",
+        "build/native/include/google/protobuf/timestamp.proto",
+        "build/native/include/google/protobuf/type.proto",
+        "build/native/include/google/protobuf/wrappers.proto",
+        "grpc.tools.2.67.0.nupkg.sha512",
+        "grpc.tools.nuspec",
+        "packageIcon.png",
+        "tools/linux_arm64/grpc_csharp_plugin",
+        "tools/linux_arm64/protoc",
+        "tools/linux_x64/grpc_csharp_plugin",
+        "tools/linux_x64/protoc",
+        "tools/linux_x86/grpc_csharp_plugin",
+        "tools/linux_x86/protoc",
+        "tools/macosx_x64/grpc_csharp_plugin",
+        "tools/macosx_x64/protoc",
+        "tools/windows_x64/grpc_csharp_plugin.exe",
+        "tools/windows_x64/protoc.exe",
+        "tools/windows_x86/grpc_csharp_plugin.exe",
+        "tools/windows_x86/protoc.exe"
       ]
     },
     "Humanizer.Core/2.14.1": {
@@ -7010,6 +7066,7 @@
       "BCrypt.Net-Next >= 4.0.3",
       "CSharpFunctionalExtensions >= 3.6.0",
       "Confluent.Kafka >= 2.13.1",
+      "Grpc.AspNetCore >= 2.67.0",
       "LooksRating.Contracts >= 1.0.0",
       "MediatR >= 11.1.0",
       "MediatR.Extensions.Microsoft.DependencyInjection >= 11.1.0",
@@ -7105,6 +7162,10 @@
           "Confluent.Kafka": {
             "target": "Package",
             "version": "[2.13.1, )"
+          },
+          "Grpc.AspNetCore": {
+            "target": "Package",
+            "version": "[2.67.0, )"
           },
           "MediatR": {
             "target": "Package",
@@ -7209,15 +7270,15 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[9.0.16, 9.0.16]"
+            "version": "[9.0.17, 9.0.17]"
           },
           {
             "name": "Microsoft.NETCore.App.Host.linux-x64",
-            "version": "[9.0.16, 9.0.16]"
+            "version": "[9.0.17, 9.0.17]"
           },
           {
             "name": "Microsoft.NETCore.App.Ref",
-            "version": "[9.0.16, 9.0.16]"
+            "version": "[9.0.17, 9.0.17]"
           }
         ],
         "frameworkReferences": {
@@ -7228,7 +7289,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

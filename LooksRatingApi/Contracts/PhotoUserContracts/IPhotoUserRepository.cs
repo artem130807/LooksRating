@@ -13,6 +13,8 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
         Task Delete(Guid Id);
         Task Update(PhotoUser photoUser);
         Task<PhotoUser?> GePhotoUserById(Guid Id);
+        Task<List<PhotoUser>> GetByProfileIdAsync(Guid photoProfileId, CancellationToken cancellationToken = default);
+        Task ResetLegacyRatingsForProfileAsync(Guid photoProfileId, CancellationToken cancellationToken = default);
         Task<List<PhotoUser>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken cancellationToken = default);
         Task<PhotoUser?> GetByTelegramIdAndSeasonIdAsync(long telegramId, Guid seasonId, CancellationToken cancellationToken = default);
         Task<List<PhotoUser>> GetByTelegramIdAndSeasonIdListAsync(long telegramId, Guid seasonId, CancellationToken cancellationToken = default);
@@ -71,6 +73,5 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             string city,
             int age,
             GenderEnum genderEnum);
-        Task<bool> IsWithinVipPhotoLimitAsync(Guid seasonId, long telegramId);
     }
 }

@@ -3,6 +3,7 @@ using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
+using LooksRatingApi.Services.PhotoProfiles;
 
 namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
 {
@@ -78,7 +79,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
                 return Result.Failure<string>(RecreateUserPhotoErrors.TooManyPhotosForNonVip);
             }
 
-            if (isVip && trimmed.Count > 4)
+            if (isVip && trimmed.Count > PhotoProfileLimits.VipMaxPhotos)
             {
                 return Result.Failure<string>(RecreateUserPhotoErrors.TooManyPhotosForVip);
             }

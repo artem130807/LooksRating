@@ -5,6 +5,7 @@ from typing import Any
 
 from api.client import ApiError, LooksRatingApiClient
 from bot.errors import translate_error
+from bot.gender_api import gender_to_api
 
 GENDER_MALE = 1
 GENDER_FEMALE = 2
@@ -24,6 +25,45 @@ TOP_AGE_GROUPS = (
     (41, 42, 43),
     (44, 45, 46),
 )
+
+def format_sparks_amount(value: Any) -> str:
+    try:
+        amount = int(value)
+    except (TypeError, ValueError):
+        return "0"
+    return f"{amount:,}".replace(",", " ")
+
+
+def format_insufficient_sparks_alert(cost: int, balance: int) -> str:
+    return (
+        "Недостаточно искр для этого подарка.\n\n"
+        f"Нужно: {format_sparks_amount(cost)} ✨\n"
+        f"У вас: {format_sparks_amount(balance)} ✨"
+    )
+
+
+def format_gift_failure_details(raw_message: str | None) -> str:
+    normalized = (raw_message or "").strip()
+    mapping = {
+        "Недостаточно искр на балансе": "На балансе не хватает искр для этого обмена.",
+        "Не удалось списать искры": "На балансе не хватает искр для этого обмена.",
+        "Для начала нужно приобрести вип статус": "Сначала оформите VIP в разделе «Покупки».",
+        "Подарок не отправлен. Искры возвращены на баланс.": (
+            "Не удалось доставить подарок. Попробуйте позже или выберите другой номинал."
+        ),
+        "Подарок не отправлен, а откат искр не выполнен. Обратитесь в поддержку.": (
+            "Произошла ошибка при обмене. Напишите в поддержку — мы поможем."
+        ),
+        "Недопустимая стоимость подарка": "Выбран недоступный номинал подарка.",
+    }
+    if normalized in mapping:
+        return mapping[normalized]
+    if "не найден" in normalized.lower() and "★" in normalized:
+        return "Сейчас нет доступного подарка на эту сумму. Попробуйте другой номинал."
+    if normalized:
+        return normalized
+    return "Попробуйте позже или выберите другой подарок."
+
 
 class SessionState:
     START = "Start"
@@ -104,7 +144,7 @@ def custom_nomination(city: str, age: int, gender: int) -> dict[str, Any]:
         "useProfileNomination": False,
         "city": city.strip().lower(),
         "age": age,
-        "gender": gender,
+        "gender": gender_to_api(gender),
     }
 
 
@@ -159,6 +199,39 @@ def format_rating_display(rating: float, count: int) -> str:
     return f"{rating:.1f}/10 · {count} оценок"
 
 
+def extract_rating(payload: dict[str, Any]) -> float:
+    value = payload.get("rating")
+    if value is None:
+        value = payload.get("Rating", 0)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def extract_rating_count(payload: dict[str, Any]) -> int:
+    value = payload.get("ratingCount")
+    if value is None:
+        value = payload.get("RatingCount", 0)
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
+
+
+def format_set_photo_saved_text(result: dict[str, Any]) -> str:
+    from bot import texts
+
+    city = result.get("city") or result.get("City") or ""
+    return texts.PHOTO_SAVED.format(
+        city=format_city_display(str(city)),
+        rating_line=format_rating_display(
+            extract_rating(result),
+            extract_rating_count(result),
+        ),
+    )
+
+
 def feed_age_group(age: int | None) -> tuple[int, int, int] | None:
     if not isinstance(age, int):
         return None
@@ -197,14 +270,19 @@ async def settings_menu_for(api: LooksRatingApiClient, telegram_id: int):
     user = await api.get_user(telegram_id)
     photo_payload = await api.get_my_photo(telegram_id) if user else None
     photos = []
+    photo_count = 0
+    can_add_photo = False
     if isinstance(photo_payload, dict):
         photos = list(photo_payload.get("photos") or [])
-    has_photo = len(photos) > 0
+        photo_count = int(photo_payload.get("photoCount", len(photos)))
+        can_add_photo = bool(photo_payload.get("canAddPhoto", False))
+    has_photo = photo_count > 0 or len(photos) > 0
     has_vip = bool(user.get("hasVip")) if isinstance(user, dict) else False
     return settings_keyboard(
         has_photo=has_photo,
         has_vip=has_vip,
-        photo_count=len(photos),
+        photo_count=photo_count,
+        can_add_photo=can_add_photo,
     )
 
 

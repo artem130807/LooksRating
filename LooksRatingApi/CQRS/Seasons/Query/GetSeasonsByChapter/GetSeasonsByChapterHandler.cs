@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.ListSeasonsContracts;
+using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.CQRS.Seasons;
 using MediatR;
@@ -11,13 +12,16 @@ namespace LooksRatingApi.CQRS.Seasons.Query.GetSeasonsByChapter
     {
         private readonly ISeasonRepository _seasonRepository;
         private readonly IListSeasonsRepository _listSeasonsRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public GetSeasonsByChapterHandler(
             ISeasonRepository seasonRepository,
-            IListSeasonsRepository listSeasonsRepository)
+            IListSeasonsRepository listSeasonsRepository,
+            IPhotoProfileRepository photoProfileRepository)
         {
             _seasonRepository = seasonRepository;
             _listSeasonsRepository = listSeasonsRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task<Result<List<SeasonSummaryResponse>>> Handle(
@@ -36,12 +40,12 @@ namespace LooksRatingApi.CQRS.Seasons.Query.GetSeasonsByChapter
                 query.IncludeClosed,
                 cancellationToken);
 
-            var photoCounts = await _seasonRepository.GetPhotoCountsBySeasonIdsAsync(
+            var profileCounts = await _photoProfileRepository.GetParticipantCountsBySeasonIdsAsync(
                 seasons.Select(s => s.Id),
                 cancellationToken);
 
             var result = seasons
-                .Select(s => SeasonCatalogMapping.ToSeasonSummary(s, photoCounts))
+                .Select(s => SeasonCatalogMapping.ToSeasonSummary(s, profileCounts))
                 .ToList();
 
             return Result.Success(result);

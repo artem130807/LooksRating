@@ -68,8 +68,9 @@ namespace LooksRatingApi.Infrastructure.Quartz
                 _options.UseClustering);
 
             _logger.LogInformation(
-                "QuartzStartup: cron VipStatusExpiry={VipCron}, TheBestWeek={WeekCron}, NewSeason={SeasonCron}, NewListSeason={ChapterCron}",
+                "QuartzStartup: cron VipStatusExpiry={VipCron}, VipTopSparksReward={SparksCron}, TheBestWeek={WeekCron}, NewSeason={SeasonCron}, NewListSeason={ChapterCron}",
                 _options.VipStatusExpiryCron,
+                _options.VipTopSparksRewardCron,
                 _options.TheBestWeekCron,
                 _options.NewSeasonCron,
                 _options.NewListSeasonCron);
@@ -89,6 +90,7 @@ namespace LooksRatingApi.Infrastructure.Quartz
             var jobNames = new[]
             {
                 VipStatusExpiryJob.JobName,
+                VipTopSparksRewardJob.JobName,
                 TheBestWeekRefreshJob.JobName,
                 NewSeasonAddJob.JobName,
                 NewListSeasonAddJob.JobName,

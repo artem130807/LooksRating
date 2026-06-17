@@ -11,6 +11,7 @@ using LooksRatingApi.Services;
 using LooksRatingApi.Services.BackGroundServices;
 using LooksRatingApi.Services.BackGroundServices.Handlers;
 using LooksRatingApi.Services.BackGroundServices.Jobs;
+using LooksRatingApi.Services.PhotoServices;
 using LooksRatingApi.Contracts.SeasonLifecycle;
 using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Services.SeasonLifecycle;
@@ -44,6 +45,7 @@ namespace LooksRatingApi
             services.AddScoped<IKafkaPhotoRatedConsumer<PhotoRatedEvent>, KafkaPhotoRatedConsumer<PhotoRatedEvent>>();
 
             services.AddScoped<IPhotoRecommendationService, PhotoRecommendationService>();
+            services.AddScoped<IUnviewablePhotosProfilesService, UnviewablePhotosProfilesService>();
             services.AddScoped<IAddPhotoUsersCacheHandler, AddPhotoUsersCacheHandler>();
 
             services.AddHostedService<PhotoRatedBackgroundService<PhotoRatedEvent>>();
@@ -79,6 +81,7 @@ namespace LooksRatingApi
             services.AddScoped<INewSeasonProcessor, NewSeasonProcessor>();
             services.AddScoped<ITheBestWeekProcessor, TheBestWeekProcessor>();
             services.AddScoped<IVipStatusExpiryProcessor, VipStatusExpiryProcessor>();
+            services.AddScoped<IVipTopSparksRewardProcessor, VipTopSparksRewardProcessor>();
 
             services.AddQuartz((q, sp) =>
             {
@@ -131,6 +134,10 @@ namespace LooksRatingApi
                     .WithIdentity(VipStatusExpiryJob.JobName)
                     .StoreDurably());
 
+                q.AddJob<VipTopSparksRewardJob>(opts => opts
+                    .WithIdentity(VipTopSparksRewardJob.JobName)
+                    .StoreDurably());
+
                 q.AddTrigger(opts => opts
                     .ForJob(NewListSeasonAddJob.JobName)
                     .WithIdentity($"{NewListSeasonAddJob.JobName}-trigger")
@@ -150,6 +157,11 @@ namespace LooksRatingApi
                     .ForJob(VipStatusExpiryJob.JobName)
                     .WithIdentity($"{VipStatusExpiryJob.JobName}-trigger")
                     .WithCronSchedule(quartzOptions.VipStatusExpiryCron, b => b.InTimeZone(scheduleTimeZone)));
+
+                q.AddTrigger(opts => opts
+                    .ForJob(VipTopSparksRewardJob.JobName)
+                    .WithIdentity($"{VipTopSparksRewardJob.JobName}-trigger")
+                    .WithCronSchedule(quartzOptions.VipTopSparksRewardCron, b => b.InTimeZone(scheduleTimeZone)));
             });
 
             services.AddQuartzHostedService(options =>

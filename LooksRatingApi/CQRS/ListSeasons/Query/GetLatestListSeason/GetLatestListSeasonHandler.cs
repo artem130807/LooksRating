@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.ListSeasonsContracts;
-using LooksRatingApi.Contracts.SeasonContracts;
+using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.CQRS.Seasons;
 using MediatR;
 
@@ -10,14 +10,14 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetLatestListSeason
         : IRequestHandler<GetLatestListSeasonQuery, Result<ListSeasonResponse>>
     {
         private readonly IListSeasonsRepository _listSeasonsRepository;
-        private readonly ISeasonRepository _seasonRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public GetLatestListSeasonHandler(
             IListSeasonsRepository listSeasonsRepository,
-            ISeasonRepository seasonRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _listSeasonsRepository = listSeasonsRepository;
-            _seasonRepository = seasonRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task<Result<ListSeasonResponse>> Handle(
@@ -28,10 +28,10 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetLatestListSeason
             if (list is null)
                 return Result.Failure<ListSeasonResponse>("Глава не найдена");
 
-            Dictionary<Guid, int>? photoCounts = null;
+            IReadOnlyDictionary<Guid, int>? profileCounts = null;
             if (query.IncludeSeasons && list.Seasons.Count > 0)
             {
-                photoCounts = await _seasonRepository.GetPhotoCountsBySeasonIdsAsync(
+                profileCounts = await _photoProfileRepository.GetParticipantCountsBySeasonIdsAsync(
                     list.Seasons.Select(s => s.Id),
                     cancellationToken);
             }
@@ -39,7 +39,7 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetLatestListSeason
             return Result.Success(SeasonCatalogMapping.ToListSeasonResponse(
                 list,
                 query.IncludeSeasons,
-                photoCounts));
+                profileCounts));
         }
     }
 }

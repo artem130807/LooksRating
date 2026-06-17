@@ -2,11 +2,11 @@ using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.ReviewContracts;
+using LooksRatingApi.Contracts.SparksLedgerContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Models;
 using MediatR;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 {
@@ -18,8 +18,11 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         private readonly IReviewRepository _reviewRepository;
         private readonly ICreateReviewValidator _validator;
         private readonly IKafkaPhotoRatedProducer<PhotoRatedEvent> _producer;
+        private readonly ICreateReviewEventPublisher _createReviewEventPublisher;
         private readonly IRankService _rankService;
         private readonly IPhotoRatingCacheService _photoRatingCacheService;
+        private readonly IReviewSparksRewardService _reviewSparksRewardService;
+        private readonly IRatedProfileSparksRewardService _ratedProfileSparksRewardService;
 
         public CreateReviewCommandHandler(
             LooksRatingDbContext context,
@@ -28,8 +31,11 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             IReviewRepository reviewRepository,
             ICreateReviewValidator validator,
             IKafkaPhotoRatedProducer<PhotoRatedEvent> producer,
+            ICreateReviewEventPublisher createReviewEventPublisher,
             IRankService rankService,
-            IPhotoRatingCacheService photoRatingCacheService)
+            IPhotoRatingCacheService photoRatingCacheService,
+            IReviewSparksRewardService reviewSparksRewardService,
+            IRatedProfileSparksRewardService ratedProfileSparksRewardService)
         {
             _context = context;
             _userRepository = userRepository;
@@ -37,8 +43,11 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             _reviewRepository = reviewRepository;
             _validator = validator;
             _producer = producer;
+            _createReviewEventPublisher = createReviewEventPublisher;
             _rankService = rankService;
             _photoRatingCacheService = photoRatingCacheService;
+            _reviewSparksRewardService = reviewSparksRewardService;
+            _ratedProfileSparksRewardService = ratedProfileSparksRewardService;
         }
 
         public async Task<Result<CreateReviewResult>> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -61,6 +70,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 return Result.Failure<CreateReviewResult>(CreateReviewErrors.PhotoProfileNotFound);
             }
 
+            Review review;
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -69,7 +79,6 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                     photoProfile.Id,
                     cancellationToken);
 
-                Review review;
                 if (existingReview is null)
                 {
                     var reviewResult = Review.Create(request.Rating, reviewer.Id, photoProfile.Id);
@@ -118,23 +127,41 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 await _photoRatingCacheService.SyncPhotoRatingAsync(domainEvent, cancellationToken);
                 await _producer.ProduceAsync(domainEvent, cancellationToken);
 
-                await transaction.CommitAsync(cancellationToken);
-
-                return Result.Success(new CreateReviewResult
+                if (existingReview is null)
                 {
-                    ReviewId = review.Id,
-                    ReviewerUserId = reviewer.Id,
-                    PhotoProfileId = photoProfile.Id,
-                    Rating = request.Rating,
-                    UpdatedProfileRating = photoProfile.Rating,
-                    UpdatedProfileRatingCount = photoProfile.RatingCount
-                });
+                    await _createReviewEventPublisher.PublishAsync(
+                        reviewer.Id,
+                        photoProfile.Id,
+                        cancellationToken);
+                }
+
+                await transaction.CommitAsync(cancellationToken);
             }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);
                 throw;
             }
+
+            await _reviewSparksRewardService.TryAwardForReviewAsync(
+                reviewer.TelegramId,
+                reviewer.Id,
+                cancellationToken);
+
+            await _ratedProfileSparksRewardService.TryAwardForRatedProfileAsync(
+                photoProfile.User.TelegramId,
+                photoProfile.UserId,
+                cancellationToken);
+
+            return Result.Success(new CreateReviewResult
+            {
+                ReviewId = review.Id,
+                ReviewerUserId = reviewer.Id,
+                PhotoProfileId = photoProfile.Id,
+                Rating = request.Rating,
+                UpdatedProfileRating = photoProfile.Rating,
+                UpdatedProfileRatingCount = photoProfile.RatingCount
+            });
         }
     }
 }

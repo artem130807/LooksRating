@@ -78,11 +78,11 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             }
           ],
           "frameworkReferences": {
@@ -90,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -162,6 +162,10 @@
             "Confluent.Kafka": {
               "target": "Package",
               "version": "[2.13.1, )"
+            },
+            "Grpc.AspNetCore": {
+              "target": "Package",
+              "version": "[2.67.0, )"
             },
             "MediatR": {
               "target": "Package",
@@ -266,15 +270,15 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             }
           ],
           "frameworkReferences": {
@@ -285,7 +289,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

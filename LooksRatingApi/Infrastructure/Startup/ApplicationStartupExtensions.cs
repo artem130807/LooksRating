@@ -4,6 +4,7 @@ using LooksRatingApi.Infrastructure.Health;
 using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Infrastructure.RateLimiting;
 using LooksRatingApi.Models;
+using LooksRatingApi.Infrastructure.SparksWallet;
 using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.GrpcService;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -89,10 +90,16 @@ namespace LooksRatingApi.Infrastructure.Startup
         {
             using var scope = app.Services.CreateScope();
             var services = scope.ServiceProvider;
+            var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("ApplicationStartup");
 
             var dbContext = services.GetRequiredService<LooksRatingDbContext>();
+            logger.LogInformation("Applying database migrations...");
             await dbContext.Database.MigrateAsync();
 
+            logger.LogInformation("Ensuring sparks wallet schema...");
+            await SparksWalletSchemaBootstrap.EnsureAsync(dbContext);
+
+            logger.LogInformation("Ensuring Quartz schema...");
             var quartzSchemaBootstrap = services.GetRequiredService<QuartzSchemaBootstrap>();
             await quartzSchemaBootstrap.EnsureCreatedAsync();
 
@@ -128,7 +135,9 @@ namespace LooksRatingApi.Infrastructure.Startup
 
             services.GetRequiredService<ILoadingBadWordService>().CreateBadWord(env);
 
+            logger.LogInformation("Seeding seasons...");
             await services.GetRequiredService<ISeasonDataSeeder>().SeedAsync();
+            logger.LogInformation("Application initialization completed");
         }
 
         public static WebApplication ConfigureApplicationPipeline(this WebApplication app)
@@ -148,7 +157,12 @@ namespace LooksRatingApi.Infrastructure.Startup
             app.UseAuthorization();
             app.MapInfrastructureHealthChecks();
             app.MapControllers();
-            app.MapGrpcService<GetTelegramIdsGrpcService>();
+            app.MapGrpcService<GetTelegramIdsGrpcService>().AllowAnonymous();
+            app.MapGrpcService<DebitedSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<RollBackDebitedSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<AdminTicketGrpcService>().AllowAnonymous();
+            app.MapGrpcService<RemoveTicketsPhotoprofileGrpcService>().AllowAnonymous();
+            app.MapGrpcService<RejectTicketPhotoProfileGrpcService>().AllowAnonymous();
 
             return app;
         }

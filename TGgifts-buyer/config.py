@@ -28,8 +28,12 @@ LOOKSRATING_GRPC_ADDRESS: str = os.getenv("LOOKSRATING_GRPC_ADDRESS", "localhost
 USE_LOOKSRATING_GRPC: bool = os.getenv("USE_LOOKSRATING_GRPC", "false").lower() == "true"
 LOOKSRATING_GRPC_TIMEOUT: float = float(os.getenv("LOOKSRATING_GRPC_TIMEOUT", "60"))
 
-APP_MODE: str = os.getenv("APP_MODE", "both").strip().lower()
-VIP_GIFT_JOB_ENABLED: bool = os.getenv("VIP_GIFT_JOB_ENABLED", "true").lower() == "true"
+GIFT_GRPC_ENABLED: bool = os.getenv("GIFT_GRPC_ENABLED", "true").lower() == "true"
+GIFT_GRPC_HOST: str = os.getenv("GIFT_GRPC_HOST", "0.0.0.0")
+GIFT_GRPC_PORT: int = int(os.getenv("GIFT_GRPC_PORT", "50051"))
+
+APP_MODE: str = os.getenv("APP_MODE", "gift_grpc").strip().lower()
+VIP_GIFT_JOB_ENABLED: bool = os.getenv("VIP_GIFT_JOB_ENABLED", "false").lower() == "true"
 VIP_GIFT_INTERVAL_DAYS: int = max(1, int(os.getenv("VIP_GIFT_INTERVAL_DAYS", "14")))
 VIP_GIFT_STATE_FILE: Path = Path(__file__).parent / "data/json/vip_gift_job_state.json"
 VIP_GIFT_SEND_INTRO: bool = os.getenv("VIP_GIFT_SEND_INTRO", "false").lower() == "true"
@@ -105,6 +109,10 @@ locale = __import__(LANG_CODES.get(LANGUAGE, "locales.en"), fromlist=[""])
 
 def is_detector_mode() -> bool:
     return APP_MODE in {"detector", "both"}
+
+
+def is_gift_grpc_mode() -> bool:
+    return APP_MODE in {"gift_grpc", "grpc", "vip_scheduler", "both", "scheduler"}
 
 
 def is_vip_scheduler_mode() -> bool:

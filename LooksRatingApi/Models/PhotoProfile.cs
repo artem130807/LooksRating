@@ -43,5 +43,12 @@ namespace LooksRatingApi.Models
 
         public void UpdateRank(RankEnum rank) => Rank = rank;
         public void UpdateStatus(StatusEnum status) => Status = status;
+
+        public void ResetRatings()
+        {
+            Rating = 0m;
+            RatingCount = 0;
+            Rank = RankEnum.Terrible;
+        }
     }
 }

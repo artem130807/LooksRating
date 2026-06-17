@@ -11,10 +11,11 @@ from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from api.client import ApiError, LooksRatingApiClient
+from bot.review_milestone_notifications import ReviewMilestoneNotificationsService
 from bot.top_notifications import TopNotificationsService
 from config import Settings
 from handlers import log_errors, setup_routers
-from middlewares import api_outer_middleware
+from middlewares import GiftPurchaseMiddleware, build_gift_purchase_saga
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
@@ -49,12 +50,33 @@ async def main() -> None:
     settings = Settings.from_env()
     api = LooksRatingApiClient(settings.api_base_url, settings.api_key)
     await api.start()
+    try:
+        await api.check_connection()
+        logging.info("API reachable: %s", settings.api_base_url)
+    except ApiError as exc:
+        logging.error(
+            "API rejected bot on startup (HTTP %s): %s. "
+            "Проверьте, что API_KEY в .env совпадает у api и bot.",
+            exc.status,
+            exc.message,
+        )
+    except (aiohttp.ClientError, OSError) as exc:
+        logging.error(
+            "API недоступен на старте (%s): %s. Бот не сможет отвечать на кнопки.",
+            settings.api_base_url,
+            exc,
+        )
 
     bot = _build_bot(settings)
     notifications = TopNotificationsService(
         api=api,
         bot=bot,
         interval_seconds=settings.top_notify_interval_seconds,
+    )
+    review_notifications = ReviewMilestoneNotificationsService(
+        api=api,
+        bot=bot,
+        interval_seconds=settings.review_notify_interval_seconds,
     )
     if settings.telegram_proxy:
         logging.info("Telegram proxy: %s", settings.telegram_proxy)
@@ -70,13 +92,16 @@ async def main() -> None:
             sys.exit(1)
 
         dp = Dispatcher(storage=MemoryStorage())
-        dp.update.outer_middleware(api_outer_middleware(api))
+        gift_purchase_saga = build_gift_purchase_saga(settings)
+        dp.update.outer_middleware(GiftPurchaseMiddleware(api, gift_purchase_saga))
         dp.errors.register(log_errors)
         dp.include_router(setup_routers(api))
 
         await notifications.start()
+        await review_notifications.start()
         await dp.start_polling(bot)
     finally:
+        await review_notifications.stop()
         await notifications.stop()
         await api.close()
         await bot.session.close()

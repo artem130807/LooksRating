@@ -4,6 +4,7 @@ using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
 using LooksRatingApi.Services;
+using LooksRatingApi.Services.PhotoProfiles;
 using MediatR;
 
 namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
@@ -59,6 +60,9 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
                 ProfileId = profile.Id,
                 UserId = user.Id,
                 SeasonId = season.Id,
+                PhotoCount = profile.Photos.Count,
+                MaxPhotos = PhotoProfileLimits.GetMaxPhotos(user.Status),
+                CanAddPhoto = PhotoProfileLimits.CanAddPhoto(profile.Photos.Count, user.Status),
                 Photos = profile.Photos
                     .OrderBy(x => x.SortOrder)
                     .Select(item => new GetMyPhotoItem

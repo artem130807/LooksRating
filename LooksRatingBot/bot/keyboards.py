@@ -18,6 +18,8 @@ MENU_PHOTO_REPLACE_ALL = "🖼 Сменить все фото"
 MENU_CANCEL = "❌ Отмена"
 MENU_BACK = "◀️ Назад"
 
+VIP_MAX_PHOTOS = 4
+
 SETTINGS_PHOTO_BUTTONS = {MENU_PHOTO_ADD, MENU_PHOTO_REPLACE, MENU_PHOTO_REPLACE_ALL}
 
 BTN_SETTINGS_FEED = "🏙 Моя лента"
@@ -44,6 +46,7 @@ BTN_RATING_EXIT = "⏹ Выйти из оценки"
 BTN_SEASON_TOP = "🏆 Топ сезона"
 BTN_SEASON_MY_PHOTO = "📸 Моё фото"
 BTN_SHOP_VIP = "⭐ Купить VIP"
+BTN_SHOP_GIFTS = "🎁 Подарок за искры"
 
 
 def main_menu() -> ReplyKeyboardMarkup:
@@ -59,10 +62,16 @@ def main_menu() -> ReplyKeyboardMarkup:
     )
 
 
-def settings_keyboard(*, has_photo: bool = False, has_vip: bool = False, photo_count: int = 0) -> ReplyKeyboardMarkup:
+def settings_keyboard(
+    *,
+    has_photo: bool = False,
+    has_vip: bool = False,
+    photo_count: int = 0,
+    can_add_photo: bool = False,
+) -> ReplyKeyboardMarkup:
     photo_row: list[KeyboardButton] = []
     if has_vip:
-        if photo_count < 4:
+        if can_add_photo:
             photo_row.append(KeyboardButton(text=MENU_PHOTO_ADD))
         if has_photo:
             photo_row.append(KeyboardButton(text=MENU_PHOTO_REPLACE))
@@ -278,6 +287,19 @@ def top_notification_keyboard() -> InlineKeyboardMarkup:
     )
 
 
+def review_milestone_notification_keyboard(notification_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="👥 Посмотреть профили",
+                    callback_data=f"review_milestone:view:{notification_id}",
+                )
+            ],
+        ]
+    )
+
+
 def weekly_scope_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -317,11 +339,40 @@ def top_gender_pick_keyboard(scope: str, season_id: str | None = None) -> Inline
     )
 
 
-def shop_keyboard() -> InlineKeyboardMarkup:
+def shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = [
+        [InlineKeyboardButton(text=BTN_SHOP_VIP, callback_data="shop:vip:buy")],
+    ]
+    if has_vip:
+        rows.append(
+            [InlineKeyboardButton(text=BTN_SHOP_GIFTS, callback_data="shop:gifts")]
+        )
+    rows.append([InlineKeyboardButton(text="📱 В меню", callback_data="shop:menu")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def shop_gifts_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text=BTN_SHOP_VIP, callback_data="shop:vip:buy")],
-            [InlineKeyboardButton(text="📱 В меню", callback_data="shop:menu")],
+            [InlineKeyboardButton(text="100★ · 1 000 искр", callback_data="shop:gift:select:100")],
+            [InlineKeyboardButton(text="200★ · 2 000 искр", callback_data="shop:gift:select:200")],
+            [InlineKeyboardButton(text="300★ · 3 000 искр", callback_data="shop:gift:select:300")],
+            [InlineKeyboardButton(text="400★ · 4 000 искр", callback_data="shop:gift:select:400")],
+            [InlineKeyboardButton(text="◀️ Назад", callback_data="shop:back")],
+        ]
+    )
+
+
+def shop_gift_confirm_keyboard(stars_count: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Подтвердить",
+                    callback_data=f"shop:gift:confirm:{stars_count}",
+                )
+            ],
+            [InlineKeyboardButton(text="❌ Отмена", callback_data="shop:gifts")],
         ]
     )
 

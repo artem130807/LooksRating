@@ -1,10 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 using Confluent.Kafka;
+using LooksRatingApi.Messages.Kafka.PhotoRated.Producers;
 
 namespace LooksRatingApi.Messages.Kafka.PhotoRated.Consumers
 {
@@ -17,7 +14,7 @@ namespace LooksRatingApi.Messages.Kafka.PhotoRated.Consumers
                 var json = Encoding.UTF8.GetString(data);
                 return (TMessage)(object)json; 
             }
-            return JsonSerializer.Deserialize<TMessage>(data)!;
+            return JsonSerializer.Deserialize<TMessage>(data, KafkaJsonOptions.Value)!;
         }
     }
 }

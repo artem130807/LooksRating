@@ -10,6 +10,7 @@ using LooksRatingApi.Contracts.UserSessionContracts;
 using LooksRatingApi.Contracts.UserTicketContracts;
 using LooksRatingApi.Contracts.ProductContracts;
 using LooksRatingApi.Contracts.PaymentOrderContracts;
+using LooksRatingApi.Contracts.SparksLedgerContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.ListSeasonsContracts;
 using LooksRatingApi.Cqrs.Reviews.Command.CreateReview;
@@ -32,7 +33,14 @@ using MediatR;
 using StackExchange.Redis;
 using System.Text.Json.Serialization;
 using LooksRatingApi.Services.BackGroundServices.Handlers;
-using LooksRatingApi.Services.GrpcService;
+using LooksRatingApi.Infrastructure.SendUserReview;
+using LooksRatingApi.Infrastructure.SparksWallet;
+using LooksRatingApi.Services.PhotoProfiles;
+using LooksRatingApi.Services.SeasonLifecycle;
+using LooksRatingApi.Services.SparksWallet;
+using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Contracts.UserTicketContracts;
+using LooksRatingApi.Services.Orchestrators;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -67,6 +75,7 @@ builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
 builder.Services.AddScoped<IListSeasonsRepository, ListSeasonsRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IPaymentOrderRepository, PaymentOrderRepository>();
+builder.Services.AddScoped<ISparksLedgerRepository, SparksLedgerRepository>();
 builder.Services.AddScoped<IUserRegisterValidator, UserRegisterValidator>();
 builder.Services.AddScoped<IUpdateGenderUserValidator, UpdateGenderUserValidator>();
 builder.Services.AddScoped<ISetUserPhotoValidator, SetUserPhotoValidator>();
@@ -85,11 +94,19 @@ builder.Services.AddScoped<INormalizeCityNameService, NormalizeCityNameService>(
 builder.Services.AddScoped<IRankService, RankService>();
 builder.Services.AddScoped<IUpdateRatingPhotoService, UpdateRatingPhotoService>();
 builder.Services.AddScoped<IPhotoRatingCacheService, PhotoRatingCacheService>();
+builder.Services.AddScoped<IPhotoProfileRatingResetService, PhotoProfileRatingResetService>();
 builder.Services.AddScoped<IPhotoTopReadService, PhotoTopReadService>();
 builder.Services.AddScoped<IVipTopCategoryService, VipTopCategoryService>();
+builder.Services.AddScoped<ISeasonTopCategoryService, SeasonTopCategoryService>();
+builder.Services.AddScoped<ISeasonTopSparksRewardProcessor, SeasonTopSparksRewardProcessor>();
+builder.Services.AddScoped<ISparksRewardCreditingService, SparksRewardCreditingService>();
 builder.Services.AddScoped<IVipExpirationReadService, VipExpirationReadService>();
 builder.Services.AddScoped<IVipStatusExtensionService, VipStatusExtensionService>();
 builder.Services.AddScoped<IVipTopRewardOrchestrator, VipTopRewardOrchestrator>();
+builder.Services.AddScoped<IPhotoProfileModerationService, PhotoProfileModerationService>();
+builder.Services.AddScoped<AdminTicketModerationService>();
+builder.Services.AddScoped<IRemoveTicketsPhotoprofileOrchestrator, RemoveTicketsPhotoprofileOrchestrator>();
+builder.Services.AddScoped<IRejectTicketPhotoProfileOrchestrator, RejectTicketPhotoProfileOrchestrator>();
 builder.Services.AddScoped<IGetTopVipService, GetTopVipService>();
 builder.Services.AddScoped<IAddPhotoUsersCacheHandler, AddPhotoUsersCacheHandler>();
 
@@ -103,10 +120,21 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 builder.Services.AddSingleton<IDatabase>(sp => sp.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
 builder.Services.AddMemoryCache();
 builder.Services.AddBackGroundService(configuration);
+builder.Services.AddSendUserReviewServices(configuration);
+builder.Services.AddSparksWalletServices(configuration);
 builder.Services.AddQuartz(configuration);
 
 var app = builder.Build();
-await app.InitializeApplicationAsync();
-app.ConfigureApplicationPipeline();
 
+try
+{
+    await app.InitializeApplicationAsync();
+}
+catch (Exception ex)
+{
+    app.Logger.LogCritical(ex, "Application startup failed");
+    throw;
+}
+
+app.ConfigureApplicationPipeline();
 app.Run();

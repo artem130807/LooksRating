@@ -17,7 +17,6 @@ namespace LooksRatingApi.Contracts.SeasonContracts
         Task<Season?> GetCurrentByList(Guid listId);
         Task<List<Season>> GetSeasons(bool includeClosed = true);
         Task<List<Season>> GetByListSeasonsIdAsync(Guid listSeasonsId, bool includeClosed = true, CancellationToken cancellationToken = default);
-        Task<Dictionary<Guid, int>> GetPhotoCountsBySeasonIdsAsync(IEnumerable<Guid> seasonIds, CancellationToken cancellationToken = default);
     }
 }
 

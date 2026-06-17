@@ -25,7 +25,6 @@ namespace LooksRatingApi.Repositories
         public async Task Create(User user)
         {
             _context.Users.Add(user);
-            await _context.SaveChangesAsync();
         }
 
         public async Task Delete(Guid Id)

@@ -14,6 +14,9 @@ namespace LooksRatingApi.Services
         public static string FeedRatingCounter(Guid userId, Guid seasonId) =>
             $"user:{userId}:season:{seasonId}:feed_rating_counter";
 
+        public static string UnviewableProfilesSet(Guid userId) =>
+            $"user:{userId}:unviewable_profiles";
+
         public static string ProfileHash(Guid profileId) =>
             $"profile:{profileId}";
 

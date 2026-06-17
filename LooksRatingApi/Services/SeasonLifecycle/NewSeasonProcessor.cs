@@ -3,6 +3,7 @@ using LooksRatingApi.Contracts.ListSeasonsContracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.SeasonLifecycle;
+using LooksRatingApi.Infrastructure.DistributedLock;
 using LooksRatingApi.Models;
 using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Services;
@@ -14,7 +15,6 @@ namespace LooksRatingApi.Services.SeasonLifecycle
     public sealed class NewSeasonProcessor : INewSeasonProcessor
     {
         private const int BatchSize = 5000;
-        private static readonly TimeSpan LockTtl = TimeSpan.FromMinutes(2);
 
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
@@ -22,6 +22,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
         private readonly ILoadingCityService _loadingCityService;
         private readonly INormalizeCityNameService _normalizeCityName;
         private readonly ArchivingLockService _lockService;
+        private readonly ISeasonTopSparksRewardProcessor _seasonTopSparksRewardProcessor;
         private readonly ApplicationClock _clock;
         private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<NewSeasonProcessor> _logger;
@@ -33,6 +34,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             ILoadingCityService loadingCityService,
             INormalizeCityNameService normalizeCityName,
             ArchivingLockService lockService,
+            ISeasonTopSparksRewardProcessor seasonTopSparksRewardProcessor,
             ApplicationClock clock,
             IConnectionMultiplexer redis,
             ILogger<NewSeasonProcessor> logger)
@@ -43,6 +45,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             _loadingCityService = loadingCityService;
             _normalizeCityName = normalizeCityName;
             _lockService = lockService;
+            _seasonTopSparksRewardProcessor = seasonTopSparksRewardProcessor;
             _clock = clock;
             _redis = redis;
             _logger = logger;
@@ -77,7 +80,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
                 return;
             }
 
-            await using var lockHandle = await _lockService.TryAcquireAsync(LockTtl, cancellationToken);
+            await using var lockHandle = await _lockService.TryAcquireAsync(cancellationToken);
             if (lockHandle is null)
             {
                 _logger.LogWarning("Смена сезона пропущена: архивация уже выполняется");
@@ -100,7 +103,22 @@ namespace LooksRatingApi.Services.SeasonLifecycle
 
             if (seasonToClose is not null)
             {
-                var archivedCount = await ArchivePhotosAsync(seasonToClose.Id, cityNames, cancellationToken);
+                var rewardResult = await _seasonTopSparksRewardProcessor.ProcessForSeasonAsync(
+                    seasonToClose.Id,
+                    seasonToClose.IsClosed,
+                    cancellationToken);
+                await EnsureArchiveLockHeldAsync(lockHandle, cancellationToken);
+
+                _logger.LogInformation(
+                    "Сезон {SeasonId}: начислены искры за топ-10 (credited={Credited}, skipped={Skipped}, notFound={NotFound}, failed={Failed})",
+                    seasonToClose.Id,
+                    rewardResult.Credited,
+                    rewardResult.Skipped,
+                    rewardResult.NotFound,
+                    rewardResult.Failed);
+
+                var archivedCount = await ArchivePhotosAsync(seasonToClose.Id, lockHandle, cancellationToken);
+                await EnsureArchiveLockHeldAsync(lockHandle, cancellationToken);
                 seasonToClose.IsClosed = true;
                 await _seasonRepository.Update(seasonToClose);
                 await ClearCityCachesAsync(cityNames, seasonToClose.Id);
@@ -144,7 +162,10 @@ namespace LooksRatingApi.Services.SeasonLifecycle
                 listForNewSeason.Id);
         }
 
-        private async Task<int> ArchivePhotosAsync(Guid seasonId, HashSet<string> cityNames, CancellationToken cancellationToken)
+        private async Task<int> ArchivePhotosAsync(
+            Guid seasonId,
+            IRedisDistributedLockHandle lockHandle,
+            CancellationToken cancellationToken)
         {
             var skip = 0;
             var totalArchived = 0;
@@ -160,9 +181,22 @@ namespace LooksRatingApi.Services.SeasonLifecycle
 
                 if (ids.Count < BatchSize)
                     break;
+
+                await EnsureArchiveLockHeldAsync(lockHandle, cancellationToken);
             }
 
             return totalArchived;
+        }
+
+        private async Task EnsureArchiveLockHeldAsync(
+            IRedisDistributedLockHandle lockHandle,
+            CancellationToken cancellationToken)
+        {
+            if (await _lockService.RenewAsync(lockHandle, cancellationToken))
+                return;
+
+            _logger.LogError("Смена сезона прервана: потерян Redis-lock архивации");
+            throw new InvalidOperationException("Archive lock was lost during season rollover.");
         }
 
         private async Task ClearCityCachesAsync(HashSet<string> cityNames, Guid seasonId)

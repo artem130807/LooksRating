@@ -1,6 +1,6 @@
 namespace LooksRatingApi.Infrastructure.Quartz
 {
-    public sealed class ApplicationClock
+    public class ApplicationClock
     {
         public ApplicationClock(TimeZoneInfo timeZone)
         {
@@ -9,6 +9,6 @@ namespace LooksRatingApi.Infrastructure.Quartz
 
         public TimeZoneInfo TimeZone { get; }
 
-        public DateTime GetNow() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
+        public virtual DateTime GetNow() => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZone);
     }
 }

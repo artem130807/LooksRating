@@ -11,5 +11,6 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
         public const string DisplayNameIsRequired = "DisplayNameIsRequired";
         public const string InvalidDisplayName = "InvalidDisplayName";
         public const string TelegramUsernameRequiredForDisplay = "TelegramUsernameRequiredForDisplay";
+        public const string RegistrationFailed = "RegistrationFailed";
     }
 }

@@ -52,8 +52,19 @@ jobs:
       - name: Build
         run: dotnet build LooksRating.sln --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test LooksRating.sln --configuration Release --no-build --verbosity normal
+      - name: Test unit
+        run: >
+          dotnet test LooksRatingApi.Tests/LooksRatingApi.Tests.csproj
+          --configuration Release --no-build --verbosity normal
+          --filter "FullyQualifiedName!~Integration"
+
+      - name: Test integration
+        env:
+          LOOKSRATING_INTEGRATION_TESTS_REQUIRED: "true"
+        run: >
+          dotnet test LooksRatingApi.Tests/LooksRatingApi.Tests.csproj
+          --configuration Release --no-build --verbosity normal
+          --filter "FullyQualifiedName~Integration"
 
   python-bot:
     name: LooksRatingBot tests
@@ -68,11 +79,12 @@ jobs:
           cache: pip
           cache-dependency-path: LooksRatingBot.Tests/requirements.txt
 
-      - name: Install pytest
+      - name: Install dependencies
         run: pip install -r LooksRatingBot.Tests/requirements.txt
 
       - name: Run tests
-        run: pytest LooksRatingBot.Tests -v
+        working-directory: LooksRatingBot.Tests
+        run: pytest -v --strict-markers
 
   python-buyer:
     name: TGgifts-buyer tests
@@ -87,11 +99,12 @@ jobs:
           cache: pip
           cache-dependency-path: TGgifts-buyer.Tests/requirements.txt
 
-      - name: Install pytest
+      - name: Install dependencies
         run: pip install -r TGgifts-buyer.Tests/requirements.txt
 
       - name: Run tests
-        run: pytest TGgifts-buyer.Tests -v
+        working-directory: TGgifts-buyer.Tests
+        run: pytest -v --strict-markers
 
   # В main можно попасть только через PR из staging (не напрямую с feature-веток).
   release-gate:
@@ -148,8 +161,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy placeholder
-        run: |
-          echo "Production deploy: подключите здесь свой скрипт (docker compose, kubectl, ssh и т.д.)."
-          echo "Commit: ${{ github.sha }}"
-          echo "Ref: ${{ github.ref }}"
+      - name: Deploy to VPS via SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_APP_DIR: ${{ secrets.VPS_APP_DIR }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TICKET_BOT_TOKEN: ${{ secrets.TICKET_BOT_TOKEN }}
+          API_KEY: ${{ secrets.API_KEY }}
+          TICKET_API_KEY: ${{ secrets.TICKET_API_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          TICKET_POSTGRES_PASSWORD: ${{ secrets.TICKET_POSTGRES_PASSWORD }}
+          TGIFTS_API_ID: ${{ secrets.TGIFTS_API_ID }}
+          TGIFTS_API_HASH: ${{ secrets.TGIFTS_API_HASH }}
+          TGIFTS_APP_MODE: ${{ vars.TGIFTS_APP_MODE }}
+          TGIFTS_CHANNEL_ID: ${{ vars.TGIFTS_CHANNEL_ID }}
+          COMPOSE_PROJECT_NAME: ${{ vars.COMPOSE_PROJECT_NAME }}
+          DEPLOY_GIT_REF: ${{ github.ref_name }}
+        run: bash scripts/deploy-via-ssh.sh

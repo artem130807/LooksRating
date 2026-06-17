@@ -2,6 +2,8 @@ using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Enums;
+using LooksRatingApi.Models;
+using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 
 namespace LooksRatingApi.Services
@@ -14,19 +16,28 @@ namespace LooksRatingApi.Services
 
         private readonly IDatabase _db;
         private readonly INormalizeCityNameService _normalizeCityNameService;
+        private readonly ICityService _cityService;
         private readonly ISeasonRepository _seasonRepository;
         private readonly IPhotoProfileRepository _photoProfileRepository;
+        private readonly IUnviewablePhotosProfilesService _unviewablePhotosProfilesService;
+        private readonly ILogger<PhotoRecommendationService> _logger;
 
         public PhotoRecommendationService(
             IConnectionMultiplexer redis,
             INormalizeCityNameService normalizeCityNameService,
+            ICityService cityService,
             ISeasonRepository seasonRepository,
-            IPhotoProfileRepository photoProfileRepository)
+            IPhotoProfileRepository photoProfileRepository,
+            IUnviewablePhotosProfilesService unviewablePhotosProfilesService,
+            ILogger<PhotoRecommendationService> logger)
         {
             _db = redis.GetDatabase();
             _normalizeCityNameService = normalizeCityNameService;
+            _cityService = cityService;
             _seasonRepository = seasonRepository;
             _photoProfileRepository = photoProfileRepository;
+            _unviewablePhotosProfilesService = unviewablePhotosProfilesService;
+            _logger = logger;
         }
 
         public async Task<Guid?> GetNextUnratedProfileIdAsync(
@@ -45,19 +56,33 @@ namespace LooksRatingApi.Services
             GenderEnum genderEnum,
             int age,
             string city,
-            double? lastScore = null)
+            double? lastScore = null,
+            IReadOnlyCollection<Guid>? skipProfileIds = null)
         {
             var season = await _seasonRepository.GetCurrent();
             if (season is null)
             {
+                _logger.LogWarning(
+                    "Feed empty: no active season for reviewer {ReviewerUserId}",
+                    reviewerUserId);
                 return new List<Guid>();
             }
 
-            var cityKey = _normalizeCityNameService.Normalize(city);
+            var feedCity = ResolveFeedCity(city);
+            if (string.IsNullOrWhiteSpace(feedCity))
+            {
+                _logger.LogWarning(
+                    "Feed empty: unresolved city '{City}' for reviewer {ReviewerUserId}",
+                    city,
+                    reviewerUserId);
+                return new List<Guid>();
+            }
+
+            var cityKey = _normalizeCityNameService.Normalize(feedCity);
             var context = new FeedSearchContext(
                 season.Id,
                 reviewerUserId,
-                city,
+                feedCity,
                 cityKey,
                 genderEnum,
                 age,
@@ -69,49 +94,111 @@ namespace LooksRatingApi.Services
             await EnsureCycleAnchorAsync(context.CycleAnchorKey);
 
             var ratedProfileIds = await LoadRatedPhotoIdsAsync(context.RatedSetKey);
+            var unviewableProfileIds = await LoadUnviewableProfileIdsAsync(reviewerUserId);
+            var skipIds = skipProfileIds?.ToHashSet() ?? new HashSet<Guid>();
             var completedRatings = await GetFeedRatingCounterAsync(reviewerUserId, season.Id);
 
             if (IsVipFeedTurn(completedRatings))
             {
                 var vipContext = context with { VipOnly = true };
-                var vipProfileId = await TryGetNextProfileAsync(vipContext, ratedProfileIds);
+                var vipProfileId = await TryGetNextProfileAsync(
+                    vipContext,
+                    ratedProfileIds,
+                    unviewableProfileIds,
+                    skipIds);
                 if (vipProfileId.HasValue)
                 {
                     return [vipProfileId.Value];
                 }
             }
 
-            var profileId = await TryGetNextProfileAsync(context, ratedProfileIds);
+            var profileId = await TryGetNextProfileAsync(
+                context,
+                ratedProfileIds,
+                unviewableProfileIds,
+                skipIds);
             if (profileId.HasValue)
             {
                 return [profileId.Value];
             }
 
+            var feedCount = await _photoProfileRepository.CountFeedProfilesAsync(
+                season.Id,
+                reviewerUserId,
+                feedCity,
+                genderEnum,
+                age);
+
+            _logger.LogInformation(
+                "Feed empty for reviewer {ReviewerUserId}: city={City}, gender={Gender}, age={Age}, season={SeasonId}, rated={RatedCount}, unviewable={UnviewableCount}, skipped={SkippedCount}, feedCandidates={FeedCount}",
+                reviewerUserId,
+                feedCity,
+                genderEnum,
+                age,
+                season.Id,
+                ratedProfileIds.Count,
+                unviewableProfileIds.Count,
+                skipIds.Count,
+                feedCount);
+
             return new List<Guid>();
+        }
+
+        private string ResolveFeedCity(string city)
+        {
+            if (string.IsNullOrWhiteSpace(city))
+            {
+                return string.Empty;
+            }
+
+            if (_cityService.TryResolveCanonicalCity(city, out var canonicalCity))
+            {
+                return canonicalCity;
+            }
+
+            return city.Trim().ToLowerInvariant();
         }
 
         private async Task<Guid?> TryGetNextProfileAsync(
             FeedSearchContext context,
-            HashSet<Guid> ratedProfileIds)
+            HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds)
         {
-            var profileId = await TryGetByRandomOrderAsync(context, ratedProfileIds);
+            var profileId = await TryGetByRandomOrderAsync(
+                context,
+                ratedProfileIds,
+                unviewableProfileIds,
+                skipProfileIds);
             if (profileId.HasValue)
             {
                 return profileId;
             }
 
-            if (!await IsCycleCompleteAsync(context, ratedProfileIds))
+            if (await IsCycleCompleteAsync(context, ratedProfileIds))
             {
-                return null;
+                return await RestartCycleAndGetNextAsync(context, unviewableProfileIds, skipProfileIds);
             }
 
-            return await RestartCycleAndGetNextAsync(context);
+            if (ratedProfileIds.Count > 0)
+            {
+                _logger.LogInformation(
+                    "Feed stuck for reviewer {ReviewerUserId}: rated={RatedCount}, restarting cycle early",
+                    context.ReviewerUserId,
+                    ratedProfileIds.Count);
+                return await RestartCycleAndGetNextAsync(context, unviewableProfileIds, skipProfileIds);
+            }
+
+            return null;
         }
 
         private static bool IsVipFeedTurn(int completedRatings) =>
             (completedRatings + 1) % VipFeedInterval == 0;
 
-        private async Task<Guid?> RestartCycleAndGetNextAsync(FeedSearchContext context)
+        private async Task<Guid?> RestartCycleAndGetNextAsync(
+            FeedSearchContext context,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds)
         {
             var previousAnchor = await GetCycleAnchorAsync(context.CycleAnchorKey);
 
@@ -121,13 +208,19 @@ namespace LooksRatingApi.Services
             var profileId = await TryGetByRandomOrderAsync(
                 context,
                 new HashSet<Guid>(),
+                unviewableProfileIds,
+                skipProfileIds,
                 createdAfter: previousAnchor);
             if (profileId.HasValue)
             {
                 return profileId;
             }
 
-            return await TryGetByRandomOrderAsync(context, new HashSet<Guid>());
+            return await TryGetByRandomOrderAsync(
+                context,
+                new HashSet<Guid>(),
+                unviewableProfileIds,
+                skipProfileIds);
         }
 
         private async Task<int> GetFeedRatingCounterAsync(Guid reviewerUserId, Guid seasonId)
@@ -144,25 +237,42 @@ namespace LooksRatingApi.Services
         private async Task<Guid?> TryGetByRandomOrderAsync(
             FeedSearchContext context,
             HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds,
             DateTime? createdAfter = null)
         {
             if (createdAfter.HasValue)
             {
-                return await TryGetFromDatabaseRandomAsync(context, ratedProfileIds, createdAfter.Value);
+                return await TryGetFromDatabaseRandomAsync(
+                    context,
+                    ratedProfileIds,
+                    unviewableProfileIds,
+                    skipProfileIds,
+                    createdAfter.Value);
             }
 
-            var profileId = await TryGetFromRandomSortedSetAsync(context, ratedProfileIds);
+            var profileId = await TryGetFromRandomSortedSetAsync(
+                context,
+                ratedProfileIds,
+                unviewableProfileIds,
+                skipProfileIds);
             if (profileId.HasValue)
             {
                 return profileId;
             }
 
-            return await TryGetFromDatabaseRandomAsync(context, ratedProfileIds);
+            return await TryGetFromDatabaseRandomAsync(
+                context,
+                ratedProfileIds,
+                unviewableProfileIds,
+                skipProfileIds);
         }
 
         private async Task<Guid?> TryGetFromRandomSortedSetAsync(
             FeedSearchContext context,
-            HashSet<Guid> ratedProfileIds)
+            HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds)
         {
             if (!await _db.KeyExistsAsync(context.SortedSetKey))
             {
@@ -180,6 +290,8 @@ namespace LooksRatingApi.Services
                 var profileId = await SelectRandomEligiblePhotoAsync(
                     ParseProfileIds(members),
                     ratedProfileIds,
+                    unviewableProfileIds,
+                    skipProfileIds,
                     context.ReviewerUserId,
                     context.Gender,
                     context.Age,
@@ -201,6 +313,8 @@ namespace LooksRatingApi.Services
         private async Task<Guid?> TryGetFromDatabaseRandomAsync(
             FeedSearchContext context,
             HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds,
             DateTime? createdAfter = null)
         {
             for (var attempt = 0; attempt < MaxRandomBatchAttempts; attempt++)
@@ -232,6 +346,8 @@ namespace LooksRatingApi.Services
                 var profileId = await SelectRandomEligiblePhotoAsync(
                     candidates,
                     ratedProfileIds,
+                    unviewableProfileIds,
+                    skipProfileIds,
                     context.ReviewerUserId,
                     context.Gender,
                     context.Age,
@@ -253,6 +369,8 @@ namespace LooksRatingApi.Services
         private async Task<Guid?> SelectRandomEligiblePhotoAsync(
             IReadOnlyList<Guid> profileIds,
             HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds,
             Guid reviewerUserId,
             GenderEnum genderEnum,
             int age,
@@ -261,7 +379,7 @@ namespace LooksRatingApi.Services
             var eligibleProfileIds = new List<Guid>(profileIds.Count);
             foreach (var profileId in profileIds)
             {
-                if (ratedProfileIds.Contains(profileId))
+                if (IsExcludedProfile(profileId, ratedProfileIds, unviewableProfileIds, skipProfileIds))
                 {
                     continue;
                 }
@@ -282,6 +400,15 @@ namespace LooksRatingApi.Services
             var randomIndex = Random.Shared.Next(eligibleProfileIds.Count);
             return eligibleProfileIds[randomIndex];
         }
+
+        private static bool IsExcludedProfile(
+            Guid profileId,
+            HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds) =>
+            ratedProfileIds.Contains(profileId)
+            || unviewableProfileIds.Contains(profileId)
+            || skipProfileIds.Contains(profileId);
 
         private async Task<bool> IsCycleCompleteAsync(
             FeedSearchContext context,
@@ -320,33 +447,27 @@ namespace LooksRatingApi.Services
 
             if (!gender.IsNullOrEmpty && !ageValue.IsNullOrEmpty)
             {
-                if (!GenderFeedHelper.Matches(genderEnum, gender.ToString()))
-                {
-                    return false;
-                }
-
+                var redisGenderMatches = GenderFeedHelper.Matches(genderEnum, gender.ToString());
                 var photoAge = (int)ageValue;
-                if (!TopService.MatchesAge(age, photoAge))
-                {
-                    return false;
-                }
+                var redisAgeMatches = TopService.MatchesAge(age, photoAge);
 
-                if (ownerValue.HasValue && Guid.TryParse(ownerValue.ToString(), out var ownerId))
+                if (redisGenderMatches && redisAgeMatches)
                 {
-                    if (ownerId == reviewerUserId)
+                    if (ownerValue.HasValue && Guid.TryParse(ownerValue.ToString(), out var ownerId)
+                        && ownerId == reviewerUserId)
                     {
                         return false;
-                    }
-
-                    if (!vipOnly)
-                    {
-                        return true;
                     }
                 }
             }
 
             var photoProfile = await _photoProfileRepository.GetByIdAsync(profileId);
             if (photoProfile is null || photoProfile.UserId == reviewerUserId)
+            {
+                return false;
+            }
+
+            if (!HasDisplayablePhotos(photoProfile))
             {
                 return false;
             }
@@ -363,6 +484,9 @@ namespace LooksRatingApi.Services
 
             return TopService.MatchesAge(age, photoProfile.AgeNomination);
         }
+
+        private static bool HasDisplayablePhotos(PhotoProfile photoProfile) =>
+            photoProfile.Photos.Any(photo => !string.IsNullOrWhiteSpace(photo.TelegramFileId));
 
         private static List<Guid> ParseProfileIds(RedisValue[] members)
         {
@@ -391,6 +515,21 @@ namespace LooksRatingApi.Services
             }
 
             return ratedProfileIds;
+        }
+
+        private async Task<HashSet<Guid>> LoadUnviewableProfileIdsAsync(Guid reviewerUserId)
+        {
+            var result = await _unviewablePhotosProfilesService.GetUnviewablePhotosProfile(reviewerUserId);
+            if (result.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Failed to load unviewable photo profiles for reviewer {ReviewerUserId}: {Error}",
+                    reviewerUserId,
+                    result.Error);
+                return new HashSet<Guid>();
+            }
+
+            return result.Value.ToHashSet();
         }
 
         private async Task EnsureCycleAnchorAsync(RedisKey cycleAnchorKey)

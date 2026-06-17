@@ -8,6 +8,7 @@ ERROR_MESSAGES: dict[str, str] = {
     "DisplayNameIsRequired": "Укажите имя для отображения другим пользователям.",
     "InvalidDisplayName": "Имя должно быть от 1 до 32 символов.",
     "TelegramUsernameRequiredForDisplay": "У аккаунта нет Telegram username для показа.",
+    "RegistrationFailed": "Не удалось завершить регистрацию. Попробуйте ещё раз через /start.",
     "UserNotFound": "Пользователь не найден. Нажмите /start для регистрации.",
     "PhotoAlreadyExists": "У вас уже есть фото в текущем сезоне. Заменить можно в «⚙️ Настройки».",
     "VipPhotoLimitExceeded": "Для VIP максимум 4 фото в текущем сезоне.",
@@ -40,6 +41,7 @@ ERROR_MESSAGES: dict[str, str] = {
     "Фотография не найдена": "Сейчас нет подходящих фото для оценки. Попробуйте позже.",
     "Пользователь не найдён": "Пользователь не найден.",
     "SeasonNotFound": "Сезон не найден.",
+    "TooManyRequests": "Слишком много запросов к API. Подождите минуту и попробуйте снова.",
 }
 
 

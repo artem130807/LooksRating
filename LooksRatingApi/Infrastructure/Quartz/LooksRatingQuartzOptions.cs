@@ -21,5 +21,7 @@ namespace LooksRatingApi.Infrastructure.Quartz
         public string TheBestWeekCron { get; set; } = "0 0 0 ? * MON";
 
         public string VipStatusExpiryCron { get; set; } = "0 0 * * * ?";
+
+        public string VipTopSparksRewardCron { get; set; } = "0 0 10 * * ?";
     }
 }

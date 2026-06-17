@@ -76,6 +76,9 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             bool vipOnly = false,
             CancellationToken cancellationToken = default);
         Task<int> CountSeasonsWithProfileAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyDictionary<Guid, int>> GetParticipantCountsBySeasonIdsAsync(
+            IEnumerable<Guid> seasonIds,
+            CancellationToken cancellationToken = default);
         Task<List<PhotoProfile>> GetByUserIdWithSeasonAsync(Guid userId, CancellationToken cancellationToken = default);
         Task<List<PhotoProfile>> GetByCitySnapshotAsync(Guid theBestWeekId, string city, int age, GenderEnum genderEnum);
         Task<List<Guid>> GetProfileIdsBatchAsync(Guid seasonId, int skip, int take, CancellationToken cancellationToken = default);
@@ -84,6 +87,10 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
         Task<PhotoProfilePhoto?> AddPhotoAsync(Guid profileId, string telegramFileId, CancellationToken cancellationToken = default);
         Task UpdateAsync(PhotoProfile photoProfile, CancellationToken cancellationToken = default);
         Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns true when the user can add another photo in the current season profile.
+        /// </summary>
         Task<bool> IsWithinVipPhotoLimitAsync(Guid seasonId, long telegramId, CancellationToken cancellationToken = default);
     }
 }

@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.ListSeasonsContracts;
-using LooksRatingApi.Contracts.SeasonContracts;
+using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.CQRS.Seasons;
 using MediatR;
 
@@ -10,14 +10,14 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetListSeasonById
         : IRequestHandler<GetListSeasonByIdQuery, Result<ListSeasonResponse>>
     {
         private readonly IListSeasonsRepository _listSeasonsRepository;
-        private readonly ISeasonRepository _seasonRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public GetListSeasonByIdHandler(
             IListSeasonsRepository listSeasonsRepository,
-            ISeasonRepository seasonRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _listSeasonsRepository = listSeasonsRepository;
-            _seasonRepository = seasonRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task<Result<ListSeasonResponse>> Handle(
@@ -31,11 +31,11 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetListSeasonById
             if (list is null)
                 return Result.Failure<ListSeasonResponse>("Глава не найдена");
 
-            var photoCounts = await _seasonRepository.GetPhotoCountsBySeasonIdsAsync(
+            var profileCounts = await _photoProfileRepository.GetParticipantCountsBySeasonIdsAsync(
                 list.Seasons.Select(s => s.Id),
                 cancellationToken);
 
-            return Result.Success(SeasonCatalogMapping.ToListSeasonResponse(list, true, photoCounts));
+            return Result.Success(SeasonCatalogMapping.ToListSeasonResponse(list, true, profileCounts));
         }
     }
 }

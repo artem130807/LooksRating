@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using LooksRatingApi.Domain.Base;
+using LooksRatingApi.Domain.DomainEvents;
 
 namespace LooksRatingApi.Models
 {
@@ -16,6 +18,7 @@ namespace LooksRatingApi.Models
         public User User { get; private set; } = null!;
         public Guid PhotoProfileId { get; private set; }
         public PhotoProfile PhotoProfile { get; private set; } = null!;
+        public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 
         public static Result<Review> Create(int rating, Guid userId, Guid photoProfileId)
         {

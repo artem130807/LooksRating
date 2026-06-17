@@ -20,6 +20,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
         public bool HasRecommendationSettings { get; init; }
         public bool HasPhoto { get; init; }
         public bool HasVip { get; init; }
+        public decimal SparksBalance { get; init; }
     }
 
 }

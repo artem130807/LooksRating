@@ -3,7 +3,9 @@ using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Contracts.UserTicketContracts;
 using LooksRatingApi.Models;
+using LooksRatingApi.Services.PhotoServices;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
 {
@@ -14,17 +16,23 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
         private readonly IUserTicketRepository _userTicketRepository;
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ICreateUserTicketValidator _validator;
+        private readonly IUnviewablePhotosProfilesService _unviewablePhotosProfilesService;
+        private readonly ILogger<CreateUserTicketCommandHandler> _logger;
 
         public CreateUserTicketCommandHandler(
             IUserRepository userRepository,
             IUserTicketRepository userTicketRepository,
             IPhotoProfileRepository photoProfileRepository,
-            ICreateUserTicketValidator validator)
+            ICreateUserTicketValidator validator,
+            IUnviewablePhotosProfilesService unviewablePhotosProfilesService,
+            ILogger<CreateUserTicketCommandHandler> logger)
         {
             _userRepository = userRepository;
             _userTicketRepository = userTicketRepository;
             _photoProfileRepository = photoProfileRepository;
             _validator = validator;
+            _unviewablePhotosProfilesService = unviewablePhotosProfilesService;
+            _logger = logger;
         }
 
         public async Task<Result<CreateUserTicketResult>> Handle(
@@ -48,7 +56,8 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
             {
                 return Result.Failure<CreateUserTicketResult>(CreateUserTicketErrors.PhotoProfileNotFound);
             }
-
+            if (await _userTicketRepository.IsPhotoProfileLockedAsync(request.PhotoProfileId, cancellationToken))
+                return Result.Failure<CreateUserTicketResult>("Профиль временно недоступен для жалоб");
             var occuredAt = DateTime.UtcNow;
             var ticket = new UserTicket
             {
@@ -58,9 +67,20 @@ namespace LooksRatingApi.Cqrs.UserTickets.Command.CreateUserTicket
                 UserId = reporter.Id,
                 PhotoProfileId = request.PhotoProfileId
             };
-
             await _userTicketRepository.Create(ticket);
-
+            var cacheResult = await _unviewablePhotosProfilesService.AddUnviewablePhotosProfile(
+                ticket.PhotoProfileId,
+                ticket.UserId,
+                cancellationToken);
+            if (cacheResult.IsFailure)
+            {
+                _logger.LogWarning(
+                    "Ticket {TicketId} created but unviewable profile cache update failed for user {UserId}, profile {PhotoProfileId}: {Error}",
+                    ticket.Id,
+                    ticket.UserId,
+                    ticket.PhotoProfileId,
+                    cacheResult.Error);
+            }
             return Result.Success(new CreateUserTicketResult
             {
                 TicketId = ticket.Id,

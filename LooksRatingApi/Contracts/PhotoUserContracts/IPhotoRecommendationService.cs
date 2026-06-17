@@ -20,6 +20,7 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             GenderEnum genderEnum,
             int age,
             string city,
-            double? lastScore = null);
+            double? lastScore = null,
+            IReadOnlyCollection<Guid>? skipProfileIds = null);
     }
 }

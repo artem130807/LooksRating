@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+option go_package = "looksrating/ticketapi/internal/gen/looksratingpb;looksratingpb";
+
+service RejectTicketPhotoProfileService {
+    rpc RejectTicketPhotoProfile(RejectTicketPhotoProfileRequest) returns (RejectTicketPhotoProfileResponse);
+}
+
+message RejectTicketPhotoProfileRequest {
+    string ticket_id = 1;
+}
+
+message RejectTicketPhotoProfileResponse {
+    bool is_success = 1;
+    string message = 2;
+}

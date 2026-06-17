@@ -23,6 +23,9 @@ namespace LooksRatingApi
         public DbSet<Season> Seasons {get; set;}
         public DbSet<Product> Products {get; set;}
         public DbSet<PaymentOrder> PaymentOrders {get; set;}
+        public DbSet<SparksWallet> SparksLedgers {get; set;}
+        public DbSet<EventStore> EventStores {get; set;}
+        public DbSet<ReviewMilestoneNotification> ReviewMilestoneNotifications {get; set;}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new UserConfigurations());
@@ -38,6 +41,9 @@ namespace LooksRatingApi
             modelBuilder.ApplyConfiguration(new ListSeasonsConfigurations());
             modelBuilder.ApplyConfiguration(new ProductConfigurations());
             modelBuilder.ApplyConfiguration(new PaymentOrderConfigurations());
+            modelBuilder.ApplyConfiguration(new SparksLedgerConfigurations());
+            modelBuilder.ApplyConfiguration(new EventStoreConfigurations());
+            modelBuilder.ApplyConfiguration(new ReviewMilestoneNotificationConfigurations());
         }
     }
 }

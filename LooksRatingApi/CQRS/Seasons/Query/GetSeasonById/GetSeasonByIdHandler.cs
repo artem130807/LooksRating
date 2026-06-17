@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.CQRS.Seasons;
 using MediatR;
@@ -9,10 +10,14 @@ namespace LooksRatingApi.CQRS.Seasons.Query.GetSeasonById
         : IRequestHandler<GetSeasonByIdQuery, Result<SeasonResponse>>
     {
         private readonly ISeasonRepository _seasonRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
-        public GetSeasonByIdHandler(ISeasonRepository seasonRepository)
+        public GetSeasonByIdHandler(
+            ISeasonRepository seasonRepository,
+            IPhotoProfileRepository photoProfileRepository)
         {
             _seasonRepository = seasonRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task<Result<SeasonResponse>> Handle(
@@ -29,13 +34,13 @@ namespace LooksRatingApi.CQRS.Seasons.Query.GetSeasonById
             if (season is null)
                 return Result.Failure<SeasonResponse>("Сезон не найден");
 
-            var photoCounts = await _seasonRepository.GetPhotoCountsBySeasonIdsAsync(
+            var profileCounts = await _photoProfileRepository.GetParticipantCountsBySeasonIdsAsync(
                 new[] { season.Id },
                 cancellationToken);
 
             var response = SeasonCatalogMapping.ToSeasonResponse(
                 season,
-                photoCounts.GetValueOrDefault(season.Id));
+                profileCounts.GetValueOrDefault(season.Id));
 
             if (query.IncludeChapter && season.ListSeasons is not null)
             {

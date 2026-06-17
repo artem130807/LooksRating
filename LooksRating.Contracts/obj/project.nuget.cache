@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Ghmk7d71twQ=",
+  "dgSpecHash": "IccYyIxi2mk=",
   "success": true,
   "projectFilePath": "/home/shade/LooksRating/LooksRating.Contracts/LooksRating.Contracts.csproj",
   "expectedPackageFiles": [
@@ -22,8 +22,8 @@
     "/home/shade/.nuget/packages/microsoft.extensions.primitives/6.0.0/microsoft.extensions.primitives.6.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.diagnostics.diagnosticsource/6.0.0/system.diagnostics.diagnosticsource.6.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.runtime.compilerservices.unsafe/6.0.0/system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.netcore.app.ref/9.0.16/microsoft.netcore.app.ref.9.0.16.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.16/microsoft.aspnetcore.app.ref.9.0.16.nupkg.sha512"
+    "/home/shade/.nuget/packages/microsoft.netcore.app.ref/9.0.17/microsoft.netcore.app.ref.9.0.17.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.17/microsoft.aspnetcore.app.ref.9.0.17.nupkg.sha512"
   ],
   "logs": []
 }

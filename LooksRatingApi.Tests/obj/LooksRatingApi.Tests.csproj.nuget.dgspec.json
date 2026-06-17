@@ -78,11 +78,11 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             }
           ],
           "frameworkReferences": {
@@ -90,7 +90,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -139,9 +139,37 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "dependencies": {
+            "FluentAssertions": {
+              "target": "Package",
+              "version": "[7.0.0, )"
+            },
+            "Microsoft.EntityFrameworkCore.InMemory": {
+              "target": "Package",
+              "version": "[9.0.1, )"
+            },
+            "Microsoft.EntityFrameworkCore.Relational": {
+              "target": "Package",
+              "version": "[9.0.1, )"
+            },
             "Microsoft.NET.Test.Sdk": {
               "target": "Package",
               "version": "[17.12.0, )"
+            },
+            "NSubstitute": {
+              "target": "Package",
+              "version": "[5.3.0, )"
+            },
+            "Testcontainers.PostgreSql": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "Testcontainers.Redis": {
+              "target": "Package",
+              "version": "[4.3.0, )"
+            },
+            "Xunit.SkippableFact": {
+              "target": "Package",
+              "version": "[1.5.23, )"
             },
             "coverlet.collector": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -174,11 +202,11 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             }
           ],
           "frameworkReferences": {
@@ -186,7 +214,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
@@ -258,6 +286,10 @@
             "Confluent.Kafka": {
               "target": "Package",
               "version": "[2.13.1, )"
+            },
+            "Grpc.AspNetCore": {
+              "target": "Package",
+              "version": "[2.67.0, )"
             },
             "MediatR": {
               "target": "Package",
@@ -362,15 +394,15 @@
           "downloadDependencies": [
             {
               "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Host.linux-x64",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             },
             {
               "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.16, 9.0.16]"
+              "version": "[9.0.17, 9.0.17]"
             }
           ],
           "frameworkReferences": {
@@ -381,7 +413,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

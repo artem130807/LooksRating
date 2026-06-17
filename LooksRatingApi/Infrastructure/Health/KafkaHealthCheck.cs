@@ -1,15 +1,15 @@
 using Confluent.Kafka;
+using LooksRatingApi.Messages.Kafka.PhotoRated.Producers;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
-using LooksRatingApi.Messages.Kafka.PhotoRated.Consumers;
 
 namespace LooksRatingApi.Infrastructure.Health
 {
     public sealed class KafkaHealthCheck : IHealthCheck
     {
-        private readonly KafkaConsumerSettings _settings;
+        private readonly KafkaProducerSettings _settings;
 
-        public KafkaHealthCheck(IOptions<KafkaConsumerSettings> settings)
+        public KafkaHealthCheck(IOptions<KafkaProducerSettings> settings)
         {
             _settings = settings.Value;
         }

@@ -83,6 +83,14 @@ async def feed_city_entered(
 
     data = await state.get_data()
     cities: list[str] = data.get("cities", [])
+    if not cities:
+        try:
+            cities = await load_cities(api)
+            await state.update_data(cities=cities)
+        except ApiError as exc:
+            await message.answer(format_api_error(exc))
+            return
+
     city = resolve_city_name(message.text, cities)
     if city is None:
         await message.answer(texts.REG_CITY_NOT_FOUND, reply_markup=cancel_keyboard())

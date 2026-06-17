@@ -13,6 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY TGgifts-buyer/adapters/ adapters/
 COPY TGgifts-buyer/grpc_gen/ grpc_gen/
+COPY TGgifts-buyer/grpc_server/ grpc_server/
 COPY TGgifts-buyer/jobs/ jobs/
 COPY TGgifts-buyer/locales/ locales/
 COPY TGgifts-buyer/proto/ proto/

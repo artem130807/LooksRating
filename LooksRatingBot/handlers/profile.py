@@ -11,6 +11,7 @@ from bot.services import (
     format_city_display,
     format_feed_age_range,
     format_rating_display,
+    format_sparks_amount,
     send_main_menu,
 )
 
@@ -48,6 +49,7 @@ async def show_profile(message: Message, api: LooksRatingApiClient) -> None:
         display_name=user.get("displayName") or "—",
         photo="есть" if has_photo else "нет",
         vip_status="активен" if user.get("hasVip") else "не активен",
+        sparks=format_sparks_amount(user.get("sparksBalance", 0)),
     ) + stats_line
 
     if has_photo:

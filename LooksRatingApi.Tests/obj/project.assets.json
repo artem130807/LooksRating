@@ -123,6 +123,35 @@
           }
         }
       },
+      "BouncyCastle.Cryptography/2.4.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/BouncyCastle.Cryptography.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Castle.Core/5.1.1": {
+        "type": "package",
+        "dependencies": {
+          "System.Diagnostics.EventLog": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/Castle.Core.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Castle.Core.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Confluent.Kafka/2.13.1": {
         "type": "package",
         "dependencies": {
@@ -154,6 +183,43 @@
         },
         "runtime": {
           "lib/net8.0/CSharpFunctionalExtensions.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "Docker.DotNet.Enhanced/3.126.1": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/Docker.DotNet.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/Docker.DotNet.dll": {}
+        }
+      },
+      "Docker.DotNet.Enhanced.X509/3.126.1": {
+        "type": "package",
+        "dependencies": {
+          "Docker.DotNet.Enhanced": "3.126.1"
+        },
+        "compile": {
+          "lib/net9.0/Docker.DotNet.X509.dll": {}
+        },
+        "runtime": {
+          "lib/net9.0/Docker.DotNet.X509.dll": {}
+        }
+      },
+      "FluentAssertions/7.0.0": {
+        "type": "package",
+        "dependencies": {
+          "System.Configuration.ConfigurationManager": "6.0.0"
+        },
+        "compile": {
+          "lib/net6.0/FluentAssertions.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/FluentAssertions.dll": {
             "related": ".pdb;.xml"
           }
         }
@@ -285,6 +351,12 @@
           "lib/net8.0/Grpc.Net.Common.dll": {
             "related": ".pdb;.xml"
           }
+        }
+      },
+      "Grpc.Tools/2.67.0": {
+        "type": "package",
+        "build": {
+          "build/_._": {}
         }
       },
       "librdkafka.redist/2.13.0": {
@@ -600,6 +672,24 @@
       },
       "Microsoft.EntityFrameworkCore.Analyzers/9.0.1": {
         "type": "package"
+      },
+      "Microsoft.EntityFrameworkCore.InMemory/9.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore": "9.0.1",
+          "Microsoft.Extensions.Caching.Memory": "9.0.1",
+          "Microsoft.Extensions.Logging": "9.0.1"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll": {
+            "related": ".xml"
+          }
+        }
       },
       "Microsoft.EntityFrameworkCore.Relational/9.0.1": {
         "type": "package",
@@ -1444,7 +1534,7 @@
       "Microsoft.Win32.SystemEvents/6.0.0": {
         "type": "package",
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/Microsoft.Win32.SystemEvents.dll": {
             "related": ".xml"
           }
         },
@@ -1506,6 +1596,22 @@
         },
         "runtime": {
           "lib/net8.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "NSubstitute/5.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Castle.Core": "5.1.1"
+        },
+        "compile": {
+          "lib/net6.0/NSubstitute.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/NSubstitute.dll": {
             "related": ".xml"
           }
         }
@@ -1754,6 +1860,35 @@
           }
         }
       },
+      "SharpZipLib/1.4.2": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/ICSharpCode.SharpZipLib.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/ICSharpCode.SharpZipLib.dll": {
+            "related": ".pdb;.xml"
+          }
+        }
+      },
+      "SSH.NET/2024.2.0": {
+        "type": "package",
+        "dependencies": {
+          "BouncyCastle.Cryptography": "2.4.0"
+        },
+        "compile": {
+          "lib/net8.0/Renci.SshNet.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Renci.SshNet.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "StackExchange.Redis/2.12.14": {
         "type": "package",
         "dependencies": {
@@ -1862,7 +1997,7 @@
           "System.Security.Permissions": "6.0.0"
         },
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.Configuration.ConfigurationManager.dll": {
             "related": ".xml"
           }
         },
@@ -1891,13 +2026,39 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "System.Diagnostics.EventLog/6.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/System.Diagnostics.EventLog.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/System.Diagnostics.EventLog.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/netcoreapp3.1/_._": {}
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/net6.0/System.Diagnostics.EventLog.Messages.dll": {
+            "assetType": "runtime",
+            "rid": "win"
+          },
+          "runtimes/win/lib/net6.0/System.Diagnostics.EventLog.dll": {
+            "assetType": "runtime",
+            "rid": "win"
+          }
+        }
+      },
       "System.Drawing.Common/6.0.0": {
         "type": "package",
         "dependencies": {
           "Microsoft.Win32.SystemEvents": "6.0.0"
         },
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.Drawing.Common.dll": {
             "related": ".xml"
           }
         },
@@ -2077,7 +2238,7 @@
       "System.Security.AccessControl/6.0.0": {
         "type": "package",
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.Security.AccessControl.dll": {
             "related": ".xml"
           }
         },
@@ -2147,7 +2308,7 @@
           "System.Windows.Extensions": "6.0.0"
         },
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.Security.Permissions.dll": {
             "related": ".xml"
           }
         },
@@ -2269,7 +2430,7 @@
           "System.Drawing.Common": "6.0.0"
         },
         "compile": {
-          "lib/net6.0/_._": {
+          "lib/net6.0/System.Windows.Extensions.dll": {
             "related": ".xml"
           }
         },
@@ -2282,6 +2443,71 @@
           "runtimes/win/lib/net6.0/System.Windows.Extensions.dll": {
             "assetType": "runtime",
             "rid": "win"
+          }
+        }
+      },
+      "Testcontainers/4.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Docker.DotNet.Enhanced": "3.126.1",
+          "Docker.DotNet.Enhanced.X509": "3.126.1",
+          "Microsoft.Extensions.Logging.Abstractions": "8.0.3",
+          "SSH.NET": "2024.2.0",
+          "SharpZipLib": "1.4.2"
+        },
+        "compile": {
+          "lib/net9.0/Testcontainers.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Testcontainers.PostgreSql/4.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Testcontainers": "4.3.0"
+        },
+        "compile": {
+          "lib/net9.0/Testcontainers.PostgreSql.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.PostgreSql.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Testcontainers.Redis/4.3.0": {
+        "type": "package",
+        "dependencies": {
+          "Testcontainers": "4.3.0"
+        },
+        "compile": {
+          "lib/net9.0/Testcontainers.Redis.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/Testcontainers.Redis.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Validation/2.5.51": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/_._": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Validation.dll": {
+            "related": ".xml"
           }
         }
       },
@@ -2381,6 +2607,23 @@
           "build/net6.0/xunit.runner.visualstudio.props": {}
         }
       },
+      "Xunit.SkippableFact/1.5.23": {
+        "type": "package",
+        "dependencies": {
+          "Validation": "2.5.51",
+          "xunit.extensibility.execution": "2.4.0"
+        },
+        "compile": {
+          "lib/netstandard2.0/Xunit.SkippableFact.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Xunit.SkippableFact.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "LooksRating.Contracts/1.0.0": {
         "type": "project",
         "framework": ".NETCoreApp,Version=v9.0",
@@ -2406,6 +2649,7 @@
           "BCrypt.Net-Next": "4.0.3",
           "CSharpFunctionalExtensions": "3.6.0",
           "Confluent.Kafka": "2.13.1",
+          "Grpc.AspNetCore": "2.67.0",
           "LooksRating.Contracts": "1.0.0",
           "MediatR": "11.1.0",
           "MediatR.Extensions.Microsoft.DependencyInjection": "11.1.0",
@@ -2571,6 +2815,50 @@
         "readme.md"
       ]
     },
+    "BouncyCastle.Cryptography/2.4.0": {
+      "sha512": "SwXsAV3sMvAU/Nn31pbjhWurYSjJ+/giI/0n6tCrYoupEK34iIHCuk3STAd9fx8yudM85KkLSVdn951vTng/vQ==",
+      "type": "package",
+      "path": "bouncycastle.cryptography/2.4.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE.md",
+        "README.md",
+        "bouncycastle.cryptography.2.4.0.nupkg.sha512",
+        "bouncycastle.cryptography.nuspec",
+        "lib/net461/BouncyCastle.Cryptography.dll",
+        "lib/net461/BouncyCastle.Cryptography.xml",
+        "lib/net6.0/BouncyCastle.Cryptography.dll",
+        "lib/net6.0/BouncyCastle.Cryptography.xml",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.dll",
+        "lib/netstandard2.0/BouncyCastle.Cryptography.xml",
+        "packageIcon.png"
+      ]
+    },
+    "Castle.Core/5.1.1": {
+      "sha512": "rpYtIczkzGpf+EkZgDr9CClTdemhsrwA/W5hMoPjLkRFnXzH44zDLoovXeKtmxb1ykXK9aJVODSpiJml8CTw2g==",
+      "type": "package",
+      "path": "castle.core/5.1.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "ASL - Apache Software Foundation License.txt",
+        "CHANGELOG.md",
+        "LICENSE",
+        "castle-logo.png",
+        "castle.core.5.1.1.nupkg.sha512",
+        "castle.core.nuspec",
+        "lib/net462/Castle.Core.dll",
+        "lib/net462/Castle.Core.xml",
+        "lib/net6.0/Castle.Core.dll",
+        "lib/net6.0/Castle.Core.xml",
+        "lib/netstandard2.0/Castle.Core.dll",
+        "lib/netstandard2.0/Castle.Core.xml",
+        "lib/netstandard2.1/Castle.Core.dll",
+        "lib/netstandard2.1/Castle.Core.xml",
+        "readme.txt"
+      ]
+    },
     "Confluent.Kafka/2.13.1": {
       "sha512": "U/YV8nRXkZdjgF9o2XSG4zO1+NlyCfC7a3ZpQQHzNpyRvQfL/j261Ng/TKJ0CY/m0e2HlxLqZfl16wI/l+Zxqg==",
       "type": "package",
@@ -2680,6 +2968,64 @@
         "lib/netstandard2.0/CSharpFunctionalExtensions.dll",
         "lib/netstandard2.0/CSharpFunctionalExtensions.pdb",
         "lib/netstandard2.0/CSharpFunctionalExtensions.xml"
+      ]
+    },
+    "Docker.DotNet.Enhanced/3.126.1": {
+      "sha512": "UPyLBLBaVE3s7OCWM0h5g9w6mUOag5sOIP5CldFQekIWo/gHixgZR+o5fG7eCFH4ZdKlvBGM4ALFuOyPoKoJ3A==",
+      "type": "package",
+      "path": "docker.dotnet.enhanced/3.126.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "docker.dotnet.enhanced.3.126.1.nupkg.sha512",
+        "docker.dotnet.enhanced.nuspec",
+        "icon.png",
+        "lib/net8.0/Docker.DotNet.dll",
+        "lib/net9.0/Docker.DotNet.dll",
+        "lib/netstandard2.0/Docker.DotNet.dll",
+        "lib/netstandard2.1/Docker.DotNet.dll"
+      ]
+    },
+    "Docker.DotNet.Enhanced.X509/3.126.1": {
+      "sha512": "XFHMC/iWHbloQgg9apZrxu010DmSamaAggu8nomCqTeotGyUGkv2Tt/aqk1ljC/4tjtTrb9LtFQwYpwZbMbiKg==",
+      "type": "package",
+      "path": "docker.dotnet.enhanced.x509/3.126.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "docker.dotnet.enhanced.x509.3.126.1.nupkg.sha512",
+        "docker.dotnet.enhanced.x509.nuspec",
+        "icon.png",
+        "lib/net8.0/Docker.DotNet.X509.dll",
+        "lib/net9.0/Docker.DotNet.X509.dll",
+        "lib/netstandard2.0/Docker.DotNet.X509.dll",
+        "lib/netstandard2.1/Docker.DotNet.X509.dll"
+      ]
+    },
+    "FluentAssertions/7.0.0": {
+      "sha512": "mTLbcU991EQ1SEmNbVBaGGGJy0YFzvGd1sYJGNZ07nlPKuyHSn1I22aeKzqQXgEiaKyRO6MSCto9eN9VxMwBdA==",
+      "type": "package",
+      "path": "fluentassertions/7.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "FluentAssertions.png",
+        "fluentassertions.7.0.0.nupkg.sha512",
+        "fluentassertions.nuspec",
+        "lib/net47/FluentAssertions.dll",
+        "lib/net47/FluentAssertions.pdb",
+        "lib/net47/FluentAssertions.xml",
+        "lib/net6.0/FluentAssertions.dll",
+        "lib/net6.0/FluentAssertions.pdb",
+        "lib/net6.0/FluentAssertions.xml",
+        "lib/netstandard2.0/FluentAssertions.dll",
+        "lib/netstandard2.0/FluentAssertions.pdb",
+        "lib/netstandard2.0/FluentAssertions.xml",
+        "lib/netstandard2.1/FluentAssertions.dll",
+        "lib/netstandard2.1/FluentAssertions.pdb",
+        "lib/netstandard2.1/FluentAssertions.xml"
       ]
     },
     "Google.Protobuf/3.35.0": {
@@ -2877,6 +3223,55 @@
         "lib/netstandard2.1/Grpc.Net.Common.pdb",
         "lib/netstandard2.1/Grpc.Net.Common.xml",
         "packageIcon.png"
+      ]
+    },
+    "Grpc.Tools/2.67.0": {
+      "sha512": "AQwGGe1dhCWlO72dTW4XtZBsvE9+mHt5rUpVOPjX9Q6sYZZ0GFyqs+7DjFeulaHKjsOg7Wteob1oq7a++SJWgA==",
+      "type": "package",
+      "path": "grpc.tools/2.67.0",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "build/Grpc.Tools.props",
+        "build/Grpc.Tools.targets",
+        "build/_grpc/Grpc.CSharp.xml",
+        "build/_grpc/_Grpc.Tools.props",
+        "build/_grpc/_Grpc.Tools.targets",
+        "build/_protobuf/Google.Protobuf.Tools.props",
+        "build/_protobuf/Google.Protobuf.Tools.targets",
+        "build/_protobuf/Protobuf.CSharp.xml",
+        "build/_protobuf/net45/Protobuf.MSBuild.dll",
+        "build/_protobuf/net45/Protobuf.MSBuild.pdb",
+        "build/_protobuf/netstandard1.3/Protobuf.MSBuild.dll",
+        "build/_protobuf/netstandard1.3/Protobuf.MSBuild.pdb",
+        "build/native/include/google/protobuf/any.proto",
+        "build/native/include/google/protobuf/api.proto",
+        "build/native/include/google/protobuf/descriptor.proto",
+        "build/native/include/google/protobuf/duration.proto",
+        "build/native/include/google/protobuf/empty.proto",
+        "build/native/include/google/protobuf/field_mask.proto",
+        "build/native/include/google/protobuf/source_context.proto",
+        "build/native/include/google/protobuf/struct.proto",
+        "build/native/include/google/protobuf/timestamp.proto",
+        "build/native/include/google/protobuf/type.proto",
+        "build/native/include/google/protobuf/wrappers.proto",
+        "grpc.tools.2.67.0.nupkg.sha512",
+        "grpc.tools.nuspec",
+        "packageIcon.png",
+        "tools/linux_arm64/grpc_csharp_plugin",
+        "tools/linux_arm64/protoc",
+        "tools/linux_x64/grpc_csharp_plugin",
+        "tools/linux_x64/protoc",
+        "tools/linux_x86/grpc_csharp_plugin",
+        "tools/linux_x86/protoc",
+        "tools/macosx_x64/grpc_csharp_plugin",
+        "tools/macosx_x64/protoc",
+        "tools/windows_x64/grpc_csharp_plugin.exe",
+        "tools/windows_x64/protoc.exe",
+        "tools/windows_x86/grpc_csharp_plugin.exe",
+        "tools/windows_x86/protoc.exe"
       ]
     },
     "librdkafka.redist/2.13.0": {
@@ -3281,6 +3676,21 @@
         "docs/PACKAGE.md",
         "microsoft.entityframeworkcore.analyzers.9.0.1.nupkg.sha512",
         "microsoft.entityframeworkcore.analyzers.nuspec"
+      ]
+    },
+    "Microsoft.EntityFrameworkCore.InMemory/9.0.1": {
+      "sha512": "XTuTax42m89JET3rgjWphx11pGXD77dc9kAO8B4l9Ze9NAJnw7qDL/cqmaGiHEAxL/8f0PJ+zY4FII0v/nXlmg==",
+      "type": "package",
+      "path": "microsoft.entityframeworkcore.inmemory/9.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.dll",
+        "lib/net8.0/Microsoft.EntityFrameworkCore.InMemory.xml",
+        "microsoft.entityframeworkcore.inmemory.9.0.1.nupkg.sha512",
+        "microsoft.entityframeworkcore.inmemory.nuspec"
       ]
     },
     "Microsoft.EntityFrameworkCore.Relational/9.0.1": {
@@ -4636,6 +5046,24 @@
         "postgresql.png"
       ]
     },
+    "NSubstitute/5.3.0": {
+      "sha512": "lJ47Cps5Qzr86N99lcwd+OUvQma7+fBgr8+Mn+aOC0WrlqMNkdivaYD9IvnZ5Mqo6Ky3LS7ZI+tUq1/s9ERd0Q==",
+      "type": "package",
+      "path": "nsubstitute/5.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "icon.png",
+        "lib/net462/NSubstitute.dll",
+        "lib/net462/NSubstitute.xml",
+        "lib/net6.0/NSubstitute.dll",
+        "lib/net6.0/NSubstitute.xml",
+        "lib/netstandard2.0/NSubstitute.dll",
+        "lib/netstandard2.0/NSubstitute.xml",
+        "nsubstitute.5.3.0.nupkg.sha512",
+        "nsubstitute.nuspec"
+      ]
+    },
     "Pipelines.Sockets.Unofficial/2.2.8": {
       "sha512": "zG2FApP5zxSx6OcdJQLbZDk2AVlN2BNQD6MorwIfV6gVj0RRxWPEp2LXAxqDGZqeNV1Zp0BNPcNaey/GXmTdvQ==",
       "type": "package",
@@ -4963,6 +5391,52 @@
         "serilog.sinks.file.nuspec"
       ]
     },
+    "SharpZipLib/1.4.2": {
+      "sha512": "yjj+3zgz8zgXpiiC3ZdF/iyTBbz2fFvMxZFEBPUcwZjIvXOf37Ylm+K58hqMfIBt5JgU/Z2uoUS67JmTLe973A==",
+      "type": "package",
+      "path": "sharpziplib/1.4.2",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "images/sharpziplib-nuget-256x256.png",
+        "lib/net6.0/ICSharpCode.SharpZipLib.dll",
+        "lib/net6.0/ICSharpCode.SharpZipLib.pdb",
+        "lib/net6.0/ICSharpCode.SharpZipLib.xml",
+        "lib/netstandard2.0/ICSharpCode.SharpZipLib.dll",
+        "lib/netstandard2.0/ICSharpCode.SharpZipLib.pdb",
+        "lib/netstandard2.0/ICSharpCode.SharpZipLib.xml",
+        "lib/netstandard2.1/ICSharpCode.SharpZipLib.dll",
+        "lib/netstandard2.1/ICSharpCode.SharpZipLib.pdb",
+        "lib/netstandard2.1/ICSharpCode.SharpZipLib.xml",
+        "sharpziplib.1.4.2.nupkg.sha512",
+        "sharpziplib.nuspec"
+      ]
+    },
+    "SSH.NET/2024.2.0": {
+      "sha512": "9r+4UF2P51lTztpd+H7SJywk7WgmlWB//Cm2o96c6uGVZU5r58ys2/cD9pCgTk0zCdSkfflWL1WtqQ9I4IVO9Q==",
+      "type": "package",
+      "path": "ssh.net/2024.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "SS-NET-icon-h500.png",
+        "lib/net462/Renci.SshNet.dll",
+        "lib/net462/Renci.SshNet.xml",
+        "lib/net6.0/Renci.SshNet.dll",
+        "lib/net6.0/Renci.SshNet.xml",
+        "lib/net7.0/Renci.SshNet.dll",
+        "lib/net7.0/Renci.SshNet.xml",
+        "lib/net8.0/Renci.SshNet.dll",
+        "lib/net8.0/Renci.SshNet.xml",
+        "lib/netstandard2.0/Renci.SshNet.dll",
+        "lib/netstandard2.0/Renci.SshNet.xml",
+        "lib/netstandard2.1/Renci.SshNet.dll",
+        "lib/netstandard2.1/Renci.SshNet.xml",
+        "ssh.net.2024.2.0.nupkg.sha512",
+        "ssh.net.nuspec"
+      ]
+    },
     "StackExchange.Redis/2.12.14": {
       "sha512": "QiAQg40OP4Owem6/PjIbjEKq2+uIeQYeZ1TCMUnx/QvKugOPxOfC96wjlnBjWHi4Wq9pv9+fDlXGT06XkRZ6Ig==",
       "type": "package",
@@ -5141,6 +5615,37 @@
         "lib/netstandard2.0/System.Diagnostics.DiagnosticSource.xml",
         "system.diagnostics.diagnosticsource.10.0.7.nupkg.sha512",
         "system.diagnostics.diagnosticsource.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "System.Diagnostics.EventLog/6.0.0": {
+      "sha512": "lcyUiXTsETK2ALsZrX+nWuHSIQeazhqPphLfaRxzdGaG93+0kELqpgEHtwWOlQe7+jSFnKwaCAgL4kjeZCQJnw==",
+      "type": "package",
+      "path": "system.diagnostics.eventlog/6.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "LICENSE.TXT",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/netcoreapp2.0/System.Diagnostics.EventLog.targets",
+        "buildTransitive/netcoreapp3.1/_._",
+        "lib/net461/System.Diagnostics.EventLog.dll",
+        "lib/net461/System.Diagnostics.EventLog.xml",
+        "lib/net6.0/System.Diagnostics.EventLog.dll",
+        "lib/net6.0/System.Diagnostics.EventLog.xml",
+        "lib/netcoreapp3.1/System.Diagnostics.EventLog.dll",
+        "lib/netcoreapp3.1/System.Diagnostics.EventLog.xml",
+        "lib/netstandard2.0/System.Diagnostics.EventLog.dll",
+        "lib/netstandard2.0/System.Diagnostics.EventLog.xml",
+        "runtimes/win/lib/net6.0/System.Diagnostics.EventLog.Messages.dll",
+        "runtimes/win/lib/net6.0/System.Diagnostics.EventLog.dll",
+        "runtimes/win/lib/net6.0/System.Diagnostics.EventLog.xml",
+        "runtimes/win/lib/netcoreapp3.1/System.Diagnostics.EventLog.Messages.dll",
+        "runtimes/win/lib/netcoreapp3.1/System.Diagnostics.EventLog.dll",
+        "runtimes/win/lib/netcoreapp3.1/System.Diagnostics.EventLog.xml",
+        "system.diagnostics.eventlog.6.0.0.nupkg.sha512",
+        "system.diagnostics.eventlog.nuspec",
         "useSharedDesignerContext.txt"
       ]
     },
@@ -5903,6 +6408,92 @@
         "useSharedDesignerContext.txt"
       ]
     },
+    "Testcontainers/4.3.0": {
+      "sha512": "1cxsjDE2+rdi/ELOel+NbQhQ7tvaqXG2YDN6nmhDzyAu9baGM2FUENG/3eG7N+ak3nap35RFvxyhIdVBeqNwlA==",
+      "type": "package",
+      "path": "testcontainers/4.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "docs/banner.png",
+        "docs/logo.png",
+        "lib/net8.0/Testcontainers.dll",
+        "lib/net8.0/Testcontainers.xml",
+        "lib/net9.0/Testcontainers.dll",
+        "lib/net9.0/Testcontainers.xml",
+        "lib/netstandard2.0/Testcontainers.dll",
+        "lib/netstandard2.0/Testcontainers.xml",
+        "lib/netstandard2.1/Testcontainers.dll",
+        "lib/netstandard2.1/Testcontainers.xml",
+        "testcontainers.4.3.0.nupkg.sha512",
+        "testcontainers.nuspec"
+      ]
+    },
+    "Testcontainers.PostgreSql/4.3.0": {
+      "sha512": "OWtFKTrVaYrAA+N+tQF3ZC/o21pIPUihRB7NZNYbPWyxIJgSkTRzBdtV/ZNIGmsM+Smg0kqUy9ho2mbfTBt2Xw==",
+      "type": "package",
+      "path": "testcontainers.postgresql/4.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "docs/banner.png",
+        "docs/logo.png",
+        "lib/net8.0/Testcontainers.PostgreSql.dll",
+        "lib/net8.0/Testcontainers.PostgreSql.xml",
+        "lib/net9.0/Testcontainers.PostgreSql.dll",
+        "lib/net9.0/Testcontainers.PostgreSql.xml",
+        "lib/netstandard2.0/Testcontainers.PostgreSql.dll",
+        "lib/netstandard2.0/Testcontainers.PostgreSql.xml",
+        "lib/netstandard2.1/Testcontainers.PostgreSql.dll",
+        "lib/netstandard2.1/Testcontainers.PostgreSql.xml",
+        "testcontainers.postgresql.4.3.0.nupkg.sha512",
+        "testcontainers.postgresql.nuspec"
+      ]
+    },
+    "Testcontainers.Redis/4.3.0": {
+      "sha512": "Gq5EEoxpKjP6nHnHfwAqgBXWwKkXtmmZR3wJtCo1XXl7k1jzB7sbOYM16yFlVbaBaSD1T5vvObARS4SnQ+v7/A==",
+      "type": "package",
+      "path": "testcontainers.redis/4.3.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "LICENSE",
+        "README.md",
+        "docs/banner.png",
+        "docs/logo.png",
+        "lib/net8.0/Testcontainers.Redis.dll",
+        "lib/net8.0/Testcontainers.Redis.xml",
+        "lib/net9.0/Testcontainers.Redis.dll",
+        "lib/net9.0/Testcontainers.Redis.xml",
+        "lib/netstandard2.0/Testcontainers.Redis.dll",
+        "lib/netstandard2.0/Testcontainers.Redis.xml",
+        "lib/netstandard2.1/Testcontainers.Redis.dll",
+        "lib/netstandard2.1/Testcontainers.Redis.xml",
+        "testcontainers.redis.4.3.0.nupkg.sha512",
+        "testcontainers.redis.nuspec"
+      ]
+    },
+    "Validation/2.5.51": {
+      "sha512": "g/Aug7PVWaenlJ0QUyt/mEetngkQNsMCuNeRVXbcJED1nZS7JcK+GTU4kz3jcQ7bFuKfi8PF4ExXH7XSFNuSLQ==",
+      "type": "package",
+      "path": "validation/2.5.51",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "3rdPartyNotices.txt",
+        "README.md",
+        "lib/net45/Validation.dll",
+        "lib/net45/Validation.xml",
+        "lib/netstandard2.0/Validation.dll",
+        "lib/netstandard2.0/Validation.xml",
+        "validation.2.5.51.nupkg.sha512",
+        "validation.nuspec"
+      ]
+    },
     "xunit/2.9.3": {
       "sha512": "TlXQBinK35LpOPKHAqbLY4xlEen9TBafjs0V5KnA4wZsoQLQJiirCR4CbIXvOH8NzkW4YeJKP5P/Bnrodm0h9Q==",
       "type": "package",
@@ -6047,6 +6638,22 @@
         "xunit.runner.visualstudio.nuspec"
       ]
     },
+    "Xunit.SkippableFact/1.5.23": {
+      "sha512": "JlKobLTlsGcuJ8OtoodxL63bUagHSVBnF+oQ2GgnkwNqK+XYjeYyhQasULi5Ebx1MNDGNbOMplQYr89mR+nItQ==",
+      "type": "package",
+      "path": "xunit.skippablefact/1.5.23",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net462/Xunit.SkippableFact.dll",
+        "lib/net462/Xunit.SkippableFact.xml",
+        "lib/netstandard2.0/Xunit.SkippableFact.dll",
+        "lib/netstandard2.0/Xunit.SkippableFact.xml",
+        "xunit.skippablefact.1.5.23.nupkg.sha512",
+        "xunit.skippablefact.nuspec"
+      ]
+    },
     "LooksRating.Contracts/1.0.0": {
       "type": "project",
       "path": "../LooksRating.Contracts/LooksRating.Contracts.csproj",
@@ -6060,8 +6667,15 @@
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "FluentAssertions >= 7.0.0",
       "LooksRatingApi >= 1.0.0",
+      "Microsoft.EntityFrameworkCore.InMemory >= 9.0.1",
+      "Microsoft.EntityFrameworkCore.Relational >= 9.0.1",
       "Microsoft.NET.Test.Sdk >= 17.12.0",
+      "NSubstitute >= 5.3.0",
+      "Testcontainers.PostgreSql >= 4.3.0",
+      "Testcontainers.Redis >= 4.3.0",
+      "Xunit.SkippableFact >= 1.5.23",
       "coverlet.collector >= 6.0.2",
       "xunit >= 2.9.3",
       "xunit.runner.visualstudio >= 2.8.2"
@@ -6115,9 +6729,37 @@
       "net9.0": {
         "targetAlias": "net9.0",
         "dependencies": {
+          "FluentAssertions": {
+            "target": "Package",
+            "version": "[7.0.0, )"
+          },
+          "Microsoft.EntityFrameworkCore.InMemory": {
+            "target": "Package",
+            "version": "[9.0.1, )"
+          },
+          "Microsoft.EntityFrameworkCore.Relational": {
+            "target": "Package",
+            "version": "[9.0.1, )"
+          },
           "Microsoft.NET.Test.Sdk": {
             "target": "Package",
             "version": "[17.12.0, )"
+          },
+          "NSubstitute": {
+            "target": "Package",
+            "version": "[5.3.0, )"
+          },
+          "Testcontainers.PostgreSql": {
+            "target": "Package",
+            "version": "[4.3.0, )"
+          },
+          "Testcontainers.Redis": {
+            "target": "Package",
+            "version": "[4.3.0, )"
+          },
+          "Xunit.SkippableFact": {
+            "target": "Package",
+            "version": "[1.5.23, )"
           },
           "coverlet.collector": {
             "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
@@ -6150,11 +6792,11 @@
         "downloadDependencies": [
           {
             "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[9.0.16, 9.0.16]"
+            "version": "[9.0.17, 9.0.17]"
           },
           {
             "name": "Microsoft.NETCore.App.Ref",
-            "version": "[9.0.16, 9.0.16]"
+            "version": "[9.0.17, 9.0.17]"
           }
         ],
         "frameworkReferences": {
@@ -6162,7 +6804,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.108/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/lib/dotnet/sdk/10.0.109/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

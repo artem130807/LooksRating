@@ -17,6 +17,9 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
         public Guid ProfileId { get; init; }
         public Guid UserId { get; init; }
         public Guid SeasonId { get; init; }
+        public int PhotoCount { get; init; }
+        public int MaxPhotos { get; init; }
+        public bool CanAddPhoto { get; init; }
         public List<GetMyPhotoItem> Photos { get; init; } = new();
     }
 }

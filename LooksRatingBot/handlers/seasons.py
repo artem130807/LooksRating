@@ -17,7 +17,7 @@ def _season_card_text(season: dict, *, current_id: str | None) -> str:
     return texts.SEASON.format(
         name=season.get("name", "Сезон"),
         number=season.get("number", ""),
-        count=season.get("photoUsersCount", 0),
+        count=season.get("photoProfilesCount", season.get("photoUsersCount", 0)),
         chapter=chapter_line,
         closed=closed_line + current_line,
     )

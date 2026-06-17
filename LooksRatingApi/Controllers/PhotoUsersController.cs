@@ -53,6 +53,11 @@ namespace LooksRatingApi.Controllers
                     return Conflict(new { error = result.Error });
                 }
 
+                if (result.Error == SetUserPhotoErrors.VipPhotoLimitExceeded)
+                {
+                    return Conflict(new { error = result.Error });
+                }
+
                 return BadRequest(new { error = result.Error });
             }
 

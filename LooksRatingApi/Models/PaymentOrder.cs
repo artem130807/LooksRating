@@ -127,5 +127,62 @@ namespace LooksRatingApi.Models
 
             return order;
         }
+
+        public static Result<PaymentOrder> CreateVipTopSparksGrant(
+            Guid userId,
+            Guid productId,
+            string payload) =>
+            CreateSparksRewardGrant(userId, productId, payload);
+
+        public static Result<PaymentOrder> CreateSparksRewardGrant(
+            Guid userId,
+            Guid productId,
+            string payload)
+        {
+            if (userId == Guid.Empty)
+            {
+                return Result.Failure<PaymentOrder>("UserId is required");
+            }
+
+            if (productId == Guid.Empty)
+            {
+                return Result.Failure<PaymentOrder>("ProductId is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(payload))
+            {
+                return Result.Failure<PaymentOrder>("Payload is required");
+            }
+
+            var normalizedPayload = payload.Trim();
+            if (normalizedPayload.Length > VipTopConstants.ExtensionPayloadMaxLength)
+            {
+                return Result.Failure<PaymentOrder>("Payload is too long");
+            }
+
+            var chargeId = $"sparks:{normalizedPayload}";
+            if (chargeId.Length > 128)
+            {
+                return Result.Failure<PaymentOrder>("Charge id is too long");
+            }
+
+            var now = DateTime.UtcNow;
+            var order = new PaymentOrder
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                ProductId = productId,
+                Payload = normalizedPayload,
+                AmountStars = 0,
+                Currency = "XTR",
+                Status = PaymentOrderStatus.Paid,
+                TelegramPaymentChargeId = chargeId,
+                PaidAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            };
+
+            return order;
+        }
     }
 }

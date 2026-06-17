@@ -26,7 +26,8 @@ class LooksRatingApiClient:
         headers = {"Content-Type": "application/json"}
         if self._api_key:
             headers["X-Api-Key"] = self._api_key
-        self._session = aiohttp.ClientSession(headers=headers)
+        timeout = aiohttp.ClientTimeout(total=30, connect=5, sock_connect=5)
+        self._session = aiohttp.ClientSession(headers=headers, timeout=timeout)
 
     async def close(self) -> None:
         if self._session:
@@ -62,6 +63,9 @@ class LooksRatingApiClient:
                     message = code or body.get("title") or body.get("detail")
                 raise ApiError(resp.status, code=code, message=message)
             return body
+
+    async def check_connection(self) -> None:
+        await self._request("GET", "/health/ready")
 
     async def get_cities(self) -> list[str]:
         data = await self._request("GET", "/api/cities")
@@ -450,3 +454,22 @@ class LooksRatingApiClient:
                 "providerPaymentChargeId": provider_payment_charge_id,
             },
         )
+
+    async def get_pending_review_milestone_notifications(self) -> list[dict[str, Any]]:
+        data = await self._request("GET", "/api/reviews/milestone-notifications/pending")
+        if isinstance(data, list):
+            return data
+        return []
+
+    async def ack_review_milestone_notification(self, notification_id: str) -> None:
+        await self._request(
+            "POST",
+            f"/api/reviews/milestone-notifications/{notification_id}/ack",
+        )
+
+    async def get_review_milestone_reviewers(self, notification_id: str) -> dict[str, Any]:
+        data = await self._request(
+            "GET",
+            f"/api/reviews/milestone-notifications/{notification_id}/reviewers",
+        )
+        return data if isinstance(data, dict) else {}

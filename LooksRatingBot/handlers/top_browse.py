@@ -133,8 +133,8 @@ def _format_top_message(data: dict) -> str:
     )
     items = data.get("items", [])
     if not items:
-        return header + "\n" + texts.TOP_EMPTY
-    lines = [header]
+        return header + "\n" + texts.SEASON_TOP_REWARDS_SHORT + "\n\n" + texts.TOP_EMPTY
+    lines = [header, texts.SEASON_TOP_REWARDS_SHORT]
     for item in items:
         lines.append(
             texts.TOP_LINE.format(

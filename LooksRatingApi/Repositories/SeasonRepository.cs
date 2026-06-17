@@ -97,20 +97,5 @@ namespace LooksRatingApi.Repositories
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<Dictionary<Guid, int>> GetPhotoCountsBySeasonIdsAsync(
-            IEnumerable<Guid> seasonIds,
-            CancellationToken cancellationToken = default)
-        {
-            var ids = seasonIds.Distinct().ToList();
-            if (ids.Count == 0)
-                return new Dictionary<Guid, int>();
-
-            return await _context.PhotoUsers
-                .AsNoTracking()
-                .Where(p => ids.Contains(p.SeasonId))
-                .GroupBy(p => p.SeasonId)
-                .Select(g => new { g.Key, Count = g.Count() })
-                .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
-        }
     }
 }

@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.ListSeasonsContracts;
-using LooksRatingApi.Contracts.SeasonContracts;
+using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.CQRS.Seasons;
 using MediatR;
 
@@ -10,14 +10,14 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetListSeasons
         : IRequestHandler<GetListSeasonsQuery, Result<List<ListSeasonResponse>>>
     {
         private readonly IListSeasonsRepository _listSeasonsRepository;
-        private readonly ISeasonRepository _seasonRepository;
+        private readonly IPhotoProfileRepository _photoProfileRepository;
 
         public GetListSeasonsHandler(
             IListSeasonsRepository listSeasonsRepository,
-            ISeasonRepository seasonRepository)
+            IPhotoProfileRepository photoProfileRepository)
         {
             _listSeasonsRepository = listSeasonsRepository;
-            _seasonRepository = seasonRepository;
+            _photoProfileRepository = photoProfileRepository;
         }
 
         public async Task<Result<List<ListSeasonResponse>>> Handle(
@@ -25,16 +25,18 @@ namespace LooksRatingApi.CQRS.ListSeasons.Query.GetListSeasons
             CancellationToken cancellationToken)
         {
             var lists = await _listSeasonsRepository.GetListsAsync(query.IncludeSeasons, cancellationToken);
-            Dictionary<Guid, int>? photoCounts = null;
+            IReadOnlyDictionary<Guid, int>? profileCounts = null;
 
             if (query.IncludeSeasons)
             {
                 var seasonIds = lists.SelectMany(l => l.Seasons).Select(s => s.Id);
-                photoCounts = await _seasonRepository.GetPhotoCountsBySeasonIdsAsync(seasonIds, cancellationToken);
+                profileCounts = await _photoProfileRepository.GetParticipantCountsBySeasonIdsAsync(
+                    seasonIds,
+                    cancellationToken);
             }
 
             var result = lists
-                .Select(l => SeasonCatalogMapping.ToListSeasonResponse(l, query.IncludeSeasons, photoCounts))
+                .Select(l => SeasonCatalogMapping.ToListSeasonResponse(l, query.IncludeSeasons, profileCounts))
                 .ToList();
 
             return Result.Success(result);

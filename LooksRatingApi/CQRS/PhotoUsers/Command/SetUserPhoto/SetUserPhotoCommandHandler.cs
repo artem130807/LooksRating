@@ -94,9 +94,10 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
                     cityNomination,
                     cancellationToken);
             }
-            catch (InvalidOperationException ex) when (ex.Message == SetUserPhotoErrors.PhotoUploadInProgress)
+            catch (InvalidOperationException ex) when (ex.Message is SetUserPhotoErrors.PhotoUploadInProgress
+                or SetUserPhotoErrors.VipPhotoLimitExceeded)
             {
-                return Result.Failure<SetUserPhotoResult>(SetUserPhotoErrors.PhotoUploadInProgress);
+                return Result.Failure<SetUserPhotoResult>(ex.Message);
             }
 
             return Result.Success(new SetUserPhotoResult

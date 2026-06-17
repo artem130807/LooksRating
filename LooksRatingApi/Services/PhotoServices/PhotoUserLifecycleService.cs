@@ -109,6 +109,10 @@ namespace LooksRatingApi.Services
                         await _photoProfileRepository.AddPhotoAsync(profile.Id, telegramFileId, cancellationToken);
                         break;
                     }
+                    catch (InvalidOperationException ex) when (ex.Message == SetUserPhotoErrors.VipPhotoLimitExceeded)
+                    {
+                        throw;
+                    }
                     catch (DbUpdateConcurrencyException) when (attempts < 3)
                     {
                         continue;

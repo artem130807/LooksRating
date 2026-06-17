@@ -243,6 +243,10 @@ async def settings_photo(
 
     recreate = message.text == MENU_PHOTO_REPLACE
     if message.text == MENU_PHOTO_ADD:
+        photo_payload = await api.get_my_photo(telegram_id)
+        if isinstance(photo_payload, dict) and not photo_payload.get("canAddPhoto", False):
+            await send_settings_menu(message, api, telegram_id, texts.VIP_PHOTO_LIMIT)
+            return
         recreate = False
     await start_nomination_flow(message, state, api, recreate=recreate, from_settings=True)
 

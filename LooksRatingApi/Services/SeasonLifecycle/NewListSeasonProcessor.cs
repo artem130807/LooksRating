@@ -8,8 +8,6 @@ namespace LooksRatingApi.Services.SeasonLifecycle
 {
     public sealed class NewListSeasonProcessor : INewListSeasonProcessor
     {
-        private static readonly TimeSpan LockTtl = TimeSpan.FromMinutes(2);
-
         private readonly IListSeasonsRepository _listSeasonsRepository;
         private readonly ISeasonRepository _seasonRepository;
         private readonly ArchivingLockService _lockService;
@@ -61,7 +59,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
                 return false;
             }
 
-            await using var lockHandle = await _lockService.TryAcquireAsync(LockTtl, cancellationToken);
+            await using var lockHandle = await _lockService.TryAcquireAsync(cancellationToken);
             if (lockHandle is null)
             {
                 _logger.LogWarning("Создание главы пропущено: архивация уже выполняется");

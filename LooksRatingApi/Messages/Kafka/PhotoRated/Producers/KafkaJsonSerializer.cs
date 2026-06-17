@@ -9,10 +9,7 @@ namespace LooksRatingApi.Messages.Kafka.PhotoRated.Producers
 {
     public class KafkaJsonSerializer<TMessage>:ISerializer<TMessage>
     {
-        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions
-        {
-            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-        };
+        private static readonly JsonSerializerOptions Options = KafkaJsonOptions.Value;
 
         public byte[] Serialize(TMessage data, SerializationContext context)
         {

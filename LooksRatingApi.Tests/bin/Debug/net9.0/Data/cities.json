@@ -1,0 +1,2358 @@
+{
+  "lists": {
+    "cities": [
+      {
+        "city": "Майкоп",
+        "population": 144055,
+        "fedDistrict": "Южный",
+        "region": "Адыгея",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Горно-Алтайск",
+        "population": 62861,
+        "fedDistrict": "Сибирский",
+        "region": "Алтай",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Барнаул",
+        "population": 635585,
+        "fedDistrict": "Сибирский",
+        "region": "Алтайский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Бийск",
+        "population": 203826,
+        "fedDistrict": "Сибирский",
+        "region": "Алтайский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Новоалтайск",
+        "population": 73134,
+        "fedDistrict": "Сибирский",
+        "region": "Алтайский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Рубцовск",
+        "population": 146386,
+        "fedDistrict": "Сибирский",
+        "region": "Алтайский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Белогорск",
+        "population": 68220,
+        "fedDistrict": "Дальневосточный",
+        "region": "Амурская",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Благовещенск",
+        "population": 214397,
+        "fedDistrict": "Дальневосточный",
+        "region": "Амурская",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Свободный",
+        "population": 58594,
+        "fedDistrict": "Дальневосточный",
+        "region": "Амурская",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Архангельск",
+        "population": 348716,
+        "fedDistrict": "Северо-Западный",
+        "region": "Архангельская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Котлас",
+        "population": 60562,
+        "fedDistrict": "Северо-Западный",
+        "region": "Архангельская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Северодвинск",
+        "population": 192265,
+        "fedDistrict": "Северо-Западный",
+        "region": "Архангельская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Астрахань",
+        "population": 520662,
+        "fedDistrict": "Южный",
+        "region": "Астраханская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Белебей",
+        "population": 60183,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Белорецк",
+        "population": 68804,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Ишимбай",
+        "population": 66259,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Кумертау",
+        "population": 62854,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Мелеуз",
+        "population": 61408,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Нефтекамск",
+        "population": 121757,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Октябрьский",
+        "population": 109379,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Салават",
+        "population": 156085,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Сибай",
+        "population": 62732,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Стерлитамак",
+        "population": 273432,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Туймазы",
+        "population": 66849,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Уфа",
+        "population": 1062300,
+        "fedDistrict": "Приволжский",
+        "region": "Башкортостан",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Белгород",
+        "population": 356426,
+        "fedDistrict": "Центральный",
+        "region": "Белгородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Губкин",
+        "population": 88562,
+        "fedDistrict": "Центральный",
+        "region": "Белгородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Старый Оскол",
+        "population": 221163,
+        "fedDistrict": "Центральный",
+        "region": "Белгородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Брянск",
+        "population": 415640,
+        "fedDistrict": "Центральный",
+        "region": "Брянская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Клинцы",
+        "population": 62510,
+        "fedDistrict": "Центральный",
+        "region": "Брянская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Улан-Удэ",
+        "population": 431922,
+        "fedDistrict": "Дальневосточный",
+        "region": "Бурятия",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Александров",
+        "population": 61544,
+        "fedDistrict": "Центральный",
+        "region": "Владимирская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Владимир",
+        "population": 348256,
+        "fedDistrict": "Центральный",
+        "region": "Владимирская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Гусь-Хрустальный",
+        "population": 60773,
+        "fedDistrict": "Центральный",
+        "region": "Владимирская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ковров",
+        "population": 145492,
+        "fedDistrict": "Центральный",
+        "region": "Владимирская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Муром",
+        "population": 116078,
+        "fedDistrict": "Центральный",
+        "region": "Владимирская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Волгоград",
+        "population": 1021244,
+        "fedDistrict": "Южный",
+        "region": "Волгоградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Волжский",
+        "population": 314436,
+        "fedDistrict": "Южный",
+        "region": "Волгоградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Камышин",
+        "population": 119924,
+        "fedDistrict": "Южный",
+        "region": "Волгоградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Михайловка",
+        "population": 59153,
+        "fedDistrict": "Южный",
+        "region": "Волгоградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Вологда",
+        "population": 301642,
+        "fedDistrict": "Северо-Западный",
+        "region": "Вологодская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Череповец",
+        "population": 312311,
+        "fedDistrict": "Северо-Западный",
+        "region": "Вологодская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Борисоглебск",
+        "population": 65585,
+        "fedDistrict": "Центральный",
+        "region": "Воронежская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Воронеж",
+        "population": 889680,
+        "fedDistrict": "Центральный",
+        "region": "Воронежская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Лиски",
+        "population": 55864,
+        "fedDistrict": "Центральный",
+        "region": "Воронежская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Россошь",
+        "population": 62865,
+        "fedDistrict": "Центральный",
+        "region": "Воронежская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Буйнакск",
+        "population": 65735,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Дагестан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Дербент",
+        "population": 119961,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Дагестан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Избербаш",
+        "population": 56301,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Дагестан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Каспийск",
+        "population": 103914,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Дагестан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Махачкала",
+        "population": 577990,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Дагестан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Хасавюрт",
+        "population": 133929,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Дагестан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Биробиджан",
+        "population": 75419,
+        "fedDistrict": "Дальневосточный",
+        "region": "Еврейская",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Краснокаменск",
+        "population": 55668,
+        "fedDistrict": "Дальневосточный",
+        "region": "Забайкальский",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Чита",
+        "population": 323964,
+        "fedDistrict": "Дальневосточный",
+        "region": "Забайкальский",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Иваново",
+        "population": 409277,
+        "fedDistrict": "Центральный",
+        "region": "Ивановская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кинешма",
+        "population": 88113,
+        "fedDistrict": "Центральный",
+        "region": "Ивановская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Шуя",
+        "population": 58528,
+        "fedDistrict": "Центральный",
+        "region": "Ивановская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Назрань",
+        "population": 93357,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ингушетия",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Сунжа",
+        "population": 64493,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ингушетия",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ангарск",
+        "population": 233765,
+        "fedDistrict": "Сибирский",
+        "region": "Иркутская",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Братск",
+        "population": 246348,
+        "fedDistrict": "Сибирский",
+        "region": "Иркутская",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Иркутск",
+        "population": 587225,
+        "fedDistrict": "Сибирский",
+        "region": "Иркутская",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Усолье-Сибирское",
+        "population": 83364,
+        "fedDistrict": "Сибирский",
+        "region": "Иркутская",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Усть-Илимск",
+        "population": 86591,
+        "fedDistrict": "Сибирский",
+        "region": "Иркутская",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Черемхово",
+        "population": 52650,
+        "fedDistrict": "Сибирский",
+        "region": "Иркутская",
+        "timezone": "UTC+8"
+      },
+      {
+        "city": "Нальчик",
+        "population": 240095,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Кабардино-Балкарская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Прохладный",
+        "population": 59595,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Кабардино-Балкарская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Калининград",
+        "population": 431491,
+        "fedDistrict": "Северо-Западный",
+        "region": "Калининградская",
+        "timezone": "UTC+2"
+      },
+      {
+        "city": "Элиста",
+        "population": 103728,
+        "fedDistrict": "Южный",
+        "region": "Калмыкия",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Калуга",
+        "population": 325185,
+        "fedDistrict": "Центральный",
+        "region": "Калужская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Обнинск",
+        "population": 104798,
+        "fedDistrict": "Центральный",
+        "region": "Калужская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Петропавловск-Камчатский",
+        "population": 179526,
+        "fedDistrict": "Дальневосточный",
+        "region": "Камчатский",
+        "timezone": "UTC+12"
+      },
+      {
+        "city": "Черкесск",
+        "population": 121439,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Карачаево-Черкесская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Петрозаводск",
+        "population": 263540,
+        "fedDistrict": "Северо-Западный",
+        "region": "Карелия",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Анжеро-Судженск",
+        "population": 76669,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Белово",
+        "population": 76752,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Кемерово",
+        "population": 532884,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Киселевск",
+        "population": 98382,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Ленинск-Кузнецкий",
+        "population": 101666,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Междуреченск",
+        "population": 101995,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Новокузнецк",
+        "population": 547885,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Прокопьевск",
+        "population": 210150,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Юрга",
+        "population": 81536,
+        "fedDistrict": "Сибирский",
+        "region": "Кемеровская область - Кузбасс",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Киров",
+        "population": 473668,
+        "fedDistrict": "Приволжский",
+        "region": "Кировская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кирово-Чепецк",
+        "population": 80920,
+        "fedDistrict": "Приволжский",
+        "region": "Кировская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Воркута",
+        "population": 70551,
+        "fedDistrict": "Северо-Западный",
+        "region": "Коми",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Сыктывкар",
+        "population": 235006,
+        "fedDistrict": "Северо-Западный",
+        "region": "Коми",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ухта",
+        "population": 99642,
+        "fedDistrict": "Северо-Западный",
+        "region": "Коми",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кострома",
+        "population": 268617,
+        "fedDistrict": "Центральный",
+        "region": "Костромская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Анапа",
+        "population": 58983,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Армавир",
+        "population": 188897,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Белореченск",
+        "population": 53891,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Геленджик",
+        "population": 54813,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ейск",
+        "population": 87771,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Краснодар",
+        "population": 744933,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кропоткин",
+        "population": 80743,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Крымск",
+        "population": 57370,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Лабинск",
+        "population": 62822,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Новороссийск",
+        "population": 241788,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Славянск-на-Кубани",
+        "population": 63768,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Сочи",
+        "population": 343285,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Тимашевск",
+        "population": 53921,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Тихорецк",
+        "population": 61825,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Туапсе",
+        "population": 63233,
+        "fedDistrict": "Южный",
+        "region": "Краснодарский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ачинск",
+        "population": 109156,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Железногорск",
+        "population": 85559,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Зеленогорск",
+        "population": 66018,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Канск",
+        "population": 94230,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Красноярск",
+        "population": 973826,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Лесосибирск",
+        "population": 61146,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Минусинск",
+        "population": 71171,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Назарово",
+        "population": 52829,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Норильск",
+        "population": 175301,
+        "fedDistrict": "Сибирский",
+        "region": "Красноярский",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Евпатория",
+        "population": 105719,
+        "fedDistrict": "Южный",
+        "region": "Крым",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Керчь",
+        "population": 147033,
+        "fedDistrict": "Южный",
+        "region": "Крым",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Симферополь",
+        "population": 332317,
+        "fedDistrict": "Южный",
+        "region": "Крым",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Феодосия",
+        "population": 69038,
+        "fedDistrict": "Южный",
+        "region": "Крым",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ялта",
+        "population": 76746,
+        "fedDistrict": "Южный",
+        "region": "Крым",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Курган",
+        "population": 333640,
+        "fedDistrict": "Уральский",
+        "region": "Курганская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Шадринск",
+        "population": 77744,
+        "fedDistrict": "Уральский",
+        "region": "Курганская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Железногорск",
+        "population": 95057,
+        "fedDistrict": "Центральный",
+        "region": "Курская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Курск",
+        "population": 414595,
+        "fedDistrict": "Центральный",
+        "region": "Курская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Всеволожск",
+        "population": 59689,
+        "fedDistrict": "Северо-Западный",
+        "region": "Ленинградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Выборг",
+        "population": 80013,
+        "fedDistrict": "Северо-Западный",
+        "region": "Ленинградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Гатчина",
+        "population": 92566,
+        "fedDistrict": "Северо-Западный",
+        "region": "Ленинградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кириши",
+        "population": 52826,
+        "fedDistrict": "Северо-Западный",
+        "region": "Ленинградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Сосновый Бор",
+        "population": 65901,
+        "fedDistrict": "Северо-Западный",
+        "region": "Ленинградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Тихвин",
+        "population": 58843,
+        "fedDistrict": "Северо-Западный",
+        "region": "Ленинградская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Елец",
+        "population": 108404,
+        "fedDistrict": "Центральный",
+        "region": "Липецкая",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Липецк",
+        "population": 508124,
+        "fedDistrict": "Центральный",
+        "region": "Липецкая",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Магадан",
+        "population": 95925,
+        "fedDistrict": "Дальневосточный",
+        "region": "Магаданская",
+        "timezone": "UTC+11"
+      },
+      {
+        "city": "Волжск",
+        "population": 55671,
+        "fedDistrict": "Приволжский",
+        "region": "Марий Эл",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Йошкар-Ола",
+        "population": 248688,
+        "fedDistrict": "Приволжский",
+        "region": "Марий Эл",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Саранск",
+        "population": 318841,
+        "fedDistrict": "Приволжский",
+        "region": "Мордовия",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Москва",
+        "population": 11514330,
+        "fedDistrict": "Центральный",
+        "region": "Москва",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Балашиха",
+        "population": 215353,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Видное",
+        "population": 56798,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Воскресенск",
+        "population": 91301,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Дмитров",
+        "population": 61454,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Долгопрудный",
+        "population": 90976,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Домодедово",
+        "population": 96123,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Дубна",
+        "population": 70569,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Егорьевск",
+        "population": 70133,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Жуковский",
+        "population": 102729,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ивантеевка",
+        "population": 58594,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Клин",
+        "population": 80584,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Коломна",
+        "population": 144642,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Королёв",
+        "population": 183452,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Красногорск",
+        "population": 116738,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Лобня",
+        "population": 74350,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Лыткарино",
+        "population": 55147,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Люберцы",
+        "population": 171978,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Мытищи",
+        "population": 173341,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Наро-Фоминск",
+        "population": 64640,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ногинск",
+        "population": 99762,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Одинцово",
+        "population": 139021,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Орехово-Зуево",
+        "population": 120620,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Павловский Посад",
+        "population": 63771,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Подольск",
+        "population": 187956,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Пушкино",
+        "population": 102840,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Раменское",
+        "population": 96355,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Реутов",
+        "population": 87195,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Сергиев Посад",
+        "population": 110878,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Серпухов",
+        "population": 126496,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Солнечногорск",
+        "population": 52996,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ступино",
+        "population": 66942,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Фрязино",
+        "population": 55449,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Химки",
+        "population": 207125,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Чехов",
+        "population": 60677,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Щёлково",
+        "population": 110380,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Электросталь",
+        "population": 155324,
+        "fedDistrict": "Центральный",
+        "region": "Московская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Апатиты",
+        "population": 59690,
+        "fedDistrict": "Северо-Западный",
+        "region": "Мурманская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Мурманск",
+        "population": 307664,
+        "fedDistrict": "Северо-Западный",
+        "region": "Мурманская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Североморск",
+        "population": 50076,
+        "fedDistrict": "Северо-Западный",
+        "region": "Мурманская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Арзамас",
+        "population": 106367,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Балахна",
+        "population": 51526,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Бор",
+        "population": 78079,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Выкса",
+        "population": 56196,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Дзержинск",
+        "population": 240762,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кстово",
+        "population": 66641,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Нижний Новгород",
+        "population": 1250615,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Павлово",
+        "population": 60699,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Саров",
+        "population": 92073,
+        "fedDistrict": "Приволжский",
+        "region": "Нижегородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Боровичи",
+        "population": 54731,
+        "fedDistrict": "Северо-Западный",
+        "region": "Новгородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Великий Новгород",
+        "population": 218724,
+        "fedDistrict": "Северо-Западный",
+        "region": "Новгородская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Бердск",
+        "population": 98809,
+        "fedDistrict": "Сибирский",
+        "region": "Новосибирская",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Искитим",
+        "population": 60072,
+        "fedDistrict": "Сибирский",
+        "region": "Новосибирская",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Новосибирск",
+        "population": 1498921,
+        "fedDistrict": "Сибирский",
+        "region": "Новосибирская",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Омск",
+        "population": 1154000,
+        "fedDistrict": "Сибирский",
+        "region": "Омская",
+        "timezone": "UTC+6"
+      },
+      {
+        "city": "Бугуруслан",
+        "population": 52249,
+        "fedDistrict": "Приволжский",
+        "region": "Оренбургская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Бузулук",
+        "population": 82816,
+        "fedDistrict": "Приволжский",
+        "region": "Оренбургская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Новотроицк",
+        "population": 97914,
+        "fedDistrict": "Приволжский",
+        "region": "Оренбургская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Оренбург",
+        "population": 570329,
+        "fedDistrict": "Приволжский",
+        "region": "Оренбургская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Орск",
+        "population": 238006,
+        "fedDistrict": "Приволжский",
+        "region": "Оренбургская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Ливны",
+        "population": 50430,
+        "fedDistrict": "Центральный",
+        "region": "Орловская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Орёл",
+        "population": 317854,
+        "fedDistrict": "Центральный",
+        "region": "Орловская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Заречный",
+        "population": 63579,
+        "fedDistrict": "Приволжский",
+        "region": "Пензенская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кузнецк",
+        "population": 88886,
+        "fedDistrict": "Приволжский",
+        "region": "Пензенская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Пенза",
+        "population": 519592,
+        "fedDistrict": "Приволжский",
+        "region": "Пензенская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Березники",
+        "population": 156350,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Краснокамск",
+        "population": 52632,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Кунгур",
+        "population": 67857,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Лысьва",
+        "population": 67712,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Пермь",
+        "population": 1000679,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Соликамск",
+        "population": 97239,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Чайковский",
+        "population": 82933,
+        "fedDistrict": "Приволжский",
+        "region": "Пермский",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Арсеньев",
+        "population": 56742,
+        "fedDistrict": "Дальневосточный",
+        "region": "Приморский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Артем",
+        "population": 102636,
+        "fedDistrict": "Дальневосточный",
+        "region": "Приморский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Владивосток",
+        "population": 592069,
+        "fedDistrict": "Дальневосточный",
+        "region": "Приморский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Находка",
+        "population": 159695,
+        "fedDistrict": "Дальневосточный",
+        "region": "Приморский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Уссурийск",
+        "population": 157946,
+        "fedDistrict": "Дальневосточный",
+        "region": "Приморский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Великие Луки",
+        "population": 98778,
+        "fedDistrict": "Северо-Западный",
+        "region": "Псковская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Псков",
+        "population": 203974,
+        "fedDistrict": "Северо-Западный",
+        "region": "Псковская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Азов",
+        "population": 82882,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Батайск",
+        "population": 112400,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Волгодонск",
+        "population": 170621,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Гуково",
+        "population": 67268,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Донецк",
+        "population": 50085,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Каменск-Шахтинский",
+        "population": 95306,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Новочеркасск",
+        "population": 169039,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Новошахтинск",
+        "population": 111087,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ростов-на-Дону",
+        "population": 1091544,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Сальск",
+        "population": 61312,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Таганрог",
+        "population": 257692,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Шахты",
+        "population": 240152,
+        "fedDistrict": "Южный",
+        "region": "Ростовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Рязань",
+        "population": 525062,
+        "fedDistrict": "Центральный",
+        "region": "Рязанская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Жигулевск",
+        "population": 57565,
+        "fedDistrict": "Приволжский",
+        "region": "Самарская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Новокуйбышевск",
+        "population": 108449,
+        "fedDistrict": "Приволжский",
+        "region": "Самарская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Самара",
+        "population": 1164900,
+        "fedDistrict": "Приволжский",
+        "region": "Самарская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Сызрань",
+        "population": 178773,
+        "fedDistrict": "Приволжский",
+        "region": "Самарская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Тольятти",
+        "population": 719484,
+        "fedDistrict": "Приволжский",
+        "region": "Самарская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Чапаевск",
+        "population": 72689,
+        "fedDistrict": "Приволжский",
+        "region": "Самарская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Санкт-Петербург",
+        "population": 4848742,
+        "fedDistrict": "Северо-Западный",
+        "region": "Санкт-Петербург",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Балаково",
+        "population": 199576,
+        "fedDistrict": "Приволжский",
+        "region": "Саратовская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Балашов",
+        "population": 82222,
+        "fedDistrict": "Приволжский",
+        "region": "Саратовская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Вольск",
+        "population": 66520,
+        "fedDistrict": "Приволжский",
+        "region": "Саратовская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Саратов",
+        "population": 836900,
+        "fedDistrict": "Приволжский",
+        "region": "Саратовская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Энгельс",
+        "population": 202838,
+        "fedDistrict": "Приволжский",
+        "region": "Саратовская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Южно-Сахалинск",
+        "population": 181727,
+        "fedDistrict": "Дальневосточный",
+        "region": "Сахалинская",
+        "timezone": "UTC+11"
+      },
+      {
+        "city": "Асбест",
+        "population": 70067,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Березовский",
+        "population": 51583,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Верхняя Пышма",
+        "population": 58707,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Екатеринбург",
+        "population": 1377738,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Каменск-Уральский",
+        "population": 174710,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Краснотурьинск",
+        "population": 59701,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Лесной",
+        "population": 52464,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Нижний Тагил",
+        "population": 361883,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Новоуральск",
+        "population": 91813,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Первоуральск",
+        "population": 149800,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Полевской",
+        "population": 64316,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Ревда",
+        "population": 61713,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Серов",
+        "population": 99381,
+        "fedDistrict": "Уральский",
+        "region": "Свердловская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Севастополь",
+        "population": 393304,
+        "fedDistrict": "Южный",
+        "region": "Севастополь",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Владикавказ",
+        "population": 311635,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Северная Осетия - Алания",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Вязьма",
+        "population": 57103,
+        "fedDistrict": "Центральный",
+        "region": "Смоленская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Рославль",
+        "population": 54898,
+        "fedDistrict": "Центральный",
+        "region": "Смоленская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Смоленск",
+        "population": 326863,
+        "fedDistrict": "Центральный",
+        "region": "Смоленская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Буденновск",
+        "population": 64628,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Георгиевск",
+        "population": 72126,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ессентуки",
+        "population": 100969,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кисловодск",
+        "population": 128502,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Минеральные Воды",
+        "population": 76715,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Михайловск",
+        "population": 71018,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Невинномысск",
+        "population": 118351,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Пятигорск",
+        "population": 142397,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ставрополь",
+        "population": 398266,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Ставропольский",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Мичуринск",
+        "population": 98758,
+        "fedDistrict": "Центральный",
+        "region": "Тамбовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Тамбов",
+        "population": 280457,
+        "fedDistrict": "Центральный",
+        "region": "Тамбовская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Альметьевск",
+        "population": 146309,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Бугульма",
+        "population": 89144,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Елабуга",
+        "population": 70750,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Зеленодольск",
+        "population": 97651,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Казань",
+        "population": 1216965,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Лениногорск",
+        "population": 64145,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Набережные Челны",
+        "population": 513242,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Нижнекамск",
+        "population": 234108,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Чистополь",
+        "population": 60703,
+        "fedDistrict": "Приволжский",
+        "region": "Татарстан",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Вышний Волочек",
+        "population": 52326,
+        "fedDistrict": "Центральный",
+        "region": "Тверская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ржев",
+        "population": 62026,
+        "fedDistrict": "Центральный",
+        "region": "Тверская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Тверь",
+        "population": 403726,
+        "fedDistrict": "Центральный",
+        "region": "Тверская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Северск",
+        "population": 108466,
+        "fedDistrict": "Сибирский",
+        "region": "Томская",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Томск",
+        "population": 522940,
+        "fedDistrict": "Сибирский",
+        "region": "Томская",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Алексин",
+        "population": 61738,
+        "fedDistrict": "Центральный",
+        "region": "Тульская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Донской",
+        "population": 64561,
+        "fedDistrict": "Центральный",
+        "region": "Тульская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Новомосковск",
+        "population": 131227,
+        "fedDistrict": "Центральный",
+        "region": "Тульская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Тула",
+        "population": 501129,
+        "fedDistrict": "Центральный",
+        "region": "Тульская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Узловая",
+        "population": 55282,
+        "fedDistrict": "Центральный",
+        "region": "Тульская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Щекино",
+        "population": 58154,
+        "fedDistrict": "Центральный",
+        "region": "Тульская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Кызыл",
+        "population": 109906,
+        "fedDistrict": "Сибирский",
+        "region": "Тыва",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Ишим",
+        "population": 69567,
+        "fedDistrict": "Уральский",
+        "region": "Тюменская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Тобольск",
+        "population": 99698,
+        "fedDistrict": "Уральский",
+        "region": "Тюменская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Тюмень",
+        "population": 581758,
+        "fedDistrict": "Уральский",
+        "region": "Тюменская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Воткинск",
+        "population": 100034,
+        "fedDistrict": "Приволжский",
+        "region": "Удмуртская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Глазов",
+        "population": 95835,
+        "fedDistrict": "Приволжский",
+        "region": "Удмуртская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Ижевск",
+        "population": 628117,
+        "fedDistrict": "Приволжский",
+        "region": "Удмуртская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Сарапул",
+        "population": 101390,
+        "fedDistrict": "Приволжский",
+        "region": "Удмуртская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Димитровград",
+        "population": 122549,
+        "fedDistrict": "Приволжский",
+        "region": "Ульяновская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Ульяновск",
+        "population": 613793,
+        "fedDistrict": "Приволжский",
+        "region": "Ульяновская",
+        "timezone": "UTC+4"
+      },
+      {
+        "city": "Комсомольск-на-Амуре",
+        "population": 263906,
+        "fedDistrict": "Дальневосточный",
+        "region": "Хабаровский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Хабаровск",
+        "population": 577668,
+        "fedDistrict": "Дальневосточный",
+        "region": "Хабаровский",
+        "timezone": "UTC+10"
+      },
+      {
+        "city": "Абакан",
+        "population": 165183,
+        "fedDistrict": "Сибирский",
+        "region": "Хакасия",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Черногорск",
+        "population": 72117,
+        "fedDistrict": "Сибирский",
+        "region": "Хакасия",
+        "timezone": "UTC+7"
+      },
+      {
+        "city": "Когалым",
+        "population": 58192,
+        "fedDistrict": "Уральский",
+        "region": "Ханты-Мансийский Автономный округ - Югра",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Нефтеюганск",
+        "population": 123276,
+        "fedDistrict": "Уральский",
+        "region": "Ханты-Мансийский Автономный округ - Югра",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Нижневартовск",
+        "population": 251860,
+        "fedDistrict": "Уральский",
+        "region": "Ханты-Мансийский Автономный округ - Югра",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Нягань",
+        "population": 54903,
+        "fedDistrict": "Уральский",
+        "region": "Ханты-Мансийский Автономный округ - Югра",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Сургут",
+        "population": 306703,
+        "fedDistrict": "Уральский",
+        "region": "Ханты-Мансийский Автономный округ - Югра",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Ханты-Мансийск",
+        "population": 79410,
+        "fedDistrict": "Уральский",
+        "region": "Ханты-Мансийский Автономный округ - Югра",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Златоуст",
+        "population": 174985,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Копейск",
+        "population": 137604,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Магнитогорск",
+        "population": 408401,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Миасс",
+        "population": 151812,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Озерск",
+        "population": 82268,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Троицк",
+        "population": 78637,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Челябинск",
+        "population": 1130273,
+        "fedDistrict": "Уральский",
+        "region": "Челябинская",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Грозный",
+        "population": 271596,
+        "fedDistrict": "Северо-Кавказский",
+        "region": "Чеченская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Новочебоксарск",
+        "population": 124094,
+        "fedDistrict": "Приволжский",
+        "region": "Чувашская Республика",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Чебоксары",
+        "population": 447929,
+        "fedDistrict": "Приволжский",
+        "region": "Чувашская Республика",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Нерюнгри",
+        "population": 61746,
+        "fedDistrict": "Дальневосточный",
+        "region": "Саха /Якутия/",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Якутск",
+        "population": 269486,
+        "fedDistrict": "Дальневосточный",
+        "region": "Саха /Якутия/",
+        "timezone": "UTC+9"
+      },
+      {
+        "city": "Новый Уренгой",
+        "population": 104144,
+        "fedDistrict": "Уральский",
+        "region": "Ямало-Ненецкий",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Ноябрьск",
+        "population": 110572,
+        "fedDistrict": "Уральский",
+        "region": "Ямало-Ненецкий",
+        "timezone": "UTC+5"
+      },
+      {
+        "city": "Рыбинск",
+        "population": 200771,
+        "fedDistrict": "Центральный",
+        "region": "Ярославская",
+        "timezone": "UTC+3"
+      },
+      {
+        "city": "Ярославль",
+        "population": 591486,
+        "fedDistrict": "Центральный",
+        "region": "Ярославская",
+        "timezone": "UTC+3"
+      }
+    ],
+    "sngToponims": [
+      "Украина",
+      "Киев",
+      "Харьков",
+      "Одесса",
+      "Днепр",
+      "Донецк",
+      "Запорожье",
+      "Львов",
+      "Кривой Рог",
+      "Николаев",
+      "Севастополь",
+      "Мариуполь",
+      "Луганск",
+      "Винница",
+      "Макеевка",
+      "Симферополь",
+      "ДНР",
+      "ЛНР",
+      "Донбасс",
+      "Новороссия",
+      "Херсон",
+      "Полтава",
+      "Чернигов",
+      "Черкассы",
+      "Хмельницкий",
+      "Беларусь",
+      "Белоруссия",
+      "Минск",
+      "Гомель",
+      "Могилёв",
+      "Витебск",
+      "Гродно",
+      "Брест",
+      "Бобруйск",
+      "Барановичи",
+      "Борисов",
+      "Пинск",
+      "Орша",
+      "Казахстан",
+      "Алма-Ата",
+      "Алматы",
+      "Нур-Султан",
+      "Астана",
+      "Шымкент",
+      "Караганда",
+      "Актобе",
+      "Тараз",
+      "Павлодар",
+      "Усть-Каменогорск",
+      "Семей",
+      "Атырау",
+      "Костанай",
+      "Кызылорда",
+      "Уральск",
+      "Петропавловск",
+      "Актау",
+      "Темиртау",
+      "Туркестан",
+      "Талдыкорган",
+      "Кокшетау",
+      "Экибастуз",
+      "Армения",
+      "Ереван",
+      "Грузия",
+      "Тбилиси",
+      "Батуми",
+      "Таджикистан",
+      "Душанбе",
+      "Узбекистан",
+      "Ташкент",
+      "Киргизстан",
+      "Азербайджан",
+      "Баку",
+      "Туркменистан"
+    
+    ]
+}
+}

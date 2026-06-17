@@ -3,8 +3,11 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
+import logging
+
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
+from bot.photo_hints import photo_settings_intro
 from bot.keyboards import (
     BTN_NO,
     BTN_YES,
@@ -19,8 +22,7 @@ from bot.services import (
     SessionState,
     custom_nomination,
     format_api_error,
-    format_city_display,
-    format_rating_display,
+    format_set_photo_saved_text,
     gender_from_text,
     load_cities,
     resolve_city_name,
@@ -30,6 +32,7 @@ from bot.services import (
 )
 from bot.states import PhotoStates, RecreatePhotoStates
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 
@@ -86,7 +89,10 @@ async def _finish_photo_flow(
     data = await state.get_data()
     from_settings = data.get("from_settings", False)
     await state.clear()
-    await set_bot_state(api, telegram_id, SessionState.IDLE)
+    try:
+        await set_bot_state(api, telegram_id, SessionState.IDLE)
+    except ApiError as exc:
+        logger.warning("Failed to reset session after photo flow for %s: %s", telegram_id, exc.message)
     if from_settings:
         await send_settings_menu(message, api, telegram_id, text)
     else:
@@ -127,6 +133,18 @@ async def start_custom_nomination_flow(
         await message.answer(format_api_error(exc))
         return
 
+    intro = ""
+    if from_settings:
+        user = await api.get_user(message.from_user.id)
+        has_vip = bool(user and user.get("hasVip"))
+        intro = photo_settings_intro(
+            has_vip=has_vip,
+            recreate=recreate,
+            replace_all=replace_all,
+        )
+        if intro:
+            intro = intro + "\n\n"
+
     existing_photos: list[dict] = []
     if recreate:
         try:
@@ -152,7 +170,7 @@ async def start_custom_nomination_flow(
     if recreate and replace_all:
         await state.set_state(RecreatePhotoStates.custom_city)
         await message.answer(
-            f"<b>Смените все фото в сезоне</b>\n\n{texts.PHOTO_NOM_CITY}",
+            f"{intro}<b>Смените все фото в сезоне</b>\n\n{texts.PHOTO_NOM_CITY}",
             reply_markup=cancel_keyboard(),
         )
         return
@@ -160,7 +178,7 @@ async def start_custom_nomination_flow(
     if recreate and len(existing_photos) > 1:
         await state.set_state(RecreatePhotoStates.select_target)
         await message.answer(
-            texts.PHOTO_REPLACE_PICK,
+            f"{intro}{texts.PHOTO_REPLACE_PICK}",
             reply_markup=replace_photo_picker_keyboard(existing_photos),
         )
         return
@@ -170,7 +188,7 @@ async def start_custom_nomination_flow(
     await state.set_state(group.custom_city)
     title = "Замените фото в сезоне" if recreate else "Добавьте фото в сезон"
     await message.answer(
-        f"<b>{title}</b>\n\n{texts.PHOTO_NOM_CITY}",
+        f"{intro}<b>{title}</b>\n\n{texts.PHOTO_NOM_CITY}",
         reply_markup=cancel_keyboard(),
     )
 
@@ -292,6 +310,16 @@ async def photo_uploaded(
     recreate = data.get("recreate", False)
     target_photo_id = data.get("target_photo_id")
 
+    if not nomination:
+        await message.answer(
+            "Данные номинации потеряны. Начните добавление фото заново в «⚙️ Настройки».",
+            reply_markup=cancel_keyboard(),
+        )
+        await _finish_photo_flow(message, state, api, telegram_id, texts.MAIN_MENU)
+        return
+
+    status = await message.answer("⏳ Сохраняю фото…")
+
     try:
         if recreate:
             result = await api.recreate_photo(
@@ -303,20 +331,26 @@ async def photo_uploaded(
         else:
             result = await api.set_photo(telegram_id, file_id, nomination)
     except ApiError as exc:
-        await message.answer(format_api_error(exc))
+        await status.edit_text(format_api_error(exc))
+        await _finish_photo_flow(message, state, api, telegram_id, texts.MAIN_MENU)
+        return
+    except Exception:
+        logger.exception("Unexpected error while saving photo for %s", telegram_id)
+        await status.edit_text("Не удалось сохранить фото. Попробуйте ещё раз из «⚙️ Настройки».")
         await _finish_photo_flow(message, state, api, telegram_id, texts.MAIN_MENU)
         return
 
-    city = result.get("city", "")
+    try:
+        await status.delete()
+    except Exception:
+        pass
+
     await _finish_photo_flow(
         message,
         state,
         api,
         telegram_id,
-        texts.PHOTO_SAVED.format(
-            city=format_city_display(city),
-            rating_line=format_rating_display(float(result.get("rating", 0)), 0),
-        ),
+        format_set_photo_saved_text(result),
     )
 
 
@@ -361,14 +395,10 @@ async def photo_uploaded_many_save(
         await _finish_photo_flow(message, state, api, telegram_id, texts.MAIN_MENU)
         return
 
-    city = result.get("city", "")
     await _finish_photo_flow(
         message,
         state,
         api,
         telegram_id,
-        texts.PHOTO_SAVED.format(
-            city=format_city_display(city),
-            rating_line=format_rating_display(float(result.get("rating", 0)), 0),
-        ),
+        format_set_photo_saved_text(result),
     )

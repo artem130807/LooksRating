@@ -26,6 +26,7 @@ namespace LooksRatingApi.Configurations
             builder.Property(x => x.Status)
             .IsRequired();
             builder.Property(x => x.CountInTop);
+
             builder.HasMany(u => u.PhotoUsers)
                 .WithOne()
                 .HasForeignKey(u => u.UserId)

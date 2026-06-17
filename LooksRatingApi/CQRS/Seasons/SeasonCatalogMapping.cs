@@ -4,7 +4,10 @@ namespace LooksRatingApi.CQRS.Seasons
 {
     internal static class SeasonCatalogMapping
     {
-        public static ListSeasonResponse ToListSeasonResponse(Models.ListSeasons list, bool includeSeasons, IReadOnlyDictionary<Guid, int>? photoCounts = null)
+        public static ListSeasonResponse ToListSeasonResponse(
+            Models.ListSeasons list,
+            bool includeSeasons,
+            IReadOnlyDictionary<Guid, int>? profileCounts = null)
         {
             var seasons = list.Seasons?.OrderBy(s => s.Number).ToList() ?? [];
             return new ListSeasonResponse
@@ -13,12 +16,12 @@ namespace LooksRatingApi.CQRS.Seasons
                 CreatedDate = list.CreatedDate,
                 SeasonsCount = seasons.Count,
                 Seasons = includeSeasons
-                    ? seasons.Select(s => ToSeasonSummary(s, photoCounts)).ToList()
+                    ? seasons.Select(s => ToSeasonSummary(s, profileCounts)).ToList()
                     : null
             };
         }
 
-        public static SeasonResponse ToSeasonResponse(Season season, int? photoUsersCount = null) =>
+        public static SeasonResponse ToSeasonResponse(Season season, int? photoProfilesCount = null) =>
             new()
             {
                 Id = season.Id,
@@ -27,10 +30,12 @@ namespace LooksRatingApi.CQRS.Seasons
                 IsClosed = season.IsClosed,
                 ListSeasonsId = season.ListSeasonsId,
                 CreatedDate = season.CreatedDate,
-                PhotoUsersCount = photoUsersCount ?? 0
+                PhotoProfilesCount = photoProfilesCount ?? 0
             };
 
-        public static SeasonSummaryResponse ToSeasonSummary(Season season, IReadOnlyDictionary<Guid, int>? photoCounts = null) =>
+        public static SeasonSummaryResponse ToSeasonSummary(
+            Season season,
+            IReadOnlyDictionary<Guid, int>? profileCounts = null) =>
             new()
             {
                 Id = season.Id,
@@ -38,7 +43,7 @@ namespace LooksRatingApi.CQRS.Seasons
                 Number = season.Number,
                 IsClosed = season.IsClosed,
                 CreatedDate = season.CreatedDate,
-                PhotoUsersCount = photoCounts?.GetValueOrDefault(season.Id) ?? 0
+                PhotoProfilesCount = profileCounts?.GetValueOrDefault(season.Id) ?? 0
             };
     }
 
@@ -57,7 +62,7 @@ namespace LooksRatingApi.CQRS.Seasons
         public int Number { get; set; }
         public bool IsClosed { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int PhotoUsersCount { get; set; }
+        public int PhotoProfilesCount { get; set; }
     }
 
     public sealed class SeasonResponse
@@ -68,7 +73,7 @@ namespace LooksRatingApi.CQRS.Seasons
         public bool IsClosed { get; set; }
         public Guid ListSeasonsId { get; set; }
         public DateTime CreatedDate { get; set; }
-        public int PhotoUsersCount { get; set; }
+        public int PhotoProfilesCount { get; set; }
         public ListSeasonResponse? Chapter { get; set; }
     }
 }

@@ -2,20 +2,17 @@ using LooksRatingApi.Contracts;
 
 namespace LooksRatingApi.Services
 {
+    /// <summary>
+    /// Read-only VIP top snapshot for legacy gRPC consumers.
+    /// Biweekly rewards (sparks 1–5, VIP extension 6–10) are applied by <see cref="VipTopSparksRewardProcessor"/>.
+    /// </summary>
     public sealed class VipTopRewardOrchestrator : IVipTopRewardOrchestrator
     {
         private readonly IVipTopCategoryService _vipTopCategoryService;
-        private readonly IVipStatusExtensionService _vipStatusExtensionService;
-        private readonly ILogger<VipTopRewardOrchestrator> _logger;
 
-        public VipTopRewardOrchestrator(
-            IVipTopCategoryService vipTopCategoryService,
-            IVipStatusExtensionService vipStatusExtensionService,
-            ILogger<VipTopRewardOrchestrator> logger)
+        public VipTopRewardOrchestrator(IVipTopCategoryService vipTopCategoryService)
         {
             _vipTopCategoryService = vipTopCategoryService;
-            _vipStatusExtensionService = vipStatusExtensionService;
-            _logger = logger;
         }
 
         public async Task<IReadOnlyList<VipTopProfileCandidate>> ProcessAndGetProfilesAsync(
@@ -25,31 +22,6 @@ namespace LooksRatingApi.Services
             if (categories.Count == 0)
             {
                 return Array.Empty<VipTopProfileCandidate>();
-            }
-
-            var seasonId = categories[0].SeasonId;
-            var extensionTelegramIds = VipTopPlacement.GetExtensionTelegramIds(categories);
-
-            try
-            {
-                var extensionResult = await _vipStatusExtensionService.ExtendByTelegramIdsAsync(
-                    extensionTelegramIds,
-                    seasonId,
-                    cancellationToken);
-
-                _logger.LogInformation(
-                    "VIP top extension: extended={Extended}, skipped={Skipped}, notFound={NotFound}, candidates={Candidates}",
-                    extensionResult.Extended,
-                    extensionResult.Skipped,
-                    extensionResult.NotFound,
-                    extensionTelegramIds.Count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "VIP top extension failed for season {SeasonId}, gift payload will still be returned",
-                    seasonId);
             }
 
             return categories

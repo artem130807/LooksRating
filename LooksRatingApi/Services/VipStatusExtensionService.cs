@@ -2,6 +2,7 @@ using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PaymentOrderContracts;
 using LooksRatingApi.Contracts.ProductContracts;
 using LooksRatingApi.Enums;
+using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +14,7 @@ namespace LooksRatingApi.Services
         private readonly IProductRepository _productRepository;
         private readonly IPaymentOrderRepository _paymentOrderRepository;
         private readonly IVipExpirationReadService _vipExpirationReadService;
+        private readonly ApplicationClock _clock;
         private readonly ILogger<VipStatusExtensionService> _logger;
 
         public VipStatusExtensionService(
@@ -20,12 +22,14 @@ namespace LooksRatingApi.Services
             IProductRepository productRepository,
             IPaymentOrderRepository paymentOrderRepository,
             IVipExpirationReadService vipExpirationReadService,
+            ApplicationClock clock,
             ILogger<VipStatusExtensionService> logger)
         {
             _context = context;
             _productRepository = productRepository;
             _paymentOrderRepository = paymentOrderRepository;
             _vipExpirationReadService = vipExpirationReadService;
+            _clock = clock;
             _logger = logger;
         }
 
@@ -72,7 +76,7 @@ namespace LooksRatingApi.Services
             }
 
             var utcNow = DateTime.UtcNow;
-            var periodKey = VipTopRewardPeriod.BuildKey(seasonId, utcNow);
+            var periodKey = VipTopRewardPeriod.BuildKey(seasonId, _clock.GetNow());
             var payloads = users
                 .Select(user => VipTopRewardPeriod.BuildExtensionPayload(periodKey, user.TelegramId))
                 .ToList();

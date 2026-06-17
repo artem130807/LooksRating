@@ -2,6 +2,9 @@ using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.Enums;
+
+using LooksRatingApi.Services.PhotoProfiles;
 
 namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
 {
@@ -54,9 +57,15 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
                 user.Id,
                 season.Id,
                 cancellationToken);
-            if (profile is not null && user.Status == Enums.VipStatus.Unavaillable)
+            if (profile is not null && user.Status == VipStatus.Unavaillable)
             {
                 return Result.Failure<string>(SetUserPhotoErrors.PhotoAlreadyExists);
+            }
+
+            if (profile is not null
+                && !PhotoProfileLimits.CanAddPhoto(profile.Photos.Count, user.Status))
+            {
+                return Result.Failure<string>(SetUserPhotoErrors.VipPhotoLimitExceeded);
             }
 
             return Result.Success(string.Empty);

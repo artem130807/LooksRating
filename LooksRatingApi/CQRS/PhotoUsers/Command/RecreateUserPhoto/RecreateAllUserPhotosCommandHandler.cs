@@ -5,6 +5,7 @@ using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
 using LooksRatingApi.Services;
+using LooksRatingApi.Services.PhotoProfiles;
 using MediatR;
 
 namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
@@ -18,6 +19,8 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
         private readonly ISeasonRepository _seasonRepository;
         private readonly ICityService _cityService;
         private readonly INormalizeCityNameService _normalizeCityNameService;
+        private readonly IPhotoProfileRatingResetService _ratingResetService;
+        private readonly LooksRatingDbContext _context;
 
         public RecreateAllUserPhotosCommandHandler(
             IUserRepository userRepository,
@@ -25,7 +28,9 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
             IRecreateAllUserPhotosValidator validator,
             ISeasonRepository seasonRepository,
             ICityService cityService,
-            INormalizeCityNameService normalizeCityNameService)
+            INormalizeCityNameService normalizeCityNameService,
+            IPhotoProfileRatingResetService ratingResetService,
+            LooksRatingDbContext context)
         {
             _userRepository = userRepository;
             _photoProfileRepository = photoProfileRepository;
@@ -33,6 +38,8 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
             _seasonRepository = seasonRepository;
             _cityService = cityService;
             _normalizeCityNameService = normalizeCityNameService;
+            _ratingResetService = ratingResetService;
+            _context = context;
         }
 
         public async Task<Result<SetUserPhotoResult>> Handle(
@@ -77,6 +84,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
             }
 
             var (ageNomination, genderNomination, cityNomination) = nominationResult.Value;
+            var previousNomination = PhotoProfileNomination.From(profile);
             var fileIds = command.Request.TelegramFileIds
                 .Select(x => x?.Trim() ?? string.Empty)
                 .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -115,7 +123,25 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.RecreateUserPhoto
             profile.AgeNomination = ageNomination;
             profile.GenderNomination = genderNomination;
             profile.Status = Enums.StatusEnum.Active;
-            await _photoProfileRepository.UpdateAsync(profile, cancellationToken);
+
+            var requestedNomination = PhotoProfileNomination.From(ageNomination, genderNomination, cityNomination.Value ?? string.Empty);
+            IReadOnlyList<Guid>? reviewerUserIds = null;
+            if (PhotoProfileRatingResetPolicy.ShouldResetRating(user.Status, previousNomination, requestedNomination))
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+                reviewerUserIds = await _ratingResetService.ResetDatabaseAsync(profile, cancellationToken);
+                await _photoProfileRepository.UpdateAsync(profile, cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                await _ratingResetService.ResetCacheAsync(
+                    profile,
+                    previousNomination,
+                    reviewerUserIds,
+                    cancellationToken);
+            }
+            else
+            {
+                await _photoProfileRepository.UpdateAsync(profile, cancellationToken);
+            }
 
             var primaryPhoto = profile.LegacyPhotoUsers.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
             var first = profile.Photos.OrderBy(x => x.SortOrder).First();

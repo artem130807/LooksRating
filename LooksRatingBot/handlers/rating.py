@@ -253,7 +253,9 @@ async def rate_photo(
     telegram_id = callback.from_user.id
     profile_id = data.get("current_profile_id")
     if not profile_id:
-        await callback.answer("Профиль для оценки не найден", show_alert=True)
+        await callback.answer()
+        if callback.message:
+            await show_next_photo(callback.message, state, api, telegram_id)
         return
     try:
         await api.create_review(
@@ -275,6 +277,10 @@ async def complain_start(callback: CallbackQuery, state: FSMContext) -> None:
     photo_id = callback.data.split(":", 1)[1]
     data = await state.get_data()
     if photo_id != data.get("current_photo_id"):
+        if callback.message and not data.get("current_photo_id"):
+            await show_next_photo(callback.message, state, api, callback.from_user.id)
+            await callback.answer()
+            return
         await callback.answer("Это фото уже неактуально", show_alert=True)
         return
     await state.set_state(TicketStates.description)

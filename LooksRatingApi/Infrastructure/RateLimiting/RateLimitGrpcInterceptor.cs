@@ -1,5 +1,7 @@
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using LooksRatingApi.Infrastructure.Auth;
+using Microsoft.Extensions.Options;
 
 namespace LooksRatingApi.Infrastructure.RateLimiting
 {
@@ -7,13 +9,16 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
     {
         private readonly RateLimitGuard _rateLimitGuard;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ApiKeyAuthOptions _apiKeyOptions;
 
         public RateLimitGrpcInterceptor(
             RateLimitGuard rateLimitGuard,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IOptions<ApiKeyAuthOptions> apiKeyOptions)
         {
             _rateLimitGuard = rateLimitGuard;
             _httpContextAccessor = httpContextAccessor;
+            _apiKeyOptions = apiKeyOptions.Value;
         }
 
         public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
@@ -23,10 +28,13 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
         {
             var httpContext = context.GetHttpContext() ?? _httpContextAccessor.HttpContext;
             var remoteIp = RateLimitGrpcPeerAddress.TryResolve(context);
+            var providedApiKey = context.RequestHeaders.FirstOrDefault(
+                entry => string.Equals(entry.Key, _apiKeyOptions.HeaderName, StringComparison.OrdinalIgnoreCase))?.Value;
 
             var decision = await _rateLimitGuard.EvaluateGrpcAsync(
                 httpContext,
                 remoteIp,
+                providedApiKey,
                 context.CancellationToken);
 
             if (!decision.IsAllowed)

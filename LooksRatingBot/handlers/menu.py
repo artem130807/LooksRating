@@ -1,4 +1,5 @@
 from aiogram import F, Router
+from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, LabeledPrice, Message, PreCheckoutQuery
 from aiogram.exceptions import TelegramBadRequest
@@ -7,7 +8,17 @@ import logging
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
 from bot.filters import NOT_DURING_RATING_OR_TICKET
-from bot.keyboards import MENU_ABOUT, MENU_RATE, MENU_SHOP, rating_flow_keyboard, shop_keyboard
+from bot.keyboards import (
+    MENU_ABOUT,
+    MENU_PROFILE,
+    MENU_RATE,
+    MENU_SETTINGS,
+    MENU_SHOP,
+    MENU_TOP,
+    rating_flow_keyboard,
+    shop_keyboard,
+)
+from bot.states import FeedSetupStates, RatingStates, TicketStates
 from bot.services import SessionState, format_api_error, main_menu_for, send_main_menu, set_bot_state
 from config import Settings
 from handlers.feed_setup import begin_feed_setup
@@ -16,6 +27,28 @@ from handlers.rating import show_next_photo
 router = Router()
 VIP_PRODUCT_CODE = 1001
 logger = logging.getLogger(__name__)
+_MENU_BUTTONS = {
+    MENU_RATE,
+    MENU_ABOUT,
+    MENU_TOP,
+    MENU_PROFILE,
+    MENU_SETTINGS,
+    MENU_SHOP,
+}
+
+
+@router.message(
+    StateFilter(
+        RatingStates.awaiting_rating,
+        TicketStates.description,
+        FeedSetupStates.city,
+        FeedSetupStates.age,
+        FeedSetupStates.gender,
+    ),
+    F.text.in_(_MENU_BUTTONS),
+)
+async def menu_blocked_while_busy(message: Message) -> None:
+    await message.answer(texts.MENU_BLOCKED_WHILE_BUSY)
 
 
 async def start_rating_after_feed_setup(
@@ -52,7 +85,9 @@ async def menu_about(message: Message, api: LooksRatingApiClient) -> None:
 
 @router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_SHOP)
 async def menu_shop(message: Message, api: LooksRatingApiClient) -> None:
-    await message.answer(texts.SHOP_MENU, reply_markup=shop_keyboard())
+    user = await api.get_user(message.from_user.id)
+    has_vip = bool(user and user.get("hasVip"))
+    await message.answer(texts.SHOP_MENU, reply_markup=shop_keyboard(has_vip=has_vip))
 
 
 @router.callback_query(F.data == "shop:vip:buy")

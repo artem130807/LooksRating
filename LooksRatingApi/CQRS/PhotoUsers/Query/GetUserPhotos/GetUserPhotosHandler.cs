@@ -46,43 +46,61 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
                 return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.RecommendationSettingsIncomplete);
             }
 
-            var profileIds = await _photoRecommendationService.GetNextUnratedProfileIdsAsync(
-                user.Id,
-                settings.Gender,
-                settings.Age!.Value,
-                feedCity);
-
-            if (profileIds.Count == 0)
+            var skipProfileIds = new HashSet<Guid>();
+            const int maxAttempts = 10;
+            for (var attempt = 0; attempt < maxAttempts; attempt++)
             {
-                return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.NoPhotosAvailable);
-            }
+                var profileIds = await _photoRecommendationService.GetNextUnratedProfileIdsAsync(
+                    user.Id,
+                    settings.Gender,
+                    settings.Age!.Value,
+                    feedCity,
+                    skipProfileIds: skipProfileIds);
 
-            var profile = await _photoProfileRepository.GetByIdAsync(profileIds[0], cancellationToken);
-            if (profile is null)
-            {
-                return Result.Failure<GetUserPhotosResponse>(CreateReviewErrors.PhotoProfileNotFound);
-            }
+                if (profileIds.Count == 0)
+                {
+                    break;
+                }
 
-            return Result.Success(new GetUserPhotosResponse
-            {
-                ProfileId = profile.Id,
-                Rank = RankDisplay.GetSticker(profile.Rank),
-                Rating = profile.Rating,
-                RatingCount = profile.RatingCount,
-                UserId = profile.UserId,
-                Gender = GenderDisplay.GetGender(profile.GenderNomination),
-                Age = profile.AgeNomination,
-                City = profile.CityNomination.Value ?? string.Empty,
-                DisplayName = UserPublicDisplayName.Resolve(profile.User),
-                Photos = profile.Photos
+                var profile = await _photoProfileRepository.GetByIdAsync(profileIds[0], cancellationToken);
+                if (profile is null)
+                {
+                    skipProfileIds.Add(profileIds[0]);
+                    continue;
+                }
+
+                var photos = profile.Photos
                     .OrderBy(x => x.SortOrder)
                     .Select(photo => new GetUserPhotosItem
                     {
                         Id = photo.Id,
-                        TelegramFileId = photo.TelegramFileId
+                        TelegramFileId = photo.TelegramFileId,
                     })
-                    .ToList(),
-            });
+                    .Where(photo => !string.IsNullOrWhiteSpace(photo.TelegramFileId))
+                    .ToList();
+
+                if (photos.Count == 0)
+                {
+                    skipProfileIds.Add(profile.Id);
+                    continue;
+                }
+
+                return Result.Success(new GetUserPhotosResponse
+                {
+                    ProfileId = profile.Id,
+                    Rank = RankDisplay.GetSticker(profile.Rank),
+                    Rating = profile.Rating,
+                    RatingCount = profile.RatingCount,
+                    UserId = profile.UserId,
+                    Gender = GenderDisplay.GetGender(profile.GenderNomination),
+                    Age = profile.AgeNomination,
+                    City = profile.CityNomination.Value ?? string.Empty,
+                    DisplayName = UserPublicDisplayName.Resolve(profile.User),
+                    Photos = photos,
+                });
+            }
+
+            return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.NoPhotosAvailable);
         }
     }
 }

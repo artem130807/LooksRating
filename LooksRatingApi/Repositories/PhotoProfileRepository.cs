@@ -1,6 +1,8 @@
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
+using LooksRatingApi.Services.PhotoProfiles;
 using LooksRatingApi.Services;
 using LooksRatingApi.Services.TheBestWeek;
 using Microsoft.EntityFrameworkCore;
@@ -237,6 +239,23 @@ namespace LooksRatingApi.Repositories
                 .CountAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyDictionary<Guid, int>> GetParticipantCountsBySeasonIdsAsync(
+            IEnumerable<Guid> seasonIds,
+            CancellationToken cancellationToken = default)
+        {
+            var ids = seasonIds.Distinct().ToList();
+            if (ids.Count == 0)
+                return new Dictionary<Guid, int>();
+
+            return await _context.PhotoProfiles
+                .AsNoTracking()
+                .Where(p => ids.Contains(p.SeasonId))
+                .Where(p => p.Status == StatusEnum.Active || p.Status == StatusEnum.Archived)
+                .GroupBy(p => p.SeasonId)
+                .Select(g => new { g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.Key, x => x.Count, cancellationToken);
+        }
+
         public async Task<List<PhotoProfile>> GetByUserIdWithSeasonAsync(Guid userId, CancellationToken cancellationToken = default)
         {
             return await _context.PhotoProfiles
@@ -301,27 +320,30 @@ namespace LooksRatingApi.Repositories
             CancellationToken cancellationToken = default)
         {
             var profile = await _context.PhotoProfiles
-                .AsNoTracking()
-                .Where(x => x.Id == profileId)
-                .Select(x => new
-                {
-                    x.Id,
-                    x.Status,
-                    SortOrder = x.Photos.Select(p => (int?)p.SortOrder).Max()
-                })
-                .FirstOrDefaultAsync(cancellationToken);
+                .Include(x => x.User)
+                .Include(x => x.Photos)
+                .FirstOrDefaultAsync(x => x.Id == profileId, cancellationToken);
 
             if (profile is null)
             {
                 return null;
             }
 
+            if (!PhotoProfileLimits.CanAddPhoto(profile.Photos.Count, profile.User.Status))
+            {
+                throw new InvalidOperationException(SetUserPhotoErrors.VipPhotoLimitExceeded);
+            }
+
+            var maxSortOrder = profile.Photos.Count == 0
+                ? -1
+                : profile.Photos.Max(p => p.SortOrder);
+
             var photo = new PhotoProfilePhoto
             {
                 Id = Guid.NewGuid(),
                 PhotoProfileId = profileId,
                 TelegramFileId = telegramFileId,
-                SortOrder = (profile.SortOrder ?? -1) + 1,
+                SortOrder = maxSortOrder + 1,
                 CreatedAt = DateTime.UtcNow,
             };
 
@@ -364,12 +386,7 @@ namespace LooksRatingApi.Repositories
                 return true;
             }
 
-            if (profile.User.Status == VipStatus.Availlable)
-            {
-                return profile.Photos.Count < 4;
-            }
-
-            return profile.Photos.Count < 1;
+            return PhotoProfileLimits.CanAddPhoto(profile.Photos.Count, profile.User.Status);
         }
 
         private IQueryable<PhotoProfile> BuildTopQuery(
@@ -426,7 +443,8 @@ namespace LooksRatingApi.Repositories
                 .Where(p => p.SeasonId == seasonId)
                 .Where(p => p.Status == StatusEnum.Active)
                 .Where(p => p.UserId != reviewerUserId)
-                .Where(p => p.CityNomination.Value == cityNomination);
+                .Where(p => p.CityNomination.Value == cityNomination)
+                .Where(p => p.Photos.Any(photo => !string.IsNullOrEmpty(photo.TelegramFileId)));
 
             if (vipOnly)
             {

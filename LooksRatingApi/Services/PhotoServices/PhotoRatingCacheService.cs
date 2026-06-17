@@ -59,5 +59,69 @@ namespace LooksRatingApi.Services
                     PhotoRedisKeys.FeedRatingCounter(reviewerUserId, seasonId));
             }
         }
+
+        public async Task ResetProfileRatingAsync(
+            Guid profileId,
+            Guid seasonId,
+            string previousCity,
+            string newCity,
+            CancellationToken cancellationToken = default)
+        {
+            if (seasonId == Guid.Empty)
+            {
+                return;
+            }
+
+            var previousCityKey = _normalizeCityNameService.Normalize(previousCity);
+            var newCityKey = _normalizeCityNameService.Normalize(newCity);
+            var profileKey = profileId.ToString();
+
+            if (!string.IsNullOrWhiteSpace(previousCity))
+            {
+                await _db.SortedSetRemoveAsync(
+                    PhotoRedisKeys.RatingSortedSet(previousCityKey, seasonId),
+                    profileKey);
+            }
+
+            if (!string.IsNullOrWhiteSpace(newCity))
+            {
+                await _db.SortedSetAddAsync(
+                    PhotoRedisKeys.RatingSortedSet(newCityKey, seasonId),
+                    profileKey,
+                    PhotoRankingScore.ToSortScore(0m, 0));
+            }
+
+            await _db.HashSetAsync(
+                PhotoRedisKeys.ProfileHash(profileId),
+                new HashEntry[]
+                {
+                    new("rating", 0m.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+                    new("rating_count", 0)
+                });
+        }
+
+        public async Task ClearRatedMarkersForProfileAsync(
+            Guid photoProfileId,
+            Guid seasonId,
+            IReadOnlyCollection<Guid> reviewerUserIds,
+            CancellationToken cancellationToken = default)
+        {
+            if (seasonId == Guid.Empty || reviewerUserIds.Count == 0)
+            {
+                return;
+            }
+
+            var profileKey = photoProfileId.ToString();
+            var tasks = new List<Task>(reviewerUserIds.Count);
+
+            foreach (var reviewerUserId in reviewerUserIds)
+            {
+                tasks.Add(_db.SetRemoveAsync(
+                    PhotoRedisKeys.UserRatedSet(reviewerUserId, seasonId),
+                    profileKey));
+            }
+
+            await Task.WhenAll(tasks);
+        }
     }
 }

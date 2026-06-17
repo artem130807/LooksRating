@@ -1,3 +1,4 @@
+using LooksRatingApi.Infrastructure.Auth;
 using Microsoft.Extensions.Options;
 
 namespace LooksRatingApi.Infrastructure.RateLimiting
@@ -5,17 +6,20 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
     public sealed class RateLimitGuard
     {
         private readonly RateLimitingOptions _options;
+        private readonly ApiKeyAuthOptions _apiKeyOptions;
         private readonly IRateLimitService _rateLimitService;
         private readonly RateLimitPartitionResolver _partitionResolver;
         private readonly ILogger<RateLimitGuard> _logger;
 
         public RateLimitGuard(
             IOptions<RateLimitingOptions> options,
+            IOptions<ApiKeyAuthOptions> apiKeyOptions,
             IRateLimitService rateLimitService,
             RateLimitPartitionResolver partitionResolver,
             ILogger<RateLimitGuard> logger)
         {
             _options = options.Value;
+            _apiKeyOptions = apiKeyOptions.Value;
             _rateLimitService = rateLimitService;
             _partitionResolver = partitionResolver;
             _logger = logger;
@@ -38,6 +42,7 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
         public async Task<RateLimitDecision> EvaluateGrpcAsync(
             HttpContext? httpContext,
             string? remoteIp,
+            string? providedApiKey,
             CancellationToken cancellationToken = default)
         {
             if (!_options.Enabled)
@@ -53,13 +58,53 @@ namespace LooksRatingApi.Infrastructure.RateLimiting
                     : new RateLimitDecision(false, RateLimitPolicies.Grpc, 60);
             }
 
-            var policyNames = RateLimitEndpointPolicyResolver.BuildGrpcPolicyNames();
+            var policyNames = ResolveGrpcPolicyNames(httpContext, providedApiKey);
             if (httpContext is not null)
             {
                 return await EvaluatePoliciesAsync(httpContext, policyNames, cancellationToken);
             }
 
             return await EvaluatePoliciesForGrpcPeerAsync(remoteIp!, policyNames, cancellationToken);
+        }
+
+        private IReadOnlyList<string> ResolveGrpcPolicyNames(HttpContext? httpContext, string? providedApiKey)
+        {
+            if (!IsTrustedServiceApiKey(providedApiKey)
+                && !IsTrustedServiceApiKeyFromHttp(httpContext))
+            {
+                return RateLimitEndpointPolicyResolver.BuildGrpcPolicyNames();
+            }
+
+            return [RateLimitPolicies.Global];
+        }
+
+        private bool IsTrustedServiceApiKey(string? providedApiKey)
+        {
+            if (string.IsNullOrWhiteSpace(providedApiKey)
+                || string.IsNullOrWhiteSpace(_apiKeyOptions.ApiKey))
+            {
+                return false;
+            }
+
+            return string.Equals(
+                providedApiKey,
+                _apiKeyOptions.ApiKey,
+                StringComparison.Ordinal);
+        }
+
+        private bool IsTrustedServiceApiKeyFromHttp(HttpContext? httpContext)
+        {
+            if (httpContext is null)
+            {
+                return false;
+            }
+
+            if (!httpContext.Request.Headers.TryGetValue(_apiKeyOptions.HeaderName, out var providedKey))
+            {
+                return false;
+            }
+
+            return IsTrustedServiceApiKey(providedKey.ToString());
         }
 
         private async Task<RateLimitDecision> EvaluatePoliciesAsync(

@@ -7,6 +7,7 @@ from aiogram.types import Message
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
 from bot.services import SessionState, ensure_bot_session, send_main_menu, set_bot_state
+from bot.session_sync import restore_fsm_from_api
 from bot.states import RatingStates, TicketStates
 from handlers.rating import exit_rating
 from handlers.registration import begin_registration
@@ -19,6 +20,7 @@ async def handle_start(
     state: FSMContext,
     api: LooksRatingApiClient,
 ) -> None:
+    await restore_fsm_from_api(state, api, message.from_user.id)
     current = await state.get_state()
     if current in (
         RatingStates.awaiting_rating.state,
@@ -78,6 +80,7 @@ async def handle_menu(
         await message.answer(texts.NEED_START)
         return
 
+    await restore_fsm_from_api(state, api, telegram_id)
     current = await state.get_state()
     if current in (
         RatingStates.awaiting_rating.state,
@@ -92,6 +95,7 @@ async def handle_menu(
 
 
 async def handle_help(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
+    await restore_fsm_from_api(state, api, message.from_user.id)
     current = await state.get_state()
     if current in (
         RatingStates.awaiting_rating.state,

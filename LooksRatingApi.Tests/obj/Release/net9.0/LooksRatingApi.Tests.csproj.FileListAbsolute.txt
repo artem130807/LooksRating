@@ -237,3 +237,17 @@
 /home/shade/LooksRating/LooksRatingApi.Tests/obj/Release/net9.0/LooksRatingApi.Tests.pdb
 /home/shade/LooksRating/LooksRatingApi.Tests/obj/Release/net9.0/LooksRatingApi.Tests.genruntimeconfig.cache
 /home/shade/LooksRating/LooksRatingApi.Tests/obj/Release/net9.0/ref/LooksRatingApi.Tests.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/BouncyCastle.Cryptography.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Castle.Core.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Docker.DotNet.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Docker.DotNet.X509.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/FluentAssertions.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/NSubstitute.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/ICSharpCode.SharpZipLib.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Renci.SshNet.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Testcontainers.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Testcontainers.PostgreSql.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Testcontainers.Redis.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Validation.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Xunit.SkippableFact.dll
+/home/shade/LooksRating/LooksRatingApi.Tests/bin/Release/net9.0/Microsoft.EntityFrameworkCore.InMemory.dll

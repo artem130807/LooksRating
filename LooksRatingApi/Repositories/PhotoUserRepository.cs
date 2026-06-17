@@ -36,6 +36,27 @@ namespace LooksRatingApi.Repositories
                 .FirstOrDefaultAsync(p => p.Id == Id);
         }
 
+        public async Task<List<PhotoUser>> GetByProfileIdAsync(Guid photoProfileId, CancellationToken cancellationToken = default)
+        {
+            return await _context.PhotoUsers
+                .Where(p => p.PhotoProfileId == photoProfileId)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task ResetLegacyRatingsForProfileAsync(
+            Guid photoProfileId,
+            CancellationToken cancellationToken = default)
+        {
+            await _context.PhotoUsers
+                .Where(x => x.PhotoProfileId == photoProfileId)
+                .ExecuteUpdateAsync(
+                    setter => setter
+                        .SetProperty(x => x.Rating, 0m)
+                        .SetProperty(x => x.RatingCount, 0)
+                        .SetProperty(x => x.Rank, RankEnum.Terrible),
+                    cancellationToken);
+        }
+
         public async Task<List<PhotoUser>> GetByIdsAsync(
             IReadOnlyList<Guid> ids,
             CancellationToken cancellationToken = default)
@@ -363,16 +384,6 @@ namespace LooksRatingApi.Repositories
             .ThenByDescending(x => x.CreatedAt)
             .Take(10)
             .ToList();
-        }
-
-        public async Task<bool> IsWithinVipPhotoLimitAsync(Guid seasonId, long telegramId)
-        {
-            var photos = await _context.PhotoUsers
-            .Where(p => p.SeasonId == seasonId && p.User.TelegramId == telegramId && p.User.Status == VipStatus.Availlable)
-            .ToListAsync();
-            if(photos.Count < 4)
-                return true;
-            return false;
         }
     }
 }

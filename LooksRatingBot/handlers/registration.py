@@ -134,14 +134,24 @@ async def complete_registration(
         await message.answer(format_api_error(exc))
         return
 
-    user_id = result["userId"]
-    await api.link_session(telegram_id, user_id)
-    await set_bot_state(api, telegram_id, SessionState.REGISTERED)
-    await state.clear()
+    try:
+        await set_bot_state(api, telegram_id, SessionState.REGISTERED)
+    except ApiError as exc:
+        logger.warning("set_bot_state after register failed for %s: %s", telegram_id, exc.message)
+        await message.answer(format_api_error(exc))
+        return
+
     await send_main_menu(
         message,
         api,
         telegram_id,
         texts.REG_DONE.format(display_name=result.get("displayName", "—")),
     )
-    await offer_photo_after_registration(message, state, api, telegram_id)
+    try:
+        await offer_photo_after_registration(message, state, api, telegram_id)
+    except ApiError as exc:
+        logger.warning("offer_photo_after_registration failed for %s: %s", telegram_id, exc.message)
+        await message.answer(texts.PHOTO_LATER, reply_markup=cancel_keyboard())
+    except Exception:
+        logger.exception("offer_photo_after_registration failed for %s", telegram_id)
+        await message.answer(texts.PHOTO_LATER, reply_markup=cancel_keyboard())
