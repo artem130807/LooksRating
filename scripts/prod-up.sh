@@ -23,7 +23,7 @@ docker compose -f "$COMPOSE_FILE" up -d \
   postgres redis zookeeper kafka ticket-postgres
 
 docker compose -f "$COMPOSE_FILE" up -d --wait \
-  postgres redis kafka ticket-postgres
+  postgres redis zookeeper kafka ticket-postgres
 
 echo "==> API: 1 replica (migrations)..."
 docker compose -f "$COMPOSE_FILE" build api
