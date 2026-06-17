@@ -47,7 +47,9 @@ public sealed class VipStatusExpiryProcessorTests
         var processor = CreateProcessor(context);
         await processor.ProcessAsync(CancellationToken.None);
 
-        var statuses = await context.Users
+        await using var verifyContext = _postgres.CreateContext();
+        var statuses = await verifyContext.Users
+            .AsNoTracking()
             .Where(user => user.TelegramId == 5001 || user.TelegramId == 5002)
             .ToDictionaryAsync(user => user.TelegramId, user => user.Status);
 
@@ -80,7 +82,9 @@ public sealed class VipStatusExpiryProcessorTests
         var processor = CreateProcessor(context, distributedLock);
         await processor.ProcessAsync(CancellationToken.None);
 
-        var status = await context.Users
+        await using var verifyContext = _postgres.CreateContext();
+        var status = await verifyContext.Users
+            .AsNoTracking()
             .Where(u => u.TelegramId == 5003)
             .Select(u => u.Status)
             .SingleAsync();
