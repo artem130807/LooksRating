@@ -4,6 +4,8 @@ import logging
 from dataclasses import dataclass
 from enum import StrEnum
 
+import grpc
+
 from adapters.tgifts_grpc_client import TGiftsGrpcClient
 from api.grpc_clients import LooksRatingSparksGrpcClient
 
@@ -47,6 +49,21 @@ class GiftPurchaseSagaOrchestrator:
         self._tgifts_client = tgifts_client
 
     def execute(self, telegram_id: int, stars_count: int) -> GiftPurchaseSagaResult:
+        try:
+            return self._execute(telegram_id, stars_count)
+        except Exception:
+            logger.exception(
+                "Gift purchase saga crashed for telegram_id=%s stars=%s",
+                telegram_id,
+                stars_count,
+            )
+            return GiftPurchaseSagaResult(
+                success=False,
+                message="",
+                step=GiftPurchaseStep.GIFT_SEND,
+            )
+
+    def _execute(self, telegram_id: int, stars_count: int) -> GiftPurchaseSagaResult:
         if stars_count not in ALLOWED_STAR_TIERS:
             return GiftPurchaseSagaResult(
                 success=False,

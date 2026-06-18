@@ -383,6 +383,10 @@ SHOP_GIFT_CONFIRM = (
 SHOP_GIFT_PROCESSING = "⏳ Отправляем подарок… Это может занять до минуту."
 SHOP_GIFT_SUCCESS = "🎉 Подарок на <b>{stars}★</b> успешно отправлен!"
 SHOP_GIFT_FAILED = "❌ <b>Не удалось отправить подарок</b>\n\n{details}"
+GIFT_EXCHANGE_UNAVAILABLE = (
+    "Сейчас обмен искр на Telegram Stars временно недоступен. "
+    "Попробуйте позже."
+)
 SHOP_VIP_INVOICE_TITLE = "VIP-статус LooksRating"
 SHOP_VIP_INVOICE_DESCRIPTION = (
     "VIP на 30 дней: до 4 фото в сезоне, топ-10 VIP, обмен искр на подарки Stars, "

@@ -44,10 +44,33 @@ ERROR_MESSAGES: dict[str, str] = {
     "TooManyRequests": "Вы превысили лимит сообщений. Подождите немного и попробуйте снова.",
 }
 
+SERVER_UNAVAILABLE_MESSAGE = (
+    "Бот временно не отвечает. Подождите немного и попробуйте снова."
+)
 
-def translate_error(code: str | None, fallback: str | None = None) -> str:
+
+def _is_http_status_message(value: str) -> bool:
+    normalized = value.strip()
+    if not normalized.upper().startswith("HTTP "):
+        return False
+    status_part = normalized[5:].strip()
+    return status_part.isdigit()
+
+
+def translate_error(
+    code: str | None,
+    fallback: str | None = None,
+    *,
+    status: int | None = None,
+) -> str:
+    if status is not None and status >= 500:
+        return SERVER_UNAVAILABLE_MESSAGE
     if code and code in ERROR_MESSAGES:
         return ERROR_MESSAGES[code]
     if fallback:
+        if _is_http_status_message(fallback):
+            status_from_message = int(fallback.strip().split()[-1])
+            if status_from_message >= 500:
+                return SERVER_UNAVAILABLE_MESSAGE
         return fallback
     return "Произошла ошибка. Попробуйте ещё раз."

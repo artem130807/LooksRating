@@ -147,7 +147,7 @@ async def shop_gift_confirm(
         if callback.message:
             await callback.message.edit_text(
                 texts.SHOP_GIFT_FAILED.format(
-                    details="Произошла ошибка. Попробуйте позже.",
+                    details=format_gift_failure_details(None),
                 ),
                 reply_markup=shop_gifts_keyboard(),
             )

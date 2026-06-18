@@ -59,6 +59,8 @@ class LooksRatingSparksGrpcClient:
                 timeout=self._timeout,
             )
             return SparksGrpcResponse(success=bool(response.success), message=response.message or "")
+        except grpc.RpcError as exc:
+            return SparksGrpcResponse(success=False, message=str(exc))
         finally:
             channel.close()
 
@@ -87,6 +89,8 @@ class LooksRatingSparksGrpcClient:
                 timeout=self._timeout,
             )
             return SparksGrpcResponse(success=bool(response.success), message=response.message or "")
+        except grpc.RpcError as exc:
+            return SparksGrpcResponse(success=False, message=str(exc))
         finally:
             channel.close()
 

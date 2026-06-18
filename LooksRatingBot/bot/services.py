@@ -5,7 +5,7 @@ from typing import Any
 
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
-from bot.errors import translate_error
+from bot.errors import _is_http_status_message, translate_error
 from bot.gender_api import gender_to_api
 
 GENDER_MALE = 1
@@ -43,15 +43,36 @@ def format_insufficient_sparks_alert(cost: int, balance: int) -> str:
     )
 
 
+def _looks_like_technical_gift_error(message: str) -> bool:
+    lowered = message.lower()
+    if _is_http_status_message(message):
+        return True
+    technical_markers = (
+        "grpc",
+        "rpc",
+        "unavailable",
+        "deadline exceeded",
+        "statuscode",
+        "connection refused",
+        "connection reset",
+        "timed out",
+        "timeout",
+        "internal server error",
+        "traceback",
+        "exception",
+        "failed parsing",
+        "goaway",
+    )
+    return any(marker in lowered for marker in technical_markers)
+
+
 def format_gift_failure_details(raw_message: str | None) -> str:
     normalized = (raw_message or "").strip()
     mapping = {
         "Недостаточно искр на балансе": "На балансе не хватает искр для этого обмена.",
         "Не удалось списать искры": "На балансе не хватает искр для этого обмена.",
         "Для начала нужно приобрести вип статус": "Сначала оформите VIP в разделе «✨ Привилегии».",
-        "Подарок не отправлен. Искры возвращены на баланс.": (
-            "Не удалось доставить подарок. Попробуйте позже или выберите другой номинал."
-        ),
+        "Подарок не отправлен. Искры возвращены на баланс.": texts.GIFT_EXCHANGE_UNAVAILABLE,
         "Подарок не отправлен, а откат искр не выполнен. Обратитесь в поддержку.": (
             "Произошла ошибка при обмене. Напишите в поддержку — мы поможем."
         ),
@@ -61,9 +82,9 @@ def format_gift_failure_details(raw_message: str | None) -> str:
         return mapping[normalized]
     if "не найден" in normalized.lower() and "★" in normalized:
         return "Сейчас нет доступного подарка на эту сумму. Попробуйте другой номинал."
-    if normalized:
-        return normalized
-    return "Попробуйте позже или выберите другой подарок."
+    if not normalized or _looks_like_technical_gift_error(normalized):
+        return texts.GIFT_EXCHANGE_UNAVAILABLE
+    return normalized
 
 
 class SessionState:
@@ -150,7 +171,7 @@ def custom_nomination(city: str, age: int, gender: int) -> dict[str, Any]:
 
 
 def format_api_error(exc: ApiError) -> str:
-    return translate_error(exc.code, exc.message)
+    return translate_error(exc.code, exc.message, status=exc.status)
 
 
 async def load_cities(api: LooksRatingApiClient) -> list[str]:

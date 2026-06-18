@@ -34,5 +34,7 @@ class TGiftsGrpcClient:
                 timeout=self._timeout,
             )
             return GiftSendResponse(success=bool(response.success), message=response.message or "")
+        except grpc.RpcError as exc:
+            return GiftSendResponse(success=False, message=str(exc))
         finally:
             channel.close()

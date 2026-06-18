@@ -9,6 +9,7 @@ from bot.services import (
     custom_nomination,
     format_api_error,
     format_city_display,
+    format_gift_failure_details,
     format_insufficient_sparks_alert,
     format_sparks_amount,
     gender_from_text,
@@ -103,9 +104,41 @@ class TestApiErrors:
 
         assert "14" in format_api_error(exc)
 
+    def test_format_api_error_hides_http_500(self) -> None:
+        exc = ApiError(500, message="HTTP 500")
+
+        text = format_api_error(exc)
+
+        assert "HTTP" not in text
+        assert "500" not in text
+        assert "временно" in text.lower()
+
     def test_translate_unknown_error_falls_back(self) -> None:
         assert translate_error(None, "custom") == "custom"
         assert translate_error(None) == "Произошла ошибка. Попробуйте ещё раз."
+        assert "временно" in translate_error(None, "HTTP 500").lower()
+
+
+class TestGiftFailureDetails:
+    def test_format_gift_failure_hides_grpc_error(self) -> None:
+        details = format_gift_failure_details(
+            '<_InactiveRpcError of RPC that terminated with: status = StatusCode.UNAVAILABLE>'
+        )
+
+        assert "grpc" not in details.lower()
+        assert "rpc" not in details.lower()
+        assert "временно" in details.lower()
+        assert "stars" in details.lower()
+
+    def test_format_gift_failure_keeps_insufficient_sparks(self) -> None:
+        details = format_gift_failure_details("Недостаточно искр на балансе")
+
+        assert "искр" in details.lower()
+
+    def test_format_gift_failure_empty_message(self) -> None:
+        details = format_gift_failure_details(None)
+
+        assert "временно" in details.lower()
 
 
 @pytest.mark.asyncio
