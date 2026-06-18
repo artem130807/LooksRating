@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.Reviews.Command.CreateReview;
 using LooksRatingApi.Enums;
@@ -13,15 +14,18 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
         private readonly IUserRepository _userRepository;
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IPhotoRecommendationService _photoRecommendationService;
+        private readonly ISeasonRepository _seasonRepository;
 
         public GetUserPhotosHandler(
             IUserRepository userRepository,
             IPhotoProfileRepository photoProfileRepository,
-            IPhotoRecommendationService photoRecommendationService)
+            IPhotoRecommendationService photoRecommendationService,
+            ISeasonRepository seasonRepository)
         {
             _userRepository = userRepository;
             _photoProfileRepository = photoProfileRepository;
             _photoRecommendationService = photoRecommendationService;
+            _seasonRepository = seasonRepository;
         }
 
         public async Task<Result<GetUserPhotosResponse>> Handle(
@@ -45,6 +49,9 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
             {
                 return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.RecommendationSettingsIncomplete);
             }
+
+            var season = await _seasonRepository.GetCurrent();
+            var seasonIsClosed = season?.IsClosed ?? false;
 
             var skipProfileIds = new HashSet<Guid>();
             const int maxAttempts = 10;
@@ -85,19 +92,14 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
                     continue;
                 }
 
-                return Result.Success(new GetUserPhotosResponse
-                {
-                    ProfileId = profile.Id,
-                    Rank = RankDisplay.GetSticker(profile.Rank),
-                    Rating = profile.Rating,
-                    RatingCount = profile.RatingCount,
-                    UserId = profile.UserId,
-                    Gender = GenderDisplay.GetGender(profile.GenderNomination),
-                    Age = profile.AgeNomination,
-                    City = profile.CityNomination.Value ?? string.Empty,
-                    DisplayName = UserPublicDisplayName.Resolve(profile.User),
-                    Photos = photos,
-                });
+                var response = await GetUserPhotosResponseBuilder.BuildAsync(
+                    profile,
+                    photos,
+                    seasonIsClosed,
+                    _photoProfileRepository,
+                    cancellationToken);
+
+                return Result.Success(response);
             }
 
             return Result.Failure<GetUserPhotosResponse>(GetUserPhotosErrors.NoPhotosAvailable);

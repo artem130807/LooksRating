@@ -55,11 +55,17 @@ async def show_profile(message: Message, api: LooksRatingApiClient) -> None:
     if has_photo:
         first = photos[0]
         if first:
+            season_top_place = ""
+            place = payload.get("seasonTopPlace")
+            if place:
+                season_top_place = texts.PROFILE_SEASON_TOP_PLACE.format(place=place)
+
             text += "\n\n" + texts.PROFILE_PHOTO_STATS.format(
                 rating_line=format_rating_display(
                     float(first.get("rating", 0)),
                     int(first.get("ratingCount", 0)),
                 ),
+                season_top_place=season_top_place,
                 rank=first.get("rank", "—"),
                 city=format_city_display(first.get("city")),
                 age=first.get("age", "—"),

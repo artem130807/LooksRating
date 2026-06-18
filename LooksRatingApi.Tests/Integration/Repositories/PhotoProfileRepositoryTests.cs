@@ -1,3 +1,4 @@
+using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
 using LooksRatingApi.Repositories;
@@ -106,5 +107,118 @@ public sealed class PhotoProfileRepositoryTests
             .SingleAsync();
 
         status.Should().Be(StatusEnum.Archived);
+    }
+
+    [SkippableFact]
+    public async Task GetSeasonTopPositionAsync_ReturnsPlaceWithinNominationCategory()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var leaderUser = await TestDataBuilder.SeedUserAsync(context, 5101);
+        var targetUser = await TestDataBuilder.SeedUserAsync(context, 5102);
+        var outsiderUser = await TestDataBuilder.SeedUserAsync(context, 5103);
+
+        var city = CityVo.Create("ulyanovsk").Value;
+        var leader = CreateRankedProfile(leaderUser, season, city, rating: 10m, ratingCount: 20);
+        var target = CreateRankedProfile(targetUser, season, city, rating: 9.5m, ratingCount: 15);
+        var outsider = CreateRankedProfile(
+            outsiderUser,
+            season,
+            CityVo.Create("moscow").Value,
+            rating: 10m,
+            ratingCount: 30);
+
+        context.PhotoProfiles.AddRange(leader, target, outsider);
+        await context.SaveChangesAsync();
+
+        var repository = new PhotoProfileRepository(context);
+        var position = await repository.GetSeasonTopPositionAsync(target, seasonIsClosed: false);
+
+        position.Should().NotBeNull();
+        position!.Place.Should().Be(2);
+        position.TotalCount.Should().Be(2);
+    }
+
+    [SkippableFact]
+    public async Task GetSeasonTopPositionAsync_MatchesTopOrdering()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var users = new[]
+        {
+            await TestDataBuilder.SeedUserAsync(context, 5201),
+            await TestDataBuilder.SeedUserAsync(context, 5202),
+            await TestDataBuilder.SeedUserAsync(context, 5203),
+        };
+
+        var city = CityVo.Create("kazan").Value;
+        var profiles = new[]
+        {
+            CreateRankedProfile(users[0], season, city, rating: 10m, ratingCount: 30),
+            CreateRankedProfile(users[1], season, city, rating: 9.8m, ratingCount: 20),
+            CreateRankedProfile(users[2], season, city, rating: 9.5m, ratingCount: 15),
+        };
+
+        context.PhotoProfiles.AddRange(profiles);
+        await context.SaveChangesAsync();
+
+        var repository = new PhotoProfileRepository(context);
+        var rankedIds = await repository.GetTopProfileIdsAsync(
+            season.Id,
+            seasonIsClosed: false,
+            city.Value!,
+            GenderEnum.Male,
+            age: 18,
+            skip: 0,
+            take: 10);
+
+        for (var index = 0; index < rankedIds.Count; index++)
+        {
+            var profile = profiles.Single(p => p.Id == rankedIds[index]);
+            var position = await repository.GetSeasonTopPositionAsync(profile, seasonIsClosed: false);
+
+            position.Should().NotBeNull();
+            position!.Place.Should().Be(index + 1);
+            position.TotalCount.Should().Be(3);
+        }
+    }
+
+    private static PhotoProfile CreateRankedProfile(
+        User user,
+        Season season,
+        CityVo city,
+        decimal rating,
+        int ratingCount)
+    {
+        return new PhotoProfile
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            User = user,
+            SeasonId = season.Id,
+            Rating = rating,
+            RatingCount = ratingCount,
+            Rank = RankEnum.Cute,
+            Status = StatusEnum.Active,
+            CityNomination = city,
+            AgeNomination = 18,
+            GenderNomination = GenderEnum.Male,
+            CreatedAt = DateTime.UtcNow,
+            Photos =
+            {
+                new PhotoProfilePhoto
+                {
+                    Id = Guid.NewGuid(),
+                    TelegramFileId = $"file-{user.TelegramId}",
+                    SortOrder = 0,
+                },
+            },
+        };
     }
 }

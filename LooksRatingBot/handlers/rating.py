@@ -75,8 +75,16 @@ def _normalize_photo_payload(photo: dict) -> dict:
         "gender": photo.get("gender") or photo.get("Gender"),
         "age": photo.get("age") if photo.get("age") is not None else photo.get("Age"),
         "city": photo.get("city") or photo.get("City"),
+        "seasonTopPlace": photo.get("seasonTopPlace") if photo.get("seasonTopPlace") is not None else photo.get("SeasonTopPlace"),
         "photos": normalized_photos,
     }
+
+
+def _season_top_line(photo: dict) -> str:
+    place = photo.get("seasonTopPlace")
+    if place:
+        return texts.PROFILE_SEASON_TOP_PLACE.format(place=place)
+    return ""
 
 
 def _photo_caption(photo: dict) -> str:
@@ -89,6 +97,7 @@ def _photo_caption(photo: dict) -> str:
         age_text=age_text,
         city=format_city_display(photo.get("city")),
         rank=photo.get("rank", "—"),
+        season_top_line=_season_top_line(photo),
         rating_line=format_rating_display(
             float(photo.get("rating", 0)),
             int(photo.get("ratingCount", 0)),

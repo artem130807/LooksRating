@@ -133,6 +133,7 @@ RATING_CAPTION = (
     "👤 <b>{display_name}</b>\n"
     "{gender_icon} {gender} · 🎂 {age_text}\n"
     "🏙 {city}  ·  {rank}\n"
+    "{season_top_line}"
     "📊 {rating_line}"
 )
 RATING_SAVED = "Оценка {rating}/10 принята"
@@ -294,9 +295,11 @@ TOP_BACK_TO_LIST = "◀️ Назад к топу"
 PROFILE_PHOTO_STATS = (
     "📸 <b>Ваше фото в сезоне</b>\n"
     "⭐ {rating_line}\n"
+    "{season_top_place}"
     "🏅 {rank}\n"
     "📋 Номинация: {city}, {age} лет, {gender}"
 )
+PROFILE_SEASON_TOP_PLACE = "🏆 Место в сезоне: <b>{place}</b>\n"
 TOP_MY_PHOTO_MISSING = "В этом сезоне у вас не было фото."
 STATS_IN_TOP = "🏆 Попаданий в «лучшую неделю»: <b>{times}</b>"
 STATS_SEASONS = "📅 Сезонов с вашим участием: <b>{count}</b>"

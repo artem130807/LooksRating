@@ -23,6 +23,8 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
         public string City {get; set;} = string.Empty;
         public string? DisplayName { get; set; }
         public int TimesInTop { get; set; }
+        public int? SeasonTopPlace { get; set; }
+        public int? SeasonTopTotal { get; set; }
         public List<GetUserPhotosItem> Photos { get; set; } = new();
     }
 }

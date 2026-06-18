@@ -125,6 +125,103 @@ namespace LooksRatingApi.Repositories
             return await query.CountAsync(cancellationToken);
         }
 
+        public async Task<SeasonTopPosition?> GetSeasonTopPositionAsync(
+            PhotoProfile profile,
+            bool seasonIsClosed,
+            CancellationToken cancellationToken = default)
+        {
+            var query = BuildTopQueryForProfile(profile, seasonIsClosed, vipOnly: false);
+            if (query is null)
+            {
+                return null;
+            }
+
+            if (!await query.AnyAsync(candidate => candidate.Id == profile.Id, cancellationToken))
+            {
+                return null;
+            }
+
+            var aboveCount = await CountProfilesRankedAboveAsync(query, profile, cancellationToken);
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            return new SeasonTopPosition(aboveCount + 1, totalCount);
+        }
+
+        private IQueryable<PhotoProfile>? BuildTopQueryForProfile(
+            PhotoProfile profile,
+            bool seasonIsClosed,
+            bool vipOnly)
+        {
+            var city = profile.CityNomination?.Value;
+            if (string.IsNullOrWhiteSpace(city))
+            {
+                return null;
+            }
+
+            var ageBracket = TopService.GetTop(profile.AgeNomination);
+            if (ageBracket.Length == 0)
+            {
+                return null;
+            }
+
+            var statuses = seasonIsClosed
+                ? new[] { StatusEnum.Active, StatusEnum.Archived }
+                : new[] { StatusEnum.Active };
+
+            return BuildTopQuery(
+                profile.SeasonId,
+                statuses,
+                city,
+                profile.GenderNomination,
+                ageBracket[0],
+                vipOnly);
+        }
+
+        private static async Task<int> CountProfilesRankedAboveAsync(
+            IQueryable<PhotoProfile> query,
+            PhotoProfile profile,
+            CancellationToken cancellationToken)
+        {
+            var myHasVotes = profile.RatingCount > 0 ? 1 : 0;
+            var priorMean = PhotoRankingScore.PriorMean;
+            var priorWeight = PhotoRankingScore.PriorWeight;
+            var myScore = profile.RatingCount > 0
+                ? ((profile.Rating * profile.RatingCount) + (priorMean * priorWeight))
+                    / (profile.RatingCount + priorWeight)
+                : PhotoRankingScore.UnratedScore;
+
+            return await query
+                .Where(candidate => candidate.Id != profile.Id)
+                .CountAsync(
+                    candidate =>
+                        (candidate.RatingCount > 0 ? 1 : 0) > myHasVotes
+                        || ((candidate.RatingCount > 0 ? 1 : 0) == myHasVotes
+                            && (
+                                (candidate.RatingCount > 0
+                                    ? ((candidate.Rating * candidate.RatingCount) + (priorMean * priorWeight))
+                                        / (candidate.RatingCount + priorWeight)
+                                    : PhotoRankingScore.UnratedScore) > myScore
+                                || ((candidate.RatingCount > 0
+                                    ? ((candidate.Rating * candidate.RatingCount) + (priorMean * priorWeight))
+                                        / (candidate.RatingCount + priorWeight)
+                                    : PhotoRankingScore.UnratedScore) == myScore
+                                    && candidate.Rating > profile.Rating)
+                                || ((candidate.RatingCount > 0
+                                    ? ((candidate.Rating * candidate.RatingCount) + (priorMean * priorWeight))
+                                        / (candidate.RatingCount + priorWeight)
+                                    : PhotoRankingScore.UnratedScore) == myScore
+                                    && candidate.Rating == profile.Rating
+                                    && candidate.RatingCount > profile.RatingCount)
+                                || ((candidate.RatingCount > 0
+                                    ? ((candidate.Rating * candidate.RatingCount) + (priorMean * priorWeight))
+                                        / (candidate.RatingCount + priorWeight)
+                                    : PhotoRankingScore.UnratedScore) == myScore
+                                    && candidate.Rating == profile.Rating
+                                    && candidate.RatingCount == profile.RatingCount
+                                    && candidate.CreatedAt > profile.CreatedAt))),
+                    cancellationToken);
+        }
+
         public async Task<int> CountFeedProfilesAsync(
             Guid seasonId,
             Guid reviewerUserId,
@@ -400,8 +497,6 @@ namespace LooksRatingApi.Repositories
             var topAge = TopService.GetTop(age);
             var query = _context.PhotoProfiles
                 .AsNoTracking()
-                .Include(p => p.User)
-                .Include(p => p.Photos.OrderBy(x => x.SortOrder))
                 .Where(p => p.SeasonId == seasonId)
                 .Where(p => statuses.Contains(p.Status))
                 .Where(p => p.CityNomination.Value == cityNomination);

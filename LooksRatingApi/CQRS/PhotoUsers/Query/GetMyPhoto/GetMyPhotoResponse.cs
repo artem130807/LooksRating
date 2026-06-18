@@ -20,6 +20,8 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
         public int PhotoCount { get; init; }
         public int MaxPhotos { get; init; }
         public bool CanAddPhoto { get; init; }
+        public int? SeasonTopPlace { get; init; }
+        public int? SeasonTopTotal { get; init; }
         public List<GetMyPhotoItem> Photos { get; init; } = new();
     }
 }

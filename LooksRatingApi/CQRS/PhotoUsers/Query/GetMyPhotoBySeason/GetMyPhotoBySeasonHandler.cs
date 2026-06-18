@@ -4,7 +4,6 @@ using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
 using LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto;
-using LooksRatingApi.Services;
 using MediatR;
 
 namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhotoBySeason
@@ -61,26 +60,13 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhotoBySeason
                 return Result.Failure<GetMyPhotoResponse>("PhotoNotFound");
             }
 
-            return Result.Success(new GetMyPhotoResponse
-            {
-                ProfileId = profile.Id,
-                UserId = user.Id,
-                SeasonId = request.SeasonId,
-                Photos = profile.Photos
-                    .OrderBy(x => x.SortOrder)
-                    .Select(item => new GetMyPhotoItem
-                    {
-                        Id = item.Id,
-                        TelegramFileId = item.TelegramFileId,
-                        Rating = profile.Rating,
-                        RatingCount = profile.RatingCount,
-                        Rank = RankDisplay.GetSticker(profile.Rank),
-                        Gender = GenderDisplay.GetGender(profile.GenderNomination),
-                        Age = profile.AgeNomination,
-                        City = profile.CityNomination.Value ?? string.Empty,
-                    })
-                    .ToList(),
-            });
+            return Result.Success(await GetMyPhotoResponseBuilder.BuildAsync(
+                profile,
+                user,
+                request.SeasonId,
+                season.IsClosed,
+                _photoProfileRepository,
+                cancellationToken));
         }
     }
 }
