@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
@@ -29,6 +30,8 @@ class ChannelSubscribePromoService:
         self._task: asyncio.Task | None = None
         self._stop_event = asyncio.Event()
         self._tick_lock = asyncio.Lock()
+        self._current_page = 1
+        self._promo_sent_at: dict[int, float] = {}
 
     async def start(self) -> None:
         if not self._enabled:
@@ -52,15 +55,19 @@ class ChannelSubscribePromoService:
     async def _run(self) -> None:
         while not self._stop_event.is_set():
             try:
+                await asyncio.wait_for(self._stop_event.wait(), timeout=self._interval_seconds)
+            except asyncio.TimeoutError:
+                pass
+
+            if self._stop_event.is_set():
+                break
+
+            try:
                 await self._tick_safe()
             except asyncio.CancelledError:
                 raise
             except Exception:
                 logger.exception("Channel subscribe promo tick failed")
-            try:
-                await asyncio.wait_for(self._stop_event.wait(), timeout=self._interval_seconds)
-            except asyncio.TimeoutError:
-                continue
 
     async def _tick_safe(self) -> None:
         if self._tick_lock.locked():
@@ -70,18 +77,39 @@ class ChannelSubscribePromoService:
         async with self._tick_lock:
             await self._tick()
 
+    def _is_on_cooldown(self, telegram_id: int, *, now: float | None = None) -> bool:
+        sent_at = self._promo_sent_at.get(telegram_id)
+        if sent_at is None:
+            return False
+        current = now if now is not None else time.time()
+        return current - sent_at < self._interval_seconds
+
+    def _mark_sent(self, telegram_id: int, *, now: float | None = None) -> None:
+        self._promo_sent_at[telegram_id] = now if now is not None else time.time()
+
+    def _advance_page(self, page: UsersForMessagePage) -> None:
+        if page.has_next_page:
+            self._current_page += 1
+            return
+        self._current_page = 1
+
     async def _tick(self) -> None:
-        # Always page 1: the unsubscribed pool shrinks as users claim the bonus.
-        page = await self._fetch_page(1)
+        page = await self._fetch_page(self._current_page)
         if not page.telegram_ids:
+            self._advance_page(page)
             return
 
         promo_text = texts.CHANNEL_SUBSCRIBE_PROMO.format(channel_url=self._settings.channel_url)
         keyboard = channel_subscribe_keyboard()
         sent_count = 0
+        skipped_cooldown = 0
+        now = time.time()
 
         for telegram_id in page.telegram_ids:
             if telegram_id <= 0:
+                continue
+            if self._is_on_cooldown(telegram_id, now=now):
+                skipped_cooldown += 1
                 continue
             try:
                 await self._bot.send_message(
@@ -90,6 +118,7 @@ class ChannelSubscribePromoService:
                     reply_markup=keyboard,
                     disable_web_page_preview=False,
                 )
+                self._mark_sent(telegram_id, now=now)
                 sent_count += 1
             except (TelegramForbiddenError, TelegramBadRequest):
                 logger.debug("Channel promo skipped for telegram_id=%s", telegram_id)
@@ -99,10 +128,15 @@ class ChannelSubscribePromoService:
             if self._send_delay > 0:
                 await asyncio.sleep(self._send_delay)
 
+        self._advance_page(page)
+
         logger.info(
-            "Channel subscribe promo tick: attempted=%s, sent=%s",
+            "Channel subscribe promo tick: page=%s, attempted=%s, sent=%s, skipped_cooldown=%s, next_page=%s",
+            page.page,
             len(page.telegram_ids),
             sent_count,
+            skipped_cooldown,
+            self._current_page,
         )
 
     async def _fetch_page(self, page: int) -> UsersForMessagePage:
