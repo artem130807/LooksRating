@@ -49,8 +49,7 @@ namespace LooksRatingApi.Services.Orchestrators
                 });
             }
 
-            var compensatedAmount = StarForSparks.WritingOfSparks(starsCount);
-            if (compensatedAmount <= 0)
+            if (!SparksGiftExchangeRules.TryGetSparksCost(starsCount, out var compensatedAmount))
             {
                 return Result.Success(new RollBackDebitedSparksResponse
                 {

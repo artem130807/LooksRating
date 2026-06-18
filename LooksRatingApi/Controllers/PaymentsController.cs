@@ -1,5 +1,6 @@
 using LooksRatingApi.CQRS.Payments.Command.ConfirmPaymentOrder;
 using LooksRatingApi.CQRS.Payments.Command.CreatePaymentOrder;
+using LooksRatingApi.CQRS.Payments.Query.GetGiftExchangeRates;
 using LooksRatingApi.Infrastructure.RateLimiting;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -71,6 +72,13 @@ namespace LooksRatingApi.Controllers
             }
 
             return Ok(result.Value);
+        }
+
+        [HttpGet("gift-exchange-rates")]
+        public async Task<IActionResult> GetGiftExchangeRates(CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(new GetGiftExchangeRatesQuery(), cancellationToken);
+            return Ok(result);
         }
     }
 }

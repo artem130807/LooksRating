@@ -40,8 +40,9 @@ namespace LooksRatingApi.Services.Orchestrators
                 return Result.Success(new DebitedSparksResponse{Success = false, Message = "Пользователь не найден"});
             if(user.Status == Enums.VipStatus.Unavaillable)
                 return Result.Success(new DebitedSparksResponse{Success = false, Message = "Для начала нужно приобрести вип статус"});
+            if (!SparksGiftExchangeRules.TryGetSparksCost(starsCount, out var sparks))
+                return Result.Success(new DebitedSparksResponse{Success = false, Message = "Недопустимая стоимость подарка"});
             var balance = await _sparksLedgerRepository.GetBalanceAsync(user.Id, cancellationToken);
-            var sparks = StarForSparks.WritingOfSparks(starsCount);
             var remainder = balance - sparks;
             if(remainder < 0)
                 return Result.Success(new DebitedSparksResponse{Success = false, Message = "Недостаточно искр на балансе"});

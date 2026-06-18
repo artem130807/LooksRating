@@ -16,11 +16,11 @@ from bot.services import (
 )
 from handlers.privileges import show_vip_shop
 from services.gift_purchase_saga import (
-    ALLOWED_STAR_TIERS,
     GiftPurchaseSagaOrchestrator,
     GiftPurchaseStep,
     STAR_SPARKS_COSTS,
 )
+from bot.sparks_exchange import ALLOWED_STAR_TIERS
 
 router = Router()
 logger = logging.getLogger(__name__)

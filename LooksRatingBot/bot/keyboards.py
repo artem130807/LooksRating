@@ -429,15 +429,21 @@ def shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
 
 
 def shop_gifts_keyboard() -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="100★ · 1 000 искр", callback_data="shop:gift:select:100")],
-            [InlineKeyboardButton(text="200★ · 2 000 искр", callback_data="shop:gift:select:200")],
-            [InlineKeyboardButton(text="300★ · 3 000 искр", callback_data="shop:gift:select:300")],
-            [InlineKeyboardButton(text="400★ · 4 000 искр", callback_data="shop:gift:select:400")],
-            [InlineKeyboardButton(text="◀️ Назад", callback_data=callbacks.SHOP_BACK)],
-        ]
-    )
+    from bot.services import format_sparks_amount
+    from bot.sparks_exchange import sparks_costs
+
+    rows: list[list[InlineKeyboardButton]] = []
+    for star_tier, cost in sparks_costs().items():
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=f"{star_tier}★ · {format_sparks_amount(cost)} искр",
+                    callback_data=f"shop:gift:select:{star_tier}",
+                )
+            ]
+        )
+    rows.append([InlineKeyboardButton(text="◀️ Назад", callback_data=callbacks.SHOP_BACK)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def shop_gift_confirm_keyboard(stars_count: int) -> InlineKeyboardMarkup:

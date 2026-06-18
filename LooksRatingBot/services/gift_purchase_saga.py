@@ -8,18 +8,11 @@ import grpc
 
 from adapters.tgifts_grpc_client import TGiftsGrpcClient
 from api.grpc_clients import LooksRatingSparksGrpcClient
+from bot.sparks_exchange import ALLOWED_STAR_TIERS, sparks_cost, sparks_costs
 
 logger = logging.getLogger(__name__)
 
-ALLOWED_STAR_TIERS: frozenset[int] = frozenset({100, 200, 300, 400})
-
-# Стоимость в искрах (ключ — цена подарка в Telegram Stars).
-STAR_SPARKS_COSTS: dict[int, int] = {
-    100: 1000,
-    200: 2000,
-    300: 3000,
-    400: 4000,
-}
+STAR_SPARKS_COSTS: dict[int, int] = sparks_costs()
 
 
 class GiftPurchaseStep(StrEnum):

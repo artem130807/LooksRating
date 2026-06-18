@@ -496,6 +496,10 @@ class LooksRatingApiClient:
             raise ApiError(502, message="Referral link missing in API response")
         return UserReferenceLinkData.from_payload(data)
 
+    async def get_gift_exchange_rates(self) -> dict[str, Any]:
+        data = await self._request("GET", "/api/payments/gift-exchange-rates")
+        return data if isinstance(data, dict) else {}
+
     async def get_pending_review_milestone_notifications(self) -> list[dict[str, Any]]:
         data = await self._request("GET", "/api/reviews/milestone-notifications/pending")
         if isinstance(data, list):
