@@ -102,6 +102,7 @@ namespace LooksRatingApi.Repositories
                 .ThenByDescending(p => p.Rating)
                 .ThenByDescending(p => p.RatingCount)
                 .ThenByDescending(p => p.CreatedAt)
+                .ThenBy(p => p.Id)
                 .Skip(skip)
                 .Take(take)
                 .Select(p => p.Id)
@@ -218,7 +219,15 @@ namespace LooksRatingApi.Repositories
                                     : PhotoRankingScore.UnratedScore) == myScore
                                     && candidate.Rating == profile.Rating
                                     && candidate.RatingCount == profile.RatingCount
-                                    && candidate.CreatedAt > profile.CreatedAt))),
+                                    && candidate.CreatedAt > profile.CreatedAt)
+                                || ((candidate.RatingCount > 0
+                                    ? ((candidate.Rating * candidate.RatingCount) + (priorMean * priorWeight))
+                                        / (candidate.RatingCount + priorWeight)
+                                    : PhotoRankingScore.UnratedScore) == myScore
+                                    && candidate.Rating == profile.Rating
+                                    && candidate.RatingCount == profile.RatingCount
+                                    && candidate.CreatedAt == profile.CreatedAt
+                                    && candidate.Id.CompareTo(profile.Id) < 0))),
                     cancellationToken);
         }
 

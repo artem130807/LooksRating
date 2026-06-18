@@ -106,7 +106,15 @@ namespace LooksRatingApi.Services
             }
 
             rankedProfiles.Sort((left, right) =>
-                PhotoRankingScore.Compare(left.Rating, left.RatingCount, right.Rating, right.RatingCount));
+                PhotoRankingScore.Compare(
+                    left.Rating,
+                    left.RatingCount,
+                    left.CreatedAt,
+                    left.Id,
+                    right.Rating,
+                    right.RatingCount,
+                    right.CreatedAt,
+                    right.Id));
 
             var totalCount = rankedProfiles.Count;
             var pageIds = rankedProfiles
@@ -164,7 +172,7 @@ namespace LooksRatingApi.Services
             }
 
             var ratingCount = ratingCountValue.HasValue ? (int)ratingCountValue : 0;
-            return new RankedPhoto(photoId, rating, ratingCount);
+            return new RankedPhoto(photoId, rating, ratingCount, DateTime.MinValue);
         }
 
         private async Task<RankedPhoto?> TryGetRankedPhotoFromProfileAsync(
@@ -194,7 +202,7 @@ namespace LooksRatingApi.Services
                 return null;
             }
 
-            return new RankedPhoto(photoId, profile.Rating, profile.RatingCount);
+            return new RankedPhoto(photoId, profile.Rating, profile.RatingCount, profile.CreatedAt);
         }
 
         private async Task<(IReadOnlyList<Guid> ProfileIds, int TotalCount)> GetTopFromDatabaseAsync(
@@ -230,6 +238,6 @@ namespace LooksRatingApi.Services
             return (ids, total);
         }
 
-        private sealed record RankedPhoto(Guid Id, decimal Rating, int RatingCount);
+        private sealed record RankedPhoto(Guid Id, decimal Rating, int RatingCount, DateTime CreatedAt);
     }
 }

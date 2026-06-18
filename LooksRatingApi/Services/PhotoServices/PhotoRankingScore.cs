@@ -69,5 +69,24 @@ namespace LooksRatingApi.Services
 
             return createdAtB.CompareTo(createdAtA);
         }
+
+        public static int Compare(
+            decimal ratingA,
+            int ratingCountA,
+            DateTime createdAtA,
+            Guid idA,
+            decimal ratingB,
+            int ratingCountB,
+            DateTime createdAtB,
+            Guid idB)
+        {
+            var rankingCompare = Compare(ratingA, ratingCountA, createdAtA, ratingB, ratingCountB, createdAtB);
+            if (rankingCompare != 0)
+            {
+                return rankingCompare;
+            }
+
+            return idA.CompareTo(idB);
+        }
     }
 }

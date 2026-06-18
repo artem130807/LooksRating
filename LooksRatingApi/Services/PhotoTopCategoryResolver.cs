@@ -114,13 +114,19 @@ namespace LooksRatingApi.Services
                     continue;
                 }
 
-                ranked.Sort((left, right) => PhotoRankingScore.Compare(
-                    left.Rating,
-                    left.RatingCount,
-                    left.CreatedAt,
-                    right.Rating,
-                    right.RatingCount,
-                    right.CreatedAt));
+                ranked.Sort((left, right) =>
+                {
+                    var rankingCompare = PhotoRankingScore.Compare(
+                        left.Rating,
+                        left.RatingCount,
+                        left.CreatedAt,
+                        right.Rating,
+                        right.RatingCount,
+                        right.CreatedAt);
+                    return rankingCompare != 0
+                        ? rankingCompare
+                        : left.TelegramId.CompareTo(right.TelegramId);
+                });
 
                 result.Add(new VipTopCategory(seasonId, city, gender, ageBracket, ranked));
             }

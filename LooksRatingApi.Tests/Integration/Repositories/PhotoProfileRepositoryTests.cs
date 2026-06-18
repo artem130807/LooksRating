@@ -189,16 +189,69 @@ public sealed class PhotoProfileRepositoryTests
         }
     }
 
+    [SkippableFact]
+    public async Task GetSeasonTopPositionAsync_AssignsDistinctPlacesWhenRatingsAreEqual()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var users = new[]
+        {
+            await TestDataBuilder.SeedUserAsync(context, 5301),
+            await TestDataBuilder.SeedUserAsync(context, 5302),
+            await TestDataBuilder.SeedUserAsync(context, 5303),
+        };
+
+        var city = CityVo.Create("samara").Value;
+        var createdAt = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var profiles = new[]
+        {
+            CreateRankedProfile(users[0], season, city, rating: 8m, ratingCount: 0, createdAt, Guid.Parse("00000000-0000-0000-0000-000000000003")),
+            CreateRankedProfile(users[1], season, city, rating: 8m, ratingCount: 0, createdAt, Guid.Parse("00000000-0000-0000-0000-000000000001")),
+            CreateRankedProfile(users[2], season, city, rating: 8m, ratingCount: 0, createdAt, Guid.Parse("00000000-0000-0000-0000-000000000002")),
+        };
+
+        context.PhotoProfiles.AddRange(profiles);
+        await context.SaveChangesAsync();
+
+        var repository = new PhotoProfileRepository(context);
+        var rankedIds = await repository.GetTopProfileIdsAsync(
+            season.Id,
+            seasonIsClosed: false,
+            city.Value!,
+            GenderEnum.Male,
+            age: 18,
+            skip: 0,
+            take: 10);
+
+        rankedIds.Should().HaveCount(3);
+        rankedIds[0].Should().Be(profiles[1].Id);
+        rankedIds[1].Should().Be(profiles[2].Id);
+        rankedIds[2].Should().Be(profiles[0].Id);
+
+        foreach (var profile in profiles)
+        {
+            var position = await repository.GetSeasonTopPositionAsync(profile, seasonIsClosed: false);
+            position.Should().NotBeNull();
+            position!.Place.Should().Be(rankedIds.IndexOf(profile.Id) + 1);
+            position.TotalCount.Should().Be(3);
+        }
+    }
+
     private static PhotoProfile CreateRankedProfile(
         User user,
         Season season,
         CityVo city,
         decimal rating,
-        int ratingCount)
+        int ratingCount,
+        DateTime? createdAt = null,
+        Guid? id = null)
     {
         return new PhotoProfile
         {
-            Id = Guid.NewGuid(),
+            Id = id ?? Guid.NewGuid(),
             UserId = user.Id,
             User = user,
             SeasonId = season.Id,
@@ -209,7 +262,7 @@ public sealed class PhotoProfileRepositoryTests
             CityNomination = city,
             AgeNomination = 18,
             GenderNomination = GenderEnum.Male,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = createdAt ?? DateTime.UtcNow,
             Photos =
             {
                 new PhotoProfilePhoto
@@ -222,3 +275,4 @@ public sealed class PhotoProfileRepositoryTests
         };
     }
 }
+
