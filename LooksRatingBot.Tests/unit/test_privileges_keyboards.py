@@ -6,6 +6,7 @@ from bot.keyboards import (
     referral_program_keyboard,
     vip_shop_keyboard,
 )
+from services.referral_share import TELEGRAM_SHARE_URL, build_telegram_share_url
 
 
 def test_main_menu_uses_privileges_button() -> None:
@@ -43,15 +44,17 @@ def test_vip_shop_keyboard_shows_gifts_only_for_vip() -> None:
 
 def test_referral_program_keyboard_includes_share_url_when_link_present() -> None:
     link = "https://t.me/LooksRatingBot?start=abc"
-    markup = referral_program_keyboard(link=link)
+    share_url = build_telegram_share_url(link)
+    markup = referral_program_keyboard(share_url=share_url)
     share_button = markup.inline_keyboard[0][0]
 
-    assert share_button.url == link
+    assert share_button.url.startswith(f"{TELEGRAM_SHARE_URL}?")
+    assert share_button.url == share_url
     assert markup.inline_keyboard[1][0].callback_data == callbacks.PRIVILEGES_HUB
 
 
 def test_referral_program_keyboard_without_link_has_no_share_row() -> None:
-    markup = referral_program_keyboard(link=None)
+    markup = referral_program_keyboard(share_url=None)
     assert markup.inline_keyboard[0][0].callback_data == callbacks.PRIVILEGES_HUB
 
 

@@ -2,13 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from api.client import ApiError, LooksRatingApiClient
+from api.client import LooksRatingApiClient
+from api.dto import UserReferenceLinkData
 
 
 @dataclass(frozen=True, slots=True)
 class ReferralLinkView:
     link: str
     was_created: bool
+    invited_count: int
+    max_invited: int
 
 
 class ReferralLinkService:
@@ -19,16 +22,17 @@ class ReferralLinkService:
 
     async def get_or_create_link(self, telegram_id: int) -> ReferralLinkView:
         existing = await self._api.get_user_reference_link(telegram_id)
-        if existing and existing.get("link"):
-            return ReferralLinkView(link=str(existing["link"]), was_created=False)
+        if existing is not None:
+            return self._to_view(existing, was_created=False)
 
-        try:
-            created = await self._api.create_user_reference_link(telegram_id)
-        except ApiError:
-            raise
+        created = await self._api.create_user_reference_link(telegram_id)
+        return self._to_view(created, was_created=True)
 
-        link = created.get("link") if created else None
-        if not link:
-            raise ApiError(502, message="Referral link missing in API response")
-
-        return ReferralLinkView(link=str(link), was_created=True)
+    @staticmethod
+    def _to_view(data: UserReferenceLinkData, *, was_created: bool) -> ReferralLinkView:
+        return ReferralLinkView(
+            link=data.link,
+            was_created=was_created,
+            invited_count=data.count_invited,
+            max_invited=data.max_invited,
+        )

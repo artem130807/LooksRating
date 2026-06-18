@@ -16,14 +16,6 @@ PHOTO_UPLOAD_STATE = StateFilter(
 
 VIDEO_UPLOAD = F.video | F.video_note | F.animation
 
-
-def is_video_document(message: Message) -> bool:
-    document = message.document
-    if document is None or not document.mime_type:
-        return False
-    return document.mime_type.lower().startswith("video/")
-
-
 async def reply_photo_upload_required(
     message: Message,
     state: FSMContext,

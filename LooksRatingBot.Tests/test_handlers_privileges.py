@@ -74,6 +74,8 @@ async def test_privileges_referral_callback_shows_existing_link() -> None:
     api = FakeApiClient(
         user={"telegramId": 42_001, "hasVip": False},
         referral_link=link,
+        referral_invited_count=2,
+        referral_max_invited=5,
     )
     callback = make_callback(callbacks.PRIVILEGES_REFERRAL)
 
@@ -83,6 +85,7 @@ async def test_privileges_referral_callback_shows_existing_link() -> None:
     text = callback.message.edit_text.await_args.args[0]
     assert texts.REFERRAL_PROGRAM_INTRO in text
     assert link in text
+    assert "2/5" in text
     assert texts.REFERRAL_PROGRAM_LINK_EXISTING.split("{")[0].strip() in text
 
 
@@ -98,6 +101,7 @@ async def test_privileges_referral_callback_creates_link_when_missing() -> None:
 
     text = callback.message.edit_text.await_args.args[0]
     assert texts.REFERRAL_PROGRAM_LINK_NEW.split("{")[0].strip() in text
+    assert "0/5" in text
     assert api.create_referral_link_calls == [42_001]
 
 

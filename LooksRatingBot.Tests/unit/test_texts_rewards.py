@@ -28,7 +28,8 @@ def test_privileges_hub_mentions_vip_and_referral() -> None:
 
 def test_referral_program_describes_reward() -> None:
     assert "15" in texts.REFERRAL_PROGRAM_INTRO
-    assert "5" in texts.REFERRAL_PROGRAM_INTRO
+    assert "{invited}/{max_invited}" in texts.REFERRAL_PROGRAM_INVITE_STATS
+    assert "приглашённых пользователей" in texts.REFERRAL_PROGRAM_INVITE_STATS
 
 
 def test_shop_vip_paid_excludes_season_rewards() -> None:

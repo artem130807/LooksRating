@@ -14,8 +14,11 @@ from bot.keyboards import (
     referral_program_keyboard,
     vip_shop_keyboard,
 )
-from bot.services import format_api_error, send_main_menu
+from bot.referral_presenter import format_referral_program_message
+from bot.services import send_main_menu
+from bot.telegram_edit import edit_text_or_ignore_unchanged
 from services.referral_program import ReferralLinkService
+from services.referral_share import build_telegram_share_url
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -36,7 +39,7 @@ async def show_privileges_hub(
     has_vip = await _user_has_vip(api, telegram_id)
     markup = privileges_hub_keyboard(has_vip=has_vip)
     if edit:
-        await message.edit_text(texts.PRIVILEGES_HUB, reply_markup=markup)
+        await edit_text_or_ignore_unchanged(message, texts.PRIVILEGES_HUB, reply_markup=markup)
     else:
         await message.answer(texts.PRIVILEGES_HUB, reply_markup=markup)
 
@@ -47,7 +50,8 @@ async def show_vip_shop(
     telegram_id: int,
 ) -> None:
     has_vip = await _user_has_vip(api, telegram_id)
-    await message.edit_text(
+    await edit_text_or_ignore_unchanged(
+        message,
         texts.VIP_SHOP_MENU,
         reply_markup=vip_shop_keyboard(has_vip=has_vip),
     )
@@ -63,20 +67,19 @@ async def show_referral_program(
         view = await service.get_or_create_link(telegram_id)
     except ApiError as exc:
         logger.warning("Referral link failed for %s: %s", telegram_id, exc)
-        await message.edit_text(
+        await edit_text_or_ignore_unchanged(
+            message,
             texts.REFERRAL_PROGRAM_UNAVAILABLE,
-            reply_markup=referral_program_keyboard(link=None),
+            reply_markup=referral_program_keyboard(share_url=None),
         )
         return
 
-    body = (
-        texts.REFERRAL_PROGRAM_LINK_NEW.format(link=view.link)
-        if view.was_created
-        else texts.REFERRAL_PROGRAM_LINK_EXISTING.format(link=view.link)
-    )
-    await message.edit_text(
-        f"{texts.REFERRAL_PROGRAM_INTRO}\n\n{body}",
-        reply_markup=referral_program_keyboard(link=view.link),
+    await edit_text_or_ignore_unchanged(
+        message,
+        format_referral_program_message(view),
+        reply_markup=referral_program_keyboard(
+            share_url=build_telegram_share_url(view.link),
+        ),
     )
 
 

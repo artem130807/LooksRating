@@ -376,11 +376,11 @@ def vip_shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def referral_program_keyboard(*, link: str | None) -> InlineKeyboardMarkup:
+def referral_program_keyboard(*, share_url: str | None) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
-    if link:
+    if share_url:
         rows.append(
-            [InlineKeyboardButton(text=BTN_REFERRAL_SHARE, url=link)]
+            [InlineKeyboardButton(text=BTN_REFERRAL_SHARE, url=share_url)]
         )
     rows.append(
         [InlineKeyboardButton(text=BTN_PRIVILEGES_BACK, callback_data=callbacks.PRIVILEGES_HUB)]

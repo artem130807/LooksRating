@@ -5,6 +5,7 @@ from typing import Any
 
 import aiohttp
 
+from api.dto import UserReferenceLinkData
 from bot.gender_api import gender_to_api
 
 
@@ -457,18 +458,24 @@ class LooksRatingApiClient:
             },
         )
 
-    async def get_user_reference_link(self, telegram_id: int) -> dict[str, Any] | None:
-        return await self._request(
+    async def get_user_reference_link(self, telegram_id: int) -> UserReferenceLinkData | None:
+        data = await self._request(
             "GET",
             f"/api/user-reference-links/{telegram_id}",
             allow_404=True,
         )
+        if data is None:
+            return None
+        return UserReferenceLinkData.from_payload(data)
 
-    async def create_user_reference_link(self, telegram_id: int) -> dict[str, Any]:
-        return await self._request(
+    async def create_user_reference_link(self, telegram_id: int) -> UserReferenceLinkData:
+        data = await self._request(
             "POST",
             f"/api/user-reference-links/{telegram_id}",
         )
+        if not data or not data.get("link"):
+            raise ApiError(502, message="Referral link missing in API response")
+        return UserReferenceLinkData.from_payload(data)
 
     async def get_pending_review_milestone_notifications(self) -> list[dict[str, Any]]:
         data = await self._request("GET", "/api/reviews/milestone-notifications/pending")

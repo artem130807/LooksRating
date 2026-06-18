@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from api.client import ApiError
+from api.dto import UserReferenceLinkData
 
 
 @dataclass
@@ -29,6 +30,8 @@ class FakeApiClient:
     set_photo_calls: list[dict[str, Any]] = field(default_factory=list)
     register_calls: list[dict[str, Any]] = field(default_factory=list)
     referral_link: str | None = None
+    referral_invited_count: int = 0
+    referral_max_invited: int = 5
     referral_get_error: ApiError | None = None
     referral_create_error: ApiError | None = None
     get_referral_link_calls: list[int] = field(default_factory=list)
@@ -123,21 +126,29 @@ class FakeApiClient:
             raise self.set_photo_error
         return dict(self.set_photo_result)
 
-    async def get_user_reference_link(self, telegram_id: int) -> dict[str, Any] | None:
+    async def get_user_reference_link(self, telegram_id: int) -> UserReferenceLinkData | None:
         self.get_referral_link_calls.append(telegram_id)
         if self.referral_get_error:
             raise self.referral_get_error
         if self.referral_link is None:
             return None
-        return {"link": self.referral_link}
+        return UserReferenceLinkData(
+            link=self.referral_link,
+            count_invited=self.referral_invited_count,
+            max_invited=self.referral_max_invited,
+        )
 
-    async def create_user_reference_link(self, telegram_id: int) -> dict[str, Any]:
+    async def create_user_reference_link(self, telegram_id: int) -> UserReferenceLinkData:
         self.create_referral_link_calls.append(telegram_id)
         if self.referral_create_error:
             raise self.referral_create_error
         if self.referral_link is None:
             self.referral_link = f"https://t.me/LooksRatingBot?start={telegram_id:012x}"
-        return {"link": self.referral_link}
+        return UserReferenceLinkData(
+            link=self.referral_link,
+            count_invited=self.referral_invited_count,
+            max_invited=self.referral_max_invited,
+        )
 
     async def create_payment_order(self, telegram_id: int, product_code: int) -> dict[str, Any]:
         order = {

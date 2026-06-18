@@ -1,7 +1,9 @@
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.CQRS.UserReferenceLink;
 using LooksRatingApi.CQRS.UserReferenceLink.Command.CreateUserReferenceLink;
 using LooksRatingApi.Models;
+using LooksRatingApi.Services.SparksWallet;
 
 namespace LooksRatingApi.Tests.Unit.Cqrs.UserReferenceLink;
 
@@ -33,8 +35,10 @@ public sealed class CreateUserReferenceLinkHandlerTests
 
         first.IsSuccess.Should().BeTrue();
         second.IsSuccess.Should().BeTrue();
-        first.Value.Should().Be(existing.Link);
-        second.Value.Should().Be(existing.Link);
+        first.Value.Link.Should().Be(existing.Link);
+        second.Value.Link.Should().Be(existing.Link);
+        first.Value.CountInvited.Should().Be(0);
+        first.Value.MaxInvited.Should().Be(ReferralSparksRules.MaxInvitedUsers);
         await linkRepository.Received(2).EnsureLinkExistsAsync(user.Id, Arg.Any<CancellationToken>());
     }
 

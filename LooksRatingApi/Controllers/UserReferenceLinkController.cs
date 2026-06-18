@@ -1,3 +1,5 @@
+using CSharpFunctionalExtensions;
+using LooksRatingApi.CQRS.UserReferenceLink;
 using LooksRatingApi.CQRS.UserReferenceLink.Command.CreateUserReferenceLink;
 using LooksRatingApi.CQRS.UserReferenceLink.Query.GetUserReferenceLink;
 using LooksRatingApi.Infrastructure.RateLimiting;
@@ -22,12 +24,7 @@ namespace LooksRatingApi.Controllers
         public async Task<IActionResult> Get(long telegramId, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(new GetUserReferenceLinkQuery(telegramId), cancellationToken);
-            if (result.IsFailure)
-            {
-                return NotFound(new { error = result.Error });
-            }
-
-            return Ok(new { link = result.Value });
+            return ToActionResult(result);
         }
 
         [RateLimitPolicy(RateLimitPolicies.Writes)]
@@ -35,12 +32,12 @@ namespace LooksRatingApi.Controllers
         public async Task<IActionResult> Create(long telegramId, CancellationToken cancellationToken)
         {
             var result = await _sender.Send(new CreateUserReferenceLinkCommand(telegramId), cancellationToken);
-            if (result.IsFailure)
-            {
-                return NotFound(new { error = result.Error });
-            }
-
-            return Ok(new { link = result.Value });
+            return ToActionResult(result);
         }
+
+        private static IActionResult ToActionResult(Result<UserReferenceLinkResponse> result) =>
+            result.IsFailure
+                ? new NotFoundObjectResult(new { error = result.Error })
+                : new OkObjectResult(result.Value.ToApiPayload());
     }
 }
