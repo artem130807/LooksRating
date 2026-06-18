@@ -12,6 +12,8 @@ from bot.keyboards import (
     BTN_AGE_ALL,
     BTN_EDIT_CITY,
     BTN_EDIT_GENDER,
+    BTN_HIDE_TELEGRAM_USERNAME,
+    BTN_SHOW_TELEGRAM_USERNAME,
     BTN_SETTINGS_FEED,
     MENU_PHOTO_ADD,
     MENU_BACK,
@@ -35,6 +37,7 @@ from bot.services import (
     format_city_display,
     load_cities,
     resolve_city_name,
+    resolve_display_preference_action,
     send_feed_view,
     send_main_menu,
     send_settings_menu,
@@ -54,7 +57,99 @@ async def open_settings(message: Message, api: LooksRatingApiClient) -> None:
     if not user:
         await message.answer(texts.NEED_START)
         return
-    await send_settings_menu(message, api, telegram_id, texts.SETTINGS_MENU)
+    await send_settings_menu(message, api, telegram_id, user=user)
+
+
+@router.message(NOT_DURING_RATING_OR_TICKET, F.text == BTN_HIDE_TELEGRAM_USERNAME)
+async def hide_telegram_username_start(
+    message: Message,
+    state: FSMContext,
+    api: LooksRatingApiClient,
+) -> None:
+    user = await api.get_user(message.from_user.id)
+    if not user:
+        await message.answer(texts.NEED_START)
+        return
+    if resolve_display_preference_action(user) != "hide":
+        await send_settings_menu(message, api, message.from_user.id, user=user)
+        return
+
+    await state.set_state(SettingsStates.hide_display_name)
+    await message.answer(texts.SETTINGS_HIDE_USERNAME_PROMPT, reply_markup=cancel_keyboard())
+
+
+@router.message(SettingsStates.hide_display_name, F.text)
+async def hide_telegram_username_save(
+    message: Message,
+    state: FSMContext,
+    api: LooksRatingApiClient,
+) -> None:
+    if message.text in {MENU_CANCEL, MENU_BACK}:
+        await state.clear()
+        await send_settings_menu(message, api, message.from_user.id)
+        return
+
+    display_name = (message.text or "").strip()
+    if not display_name or len(display_name) > 32:
+        await message.answer(texts.REG_DISPLAY_NAME_INVALID, reply_markup=cancel_keyboard())
+        return
+
+    try:
+        result = await api.update_display_preference(
+            message.from_user.id,
+            telegram_username=message.from_user.username,
+            use_telegram_username_as_display=False,
+            custom_name=display_name,
+        )
+    except ApiError as exc:
+        await message.answer(format_api_error(exc))
+        return
+
+    await state.clear()
+    resolved_name = result.get("displayName") or result.get("DisplayName") or display_name
+    await send_settings_menu(
+        message,
+        api,
+        message.from_user.id,
+        texts.SETTINGS_HIDE_USERNAME_DONE.format(display_name=resolved_name),
+    )
+
+
+@router.message(NOT_DURING_RATING_OR_TICKET, F.text == BTN_SHOW_TELEGRAM_USERNAME)
+async def show_telegram_username(
+    message: Message,
+    state: FSMContext,
+    api: LooksRatingApiClient,
+) -> None:
+    if not message.from_user.username:
+        await message.answer(texts.SETTINGS_NO_TELEGRAM_USERNAME)
+        return
+
+    user = await api.get_user(message.from_user.id)
+    if not user:
+        await message.answer(texts.NEED_START)
+        return
+    if resolve_display_preference_action(user) != "show":
+        await send_settings_menu(message, api, message.from_user.id, user=user)
+        return
+
+    try:
+        await api.update_display_preference(
+            message.from_user.id,
+            telegram_username=message.from_user.username,
+            use_telegram_username_as_display=True,
+        )
+    except ApiError as exc:
+        await message.answer(format_api_error(exc))
+        return
+
+    await state.clear()
+    await send_settings_menu(
+        message,
+        api,
+        message.from_user.id,
+        texts.SETTINGS_SHOW_USERNAME_DONE,
+    )
 
 
 @router.message(NOT_DURING_RATING_OR_TICKET, F.text == MENU_BACK)
@@ -62,13 +157,18 @@ async def settings_back(message: Message, state: FSMContext, api: LooksRatingApi
     current = await state.get_state()
     if current == SettingsStates.confirm_delete.state:
         await state.clear()
-        await send_settings_menu(message, api, message.from_user.id, texts.SETTINGS_MENU)
+        await send_settings_menu(message, api, message.from_user.id)
+        return
+
+    if current == SettingsStates.hide_display_name.state:
+        await state.clear()
+        await send_settings_menu(message, api, message.from_user.id)
         return
 
     if current and current.startswith("ProfileEditStates"):
         if current == ProfileEditStates.field.state:
             await state.clear()
-            await send_settings_menu(message, api, message.from_user.id, texts.SETTINGS_MENU)
+            await send_settings_menu(message, api, message.from_user.id)
             return
         await state.set_state(ProfileEditStates.field)
         await send_feed_view(message, api, message.from_user.id)
@@ -268,7 +368,7 @@ async def delete_account_confirm(
     except ApiError as exc:
         await message.answer(format_api_error(exc))
         await state.clear()
-        await send_settings_menu(message, api, telegram_id, texts.SETTINGS_MENU)
+        await send_settings_menu(message, api, telegram_id)
         return
 
     await state.clear()
@@ -281,6 +381,6 @@ async def delete_account_confirm(
 async def delete_account_other(message: Message, state: FSMContext, api: LooksRatingApiClient) -> None:
     if message.text == MENU_BACK:
         await state.clear()
-        await send_settings_menu(message, api, message.from_user.id, texts.SETTINGS_MENU)
+        await send_settings_menu(message, api, message.from_user.id)
         return
     await message.answer(texts.DELETE_ACCOUNT_CONFIRM, reply_markup=delete_account_keyboard())

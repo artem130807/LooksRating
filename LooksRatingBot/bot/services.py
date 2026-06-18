@@ -4,6 +4,7 @@ import re
 from typing import Any
 
 from api.client import ApiError, LooksRatingApiClient
+from bot import texts
 from bot.errors import translate_error
 from bot.gender_api import gender_to_api
 
@@ -264,10 +265,52 @@ async def main_menu_for(api: LooksRatingApiClient, telegram_id: int):
     return main_menu()
 
 
-async def settings_menu_for(api: LooksRatingApiClient, telegram_id: int):
+def _user_flag(user: dict | None, *keys: str) -> bool:
+    if not isinstance(user, dict):
+        return False
+    for key in keys:
+        value = user.get(key)
+        if value is not None:
+            return bool(value)
+    return False
+
+
+def _user_field(user: dict | None, *keys: str) -> str | None:
+    if not isinstance(user, dict):
+        return None
+    for key in keys:
+        value = user.get(key)
+        if value is not None:
+            text = str(value).strip()
+            if text:
+                return text
+    return None
+
+
+def resolve_display_preference_action(user: dict | None) -> str | None:
+    has_username = bool(_user_field(user, "telegramUsername", "TelegramUsername"))
+    if not has_username:
+        return None
+    if _user_flag(user, "usesTelegramUsernameAsDisplay", "UsesTelegramUsernameAsDisplay"):
+        return "hide"
+    return "show"
+
+
+def build_settings_menu_text(user: dict | None) -> str:
+    lines = [texts.SETTINGS_MENU]
+    action = resolve_display_preference_action(user)
+    if action == "hide":
+        lines.append(texts.SETTINGS_MENU_HIDE_USERNAME)
+    elif action == "show":
+        lines.append(texts.SETTINGS_MENU_SHOW_USERNAME)
+    return "\n".join(lines)
+
+
+async def settings_menu_for(api: LooksRatingApiClient, telegram_id: int, user: dict | None = None):
     from bot.keyboards import settings_keyboard
 
-    user = await api.get_user(telegram_id)
+    if user is None:
+        user = await api.get_user(telegram_id)
     photo_payload = await api.get_my_photo(telegram_id) if user else None
     photos = []
     photo_count = 0
@@ -283,11 +326,21 @@ async def settings_menu_for(api: LooksRatingApiClient, telegram_id: int):
         has_vip=has_vip,
         photo_count=photo_count,
         can_add_photo=can_add_photo,
+        display_preference_action=resolve_display_preference_action(user),
     )
 
 
-async def send_settings_menu(message, api: LooksRatingApiClient, telegram_id: int, text: str) -> None:
-    await message.answer(text, reply_markup=await settings_menu_for(api, telegram_id))
+async def send_settings_menu(
+    message,
+    api: LooksRatingApiClient,
+    telegram_id: int,
+    text: str | None = None,
+    user: dict | None = None,
+) -> None:
+    if user is None:
+        user = await api.get_user(telegram_id)
+    menu_text = text if text is not None else build_settings_menu_text(user)
+    await message.answer(menu_text, reply_markup=await settings_menu_for(api, telegram_id, user=user))
 
 
 async def send_main_menu(

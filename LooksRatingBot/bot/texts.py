@@ -422,6 +422,24 @@ SETTINGS_MENU = (
     "• <b>Фото</b> — добавить или заменить карточку в сезоне\n"
     "• <b>Удалить аккаунт</b> — сбросить профиль и пройти регистрацию заново"
 )
+SETTINGS_MENU_HIDE_USERNAME = (
+    "• <b>Скрыть @username</b> — другим будет показано выбранное имя, "
+    "а не ссылка на ваш профиль в Telegram"
+)
+SETTINGS_MENU_SHOW_USERNAME = (
+    "• <b>Показывать @username</b> — в оценке и профиле другие увидят "
+    "ваш Telegram-ник вместо имени"
+)
+SETTINGS_HIDE_USERNAME_PROMPT = (
+    "🔒 <b>Скрыть @username</b>\n\n"
+    "Введите имя, которое будут видеть другие пользователи (до 32 символов)."
+)
+SETTINGS_SHOW_USERNAME_DONE = "✅ Теперь другие пользователи видят ваш @username."
+SETTINGS_HIDE_USERNAME_DONE = "✅ Готово. Другим показывается имя: <b>{display_name}</b>"
+SETTINGS_NO_TELEGRAM_USERNAME = (
+    "У вашего аккаунта нет @username в Telegram.\n"
+    "Задайте его в настройках Telegram, затем вернитесь сюда."
+)
 DELETE_ACCOUNT_CONFIRM = (
     "🗑 <b>Удалить аккаунт?</b>\n\n"
     "Будут удалены ваш профиль, фото, оценки и жалобы.\n"

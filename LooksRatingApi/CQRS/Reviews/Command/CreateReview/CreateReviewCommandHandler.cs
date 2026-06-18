@@ -71,6 +71,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             }
 
             Review review;
+            var isNewReview = false;
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -91,6 +92,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                     review = reviewResult.Value;
                     photoProfile.AddRating(request.Rating);
                     await _reviewRepository.Create(review);
+                    isNewReview = true;
                 }
                 else
                 {
@@ -127,20 +129,20 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 await _photoRatingCacheService.SyncPhotoRatingAsync(domainEvent, cancellationToken);
                 await _producer.ProduceAsync(domainEvent, cancellationToken);
 
-                if (existingReview is null)
-                {
-                    await _createReviewEventPublisher.PublishAsync(
-                        reviewer.Id,
-                        photoProfile.Id,
-                        cancellationToken);
-                }
-
                 await transaction.CommitAsync(cancellationToken);
             }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);
                 throw;
+            }
+
+            if (isNewReview)
+            {
+                await _createReviewEventPublisher.PublishAsync(
+                    reviewer.Id,
+                    photoProfile.Id,
+                    cancellationToken);
             }
 
             await _reviewSparksRewardService.TryAwardForReviewAsync(

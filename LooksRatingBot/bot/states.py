@@ -31,6 +31,7 @@ class RecreatePhotoStates(StatesGroup):
 
 class SettingsStates(StatesGroup):
     confirm_delete = State()
+    hide_display_name = State()
 
 
 class ProfileEditStates(StatesGroup):

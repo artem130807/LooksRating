@@ -146,6 +146,25 @@ class LooksRatingApiClient:
             json={"telegramId": telegram_id, "age": age},
         )
 
+    async def update_display_preference(
+        self,
+        telegram_id: int,
+        *,
+        telegram_username: str | None,
+        use_telegram_username_as_display: bool,
+        custom_name: str | None = None,
+    ) -> dict[str, Any]:
+        return await self._request(
+            "PUT",
+            "/api/users/display-preference",
+            json={
+                "telegramId": telegram_id,
+                "telegramUsername": telegram_username,
+                "useTelegramUsernameAsDisplay": use_telegram_username_as_display,
+                "customName": custom_name,
+            },
+        )
+
     async def ensure_session(
         self,
         telegram_id: int,

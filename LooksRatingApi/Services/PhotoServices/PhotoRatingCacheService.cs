@@ -123,5 +123,23 @@ namespace LooksRatingApi.Services
 
             await Task.WhenAll(tasks);
         }
+
+        public async Task SyncProfileDisplayNameAsync(
+            Guid profileId,
+            string displayName,
+            CancellationToken cancellationToken = default)
+        {
+            if (profileId == Guid.Empty || string.IsNullOrWhiteSpace(displayName))
+            {
+                return;
+            }
+
+            await _db.HashSetAsync(
+                PhotoRedisKeys.ProfileHash(profileId),
+                new HashEntry[]
+                {
+                    new("name", displayName),
+                });
+        }
     }
 }

@@ -27,6 +27,8 @@ SETTINGS_PHOTO_BUTTONS = {MENU_PHOTO_ADD, MENU_PHOTO_REPLACE, MENU_PHOTO_REPLACE
 BTN_SETTINGS_FEED = "🏙 Моя лента"
 BTN_DELETE_ACCOUNT = "🗑 Удалить аккаунт"
 BTN_DELETE_CONFIRM = "✅ Да, удалить аккаунт"
+BTN_HIDE_TELEGRAM_USERNAME = "🔒 Скрыть @username"
+BTN_SHOW_TELEGRAM_USERNAME = "🔓 Показывать @username"
 
 BTN_YES = "✅ Да, добавить"
 BTN_NO = "⏭ Позже"
@@ -77,6 +79,7 @@ def settings_keyboard(
     has_vip: bool = False,
     photo_count: int = 0,
     can_add_photo: bool = False,
+    display_preference_action: str | None = None,
 ) -> ReplyKeyboardMarkup:
     photo_row: list[KeyboardButton] = []
     if has_vip:
@@ -91,9 +94,19 @@ def settings_keyboard(
     keyboard = [
         [KeyboardButton(text=BTN_SETTINGS_FEED)],
         photo_row if photo_row else [KeyboardButton(text=MENU_PHOTO_ADD)],
-        [KeyboardButton(text=BTN_DELETE_ACCOUNT)],
-        [KeyboardButton(text=MENU_BACK)],
     ]
+
+    if display_preference_action == "hide":
+        keyboard.append([KeyboardButton(text=BTN_HIDE_TELEGRAM_USERNAME)])
+    elif display_preference_action == "show":
+        keyboard.append([KeyboardButton(text=BTN_SHOW_TELEGRAM_USERNAME)])
+
+    keyboard.extend(
+        [
+            [KeyboardButton(text=BTN_DELETE_ACCOUNT)],
+            [KeyboardButton(text=MENU_BACK)],
+        ]
+    )
 
     return ReplyKeyboardMarkup(
         keyboard=keyboard,

@@ -18,5 +18,10 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             Guid seasonId,
             IReadOnlyCollection<Guid> reviewerUserIds,
             CancellationToken cancellationToken = default);
+
+        Task SyncProfileDisplayNameAsync(
+            Guid profileId,
+            string displayName,
+            CancellationToken cancellationToken = default);
     }
 }

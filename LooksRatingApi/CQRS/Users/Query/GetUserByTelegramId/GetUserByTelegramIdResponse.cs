@@ -13,6 +13,7 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
         public long TelegramId { get; init; }
         public string? TelegramUsername { get; init; }
         public string DisplayName { get; init; } = string.Empty;
+        public bool UsesTelegramUsernameAsDisplay { get; init; }
         public int CountInTop {get; init;}
         public int? Age { get; init; }
         public GenderEnum Gender { get; init; }

@@ -1,6 +1,7 @@
 using LooksRatingApi.Cqrs.Users.Command.RegisterUser;
 using LooksRatingApi.CQRS.Users.Command.DeleteUserAccount;
 using LooksRatingApi.CQRS.Users.Command.UpdateGenderUser;
+using LooksRatingApi.CQRS.Users.Command.UpdateUserDisplayPreference;
 using LooksRatingApi.CQRS.Users.Command.UpdateUserAge;
 using LooksRatingApi.CQRS.Users.Command.UpdateUserCity;
 using LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId;
@@ -141,6 +142,33 @@ namespace LooksRatingApi.Controllers
             }
 
             return Ok(new { message = result.Value });
+        }
+
+        [RateLimitPolicy(RateLimitPolicies.Writes)]
+        [HttpPut("display-preference")]
+        public async Task<IActionResult> UpdateDisplayPreference(
+            [FromBody] UpdateUserDisplayPreferenceRequest request,
+            CancellationToken cancellationToken)
+        {
+            var result = await _sender.Send(
+                new UpdateUserDisplayPreferenceCommand(
+                    request.TelegramId,
+                    request.TelegramUsername,
+                    request.UseTelegramUsernameAsDisplay,
+                    request.CustomName),
+                cancellationToken);
+
+            if (result.IsFailure)
+            {
+                if (result.Error == UpdateUserDisplayPreferenceErrors.UserNotFound)
+                {
+                    return NotFound(new { error = result.Error });
+                }
+
+                return BadRequest(new { error = result.Error });
+            }
+
+            return Ok(result.Value);
         }
 
         [RateLimitPolicy(RateLimitPolicies.AccountSensitive)]

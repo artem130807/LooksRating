@@ -27,5 +27,8 @@ namespace LooksRatingApi.Services
 
             return fallback;
         }
+
+        public static bool UsesTelegramUsernameAsDisplay(User? user) =>
+            user is not null && string.IsNullOrWhiteSpace(user.Name);
     }
 }

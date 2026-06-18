@@ -10,12 +10,20 @@ from bot.services import format_api_error, format_city_display, format_rating_di
 router = Router()
 
 
+def _reviewer_field(reviewer: dict, *keys: str):
+    for key in keys:
+        value = reviewer.get(key)
+        if value is not None:
+            return value
+    return None
+
+
 def _reviewers_keyboard(notification_id: str, reviewers: list[dict]) -> InlineKeyboardMarkup:
     rows: list[list[InlineKeyboardButton]] = []
     for index, reviewer in enumerate(reviewers[:10], start=1):
-        profile_id = reviewer.get("reviewerPhotoProfileId")
-        name = str(reviewer.get("displayName") or "Участник")
-        rating = reviewer.get("rating", "—")
+        profile_id = _reviewer_field(reviewer, "reviewerPhotoProfileId", "ReviewerPhotoProfileId")
+        name = str(_reviewer_field(reviewer, "displayName", "DisplayName") or "Участник")
+        rating = _reviewer_field(reviewer, "rating", "Rating") or "—"
         if profile_id:
             rows.append(
                 [
@@ -49,6 +57,8 @@ async def review_milestone_view(callback: CallbackQuery, api: LooksRatingApiClie
         return
 
     reviewers = payload.get("reviewers") if isinstance(payload.get("reviewers"), list) else []
+    if not reviewers and isinstance(payload.get("Reviewers"), list):
+        reviewers = payload.get("Reviewers")
     if not reviewers:
         await callback.answer("Список оценивших пока пуст.", show_alert=True)
         return
@@ -75,7 +85,7 @@ async def review_milestone_profile(callback: CallbackQuery, api: LooksRatingApiC
         return
 
     caption = texts.TOP_USER_PROFILE.format(
-        name=profile.get("userName", "Участник"),
+        name=profile.get("userName") or profile.get("UserName") or "Участник",
         gender=profile.get("gender", "—"),
         age=profile.get("age", "—"),
         city=format_city_display(profile.get("city")),
