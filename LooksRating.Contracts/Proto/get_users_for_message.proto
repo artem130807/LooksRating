@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service GetUsersForMessageService {
+    rpc GetUsersForMessage(GetUsersForMessageRequest) returns (GetUsersForMessageResponse);
+}
+
+message GetUsersForMessageRequest {
+    int32 page = 1;
+    int32 page_size = 2;
+    bool only_unsubscribed_channel = 3;
+}
+
+message GetUsersForMessageResponse {
+    repeated int64 telegram_ids = 1;
+    int32 total_count = 2;
+    int32 page = 3;
+    int32 page_size = 4;
+    bool has_next_page = 5;
+}

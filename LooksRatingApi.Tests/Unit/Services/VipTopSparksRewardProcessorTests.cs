@@ -9,6 +9,21 @@ namespace LooksRatingApi.Tests.Unit.Services;
 
 public sealed class VipTopSparksRewardProcessorTests
 {
+    private static readonly DateTime RewardDay = new(2026, 3, 9, 10, 0, 0);
+    private static readonly DateTime NonRewardDay = new(2026, 3, 1, 10, 0, 0);
+
+    [Fact]
+    public async Task ProcessAsync_WhenNotRewardDay_ReturnsZerosWithoutLoadingCategories()
+    {
+        var categories = Substitute.For<IVipTopCategoryService>();
+        var processor = CreateProcessor(categories: categories, clock: NonRewardDay);
+
+        var result = await processor.ProcessAsync(CancellationToken.None);
+
+        result.Should().Be(new VipTopSparksRewardResult(0, 0, 0, 0, 0, 0, 0));
+        await categories.DidNotReceive().GetQualifiedCategoriesAsync(Arg.Any<CancellationToken>());
+    }
+
     [Fact]
     public async Task ProcessAsync_WhenLockNotAcquired_ReturnsZeros()
     {
@@ -55,7 +70,8 @@ public sealed class VipTopSparksRewardProcessorTests
 
     private static VipTopSparksRewardProcessor CreateProcessor(
         IVipTopCategoryService? categories = null,
-        IRedisDistributedLock? distributedLock = null)
+        IRedisDistributedLock? distributedLock = null,
+        DateTime? clock = null)
     {
         var categoryService = categories ?? Substitute.For<IVipTopCategoryService>();
         var extensionService = Substitute.For<IVipStatusExtensionService>();
@@ -65,7 +81,7 @@ public sealed class VipTopSparksRewardProcessorTests
             extensionService,
             Substitute.For<ISparksRewardCreditingService>(),
             distributedLock ?? CreateDistributedLock(),
-            new FakeApplicationClock(new DateTime(2026, 3, 1)),
+            new FakeApplicationClock(clock ?? RewardDay),
             NullLogger<VipTopSparksRewardProcessor>.Instance);
     }
 

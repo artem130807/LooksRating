@@ -1,3 +1,4 @@
+using LooksRatingApi.Services;
 using LooksRatingApi.Services.BackGroundServices.Jobs;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -68,9 +69,11 @@ namespace LooksRatingApi.Infrastructure.Quartz
                 _options.UseClustering);
 
             _logger.LogInformation(
-                "QuartzStartup: cron VipStatusExpiry={VipCron}, VipTopSparksReward={SparksCron}, TheBestWeek={WeekCron}, NewSeason={SeasonCron}, NewListSeason={ChapterCron}",
+                "QuartzStartup: cron VipStatusExpiry={VipCron}, VipTopSparksReward=every {SparksIntervalDays}d at {SparksHour:D2}:{SparksMinute:D2}, TheBestWeek={WeekCron}, NewSeason={SeasonCron}, NewListSeason={ChapterCron}",
                 _options.VipStatusExpiryCron,
-                _options.VipTopSparksRewardCron,
+                VipTopRules.RewardPeriodDays,
+                _options.VipTopSparksRewardHour,
+                _options.VipTopSparksRewardMinute,
                 _options.TheBestWeekCron,
                 _options.NewSeasonCron,
                 _options.NewListSeasonCron);

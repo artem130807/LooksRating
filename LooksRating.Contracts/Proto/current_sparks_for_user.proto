@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service CurrentSparksForUserService {
+    rpc CurrentSparksForUser(CurrentSparksForUserRequest) returns (CurrentSparksForUserResponse);
+}
+
+message CurrentSparksForUserRequest {
+    int64 telegram_id = 1;
+    bool credit = 2;
+}
+
+enum ChannelSubscribeBonusStatus {
+    CHANNEL_SUBSCRIBE_BONUS_STATUS_UNKNOWN = 0;
+    CHANNEL_SUBSCRIBE_BONUS_STATUS_CREDITED = 1;
+    CHANNEL_SUBSCRIBE_BONUS_STATUS_ALREADY_CREDITED = 2;
+    CHANNEL_SUBSCRIBE_BONUS_STATUS_USER_NOT_FOUND = 3;
+    CHANNEL_SUBSCRIBE_BONUS_STATUS_FAILED = 4;
+    CHANNEL_SUBSCRIBE_BONUS_STATUS_ELIGIBLE = 5;
+}
+
+message CurrentSparksForUserResponse {
+    bool success = 1;
+    string message = 2;
+    ChannelSubscribeBonusStatus status = 3;
+}

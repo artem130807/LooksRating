@@ -18,6 +18,12 @@ class Settings:
     top_notify_interval_seconds: int
     review_notify_interval_seconds: int
     stars_provider_token: str
+    channel_username: str
+    channel_url: str
+    channel_promo_interval_seconds: int
+    channel_promo_page_size: int
+    channel_promo_send_delay_seconds: float
+    channel_promo_enabled: bool
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -31,6 +37,12 @@ class Settings:
         interval_raw = os.getenv("TOP_NOTIFY_INTERVAL_SECONDS", "60").strip()
         review_interval_raw = os.getenv("REVIEW_NOTIFY_INTERVAL_SECONDS", "60").strip()
         stars_provider_token = os.getenv("STARS_PROVIDER_TOKEN", "").strip()
+        channel_username = os.getenv("CHANNEL_USERNAME", "LooksRatingBotOfficial").strip().lstrip("@")
+        channel_url = os.getenv("CHANNEL_URL", "https://t.me/LooksRatingBotOfficial").strip()
+        channel_promo_interval_raw = os.getenv("CHANNEL_PROMO_INTERVAL_SECONDS", "2400").strip()
+        channel_promo_page_size_raw = os.getenv("CHANNEL_PROMO_PAGE_SIZE", "100").strip()
+        channel_promo_send_delay_raw = os.getenv("CHANNEL_PROMO_SEND_DELAY_SECONDS", "0.05").strip()
+        channel_promo_enabled_raw = os.getenv("CHANNEL_PROMO_ENABLED", "true").strip().lower()
         try:
             interval = max(10, int(interval_raw))
         except ValueError:
@@ -43,6 +55,19 @@ class Settings:
             grpc_timeout = max(5.0, float(grpc_timeout_raw))
         except ValueError:
             grpc_timeout = 60.0
+        try:
+            channel_promo_interval = max(60, int(channel_promo_interval_raw))
+        except ValueError:
+            channel_promo_interval = 2400
+        try:
+            channel_promo_page_size = max(1, min(500, int(channel_promo_page_size_raw)))
+        except ValueError:
+            channel_promo_page_size = 100
+        try:
+            channel_promo_send_delay = max(0.0, float(channel_promo_send_delay_raw))
+        except ValueError:
+            channel_promo_send_delay = 0.05
+        channel_promo_enabled = channel_promo_enabled_raw not in {"0", "false", "no", "off"}
         if not token:
             raise RuntimeError("BOT_TOKEN is not set")
         return cls(
@@ -56,4 +81,10 @@ class Settings:
             top_notify_interval_seconds=interval,
             review_notify_interval_seconds=review_interval,
             stars_provider_token=stars_provider_token,
+            channel_username=channel_username,
+            channel_url=channel_url,
+            channel_promo_interval_seconds=channel_promo_interval,
+            channel_promo_page_size=channel_promo_page_size,
+            channel_promo_send_delay_seconds=channel_promo_send_delay,
+            channel_promo_enabled=channel_promo_enabled,
         )

@@ -159,6 +159,8 @@ namespace LooksRatingApi.Infrastructure.Startup
             app.MapInfrastructureHealthChecks();
             app.MapControllers();
             app.MapGrpcService<GetTelegramIdsGrpcService>().AllowAnonymous();
+            app.MapGrpcService<GetUsersForMessageGrpcService>().AllowAnonymous();
+            app.MapGrpcService<CurrentSparksForUserGrpcService>().AllowAnonymous();
             app.MapGrpcService<DebitedSparksGrpcService>().AllowAnonymous();
             app.MapGrpcService<RollBackDebitedSparksGrpcService>().AllowAnonymous();
             app.MapGrpcService<AdminTicketGrpcService>().AllowAnonymous();

@@ -25,7 +25,18 @@ var (
 	seasonClosePattern   = regexp.MustCompile(`Сезон.*закрыт|Создан сезон`)
 	vipRewardsPattern    = regexp.MustCompile(`VIP top biweekly rewards`)
 	bestWeekStartPattern = regexp.MustCompile(`Лучшая неделя: старт обновления`)
+	vipRewardPeriodDays  = 14
 )
+
+func isVipTopRewardDay(t time.Time, loc *time.Location) bool {
+	local := t.In(loc)
+	epoch := time.Date(2024, 1, 1, 0, 0, 0, 0, loc)
+	days := int(local.Truncate(24*time.Hour).Sub(epoch).Hours() / 24)
+	if days < 0 {
+		return false
+	}
+	return days%vipRewardPeriodDays == 0
+}
 
 func defaultQuartzRules() []QuartzRule {
 	return []QuartzRule{
@@ -51,7 +62,7 @@ func defaultQuartzRules() []QuartzRule {
 			Required:    true,
 			Window: func(now time.Time, loc *time.Location) bool {
 				t := now.In(loc)
-				return t.Hour() >= 10 && t.Hour() < 11
+				return isVipTopRewardDay(t, loc) && t.Hour() >= 10 && t.Hour() < 11
 			},
 			Pattern: vipRewardsPattern,
 		},

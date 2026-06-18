@@ -17,6 +17,38 @@ from services.gift_purchase_saga import GiftPurchaseSagaOrchestrator
 logger = logging.getLogger(__name__)
 
 
+from config import Settings
+from api.grpc_clients import LooksRatingGrpcClient
+
+
+class SettingsMiddleware(BaseMiddleware):
+    def __init__(self, settings: Settings):
+        self._settings = settings
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
+    ) -> Any:
+        data["settings"] = self._settings
+        return await handler(event, data)
+
+
+class LooksRatingGrpcMiddleware(BaseMiddleware):
+    def __init__(self, grpc_client: LooksRatingGrpcClient):
+        self._grpc = grpc_client
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
+    ) -> Any:
+        data["grpc"] = self._grpc
+        return await handler(event, data)
+
+
 class ApiErrorMiddleware(BaseMiddleware):
     async def __call__(
         self,

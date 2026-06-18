@@ -443,3 +443,18 @@ MENU_BLOCKED_WHILE_BUSY = (
 ALREADY_REGISTERED = "Вы уже в системе — откройте меню ниже."
 
 HELP = BOT_INFO
+
+CHANNEL_SUBSCRIBE_PROMO = (
+    "📢 <b>Подпишись на сообщество LooksRating</b> и получи бонусные <b>50 искр</b>!\n\n"
+    "Канал: <a href=\"{channel_url}\">LooksRating</a>\n\n"
+    "После подписки нажмите «Подписался» — бот проверит подписку и начислит искры."
+)
+CHANNEL_SUBSCRIBE_ALREADY_CREDITED = "✅ Отлично, вы уже были подписаны — бонус ранее начислен."
+CHANNEL_SUBSCRIBE_NOT_MEMBER = (
+    "❗ Вы ещё не подписались на сообщество.\n\n"
+    "Подпишитесь по ссылке в сообщении выше и нажмите «Подписался» снова."
+)
+CHANNEL_SUBSCRIBE_SUCCESS = "🎉 <b>+50 искр</b> начислено за подписку на сообщество!"
+CHANNEL_SUBSCRIBE_FAILED = "❌ Не удалось начислить бонус. Попробуйте позже."
+CHANNEL_SUBSCRIBE_USER_NOT_FOUND = "Сначала пройдите регистрацию через /start."
+CHANNEL_SUBSCRIBE_SKIPPED = "Хорошо. Подписку и бонус можно получить позже из этого сообщения."

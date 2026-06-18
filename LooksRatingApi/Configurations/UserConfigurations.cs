@@ -16,6 +16,8 @@ namespace LooksRatingApi.Configurations
 
             builder.HasIndex(x => x.TelegramId)
                 .IsUnique();
+                
+            builder.Property(x => x.IssubscribeChannel);
 
             builder.Property(x => x.TelegramUsername)
                 .HasMaxLength(32);

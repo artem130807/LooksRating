@@ -22,6 +22,8 @@ namespace LooksRatingApi.Infrastructure.Quartz
 
         public string VipStatusExpiryCron { get; set; } = "0 0 * * * ?";
 
-        public string VipTopSparksRewardCron { get; set; } = "0 0 10 * * ?";
+        public int VipTopSparksRewardHour { get; set; } = 10;
+
+        public int VipTopSparksRewardMinute { get; set; } = 0;
     }
 }

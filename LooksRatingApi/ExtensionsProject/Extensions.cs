@@ -158,10 +158,18 @@ namespace LooksRatingApi
                     .WithIdentity($"{VipStatusExpiryJob.JobName}-trigger")
                     .WithCronSchedule(quartzOptions.VipStatusExpiryCron, b => b.InTimeZone(scheduleTimeZone)));
 
+                var vipRewardFirstFire = VipTopRewardSchedule.GetFirstFireTime(
+                    scheduleTimeZone,
+                    quartzOptions.VipTopSparksRewardHour,
+                    quartzOptions.VipTopSparksRewardMinute);
+
                 q.AddTrigger(opts => opts
                     .ForJob(VipTopSparksRewardJob.JobName)
                     .WithIdentity($"{VipTopSparksRewardJob.JobName}-trigger")
-                    .WithCronSchedule(quartzOptions.VipTopSparksRewardCron, b => b.InTimeZone(scheduleTimeZone)));
+                    .StartAt(vipRewardFirstFire)
+                    .WithCalendarIntervalSchedule(builder => builder
+                        .WithIntervalInDays(VipTopRules.RewardPeriodDays)
+                        .InTimeZone(scheduleTimeZone)));
             });
 
             services.AddQuartzHostedService(options =>

@@ -11,11 +11,18 @@ from aiogram.exceptions import TelegramNetworkError
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from api.client import ApiError, LooksRatingApiClient
+from api.grpc_clients import LooksRatingGrpcClient
 from bot.review_milestone_notifications import ReviewMilestoneNotificationsService
 from bot.top_notifications import TopNotificationsService
 from config import Settings
 from handlers import log_errors, setup_routers
-from middlewares import GiftPurchaseMiddleware, build_gift_purchase_saga
+from middlewares import (
+    GiftPurchaseMiddleware,
+    LooksRatingGrpcMiddleware,
+    SettingsMiddleware,
+    build_gift_purchase_saga,
+)
+from services.channel_subscribe_promo import ChannelSubscribePromoService
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
@@ -78,6 +85,7 @@ async def main() -> None:
         bot=bot,
         interval_seconds=settings.review_notify_interval_seconds,
     )
+    channel_promo = ChannelSubscribePromoService(settings=settings, bot=bot)
     if settings.telegram_proxy:
         logging.info("Telegram proxy: %s", settings.telegram_proxy)
     else:
@@ -93,14 +101,22 @@ async def main() -> None:
 
         dp = Dispatcher(storage=MemoryStorage())
         gift_purchase_saga = build_gift_purchase_saga(settings)
+        grpc_client = LooksRatingGrpcClient(
+            settings.api_grpc_address,
+            timeout=settings.grpc_timeout_seconds,
+        )
+        dp.update.outer_middleware(SettingsMiddleware(settings))
+        dp.update.outer_middleware(LooksRatingGrpcMiddleware(grpc_client))
         dp.update.outer_middleware(GiftPurchaseMiddleware(api, gift_purchase_saga))
         dp.errors.register(log_errors)
         dp.include_router(setup_routers(api))
 
         await notifications.start()
         await review_notifications.start()
+        await channel_promo.start()
         await dp.start_polling(bot)
     finally:
+        await channel_promo.stop()
         await review_notifications.stop()
         await notifications.stop()
         await api.close()

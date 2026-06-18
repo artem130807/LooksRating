@@ -4,12 +4,10 @@ namespace LooksRatingApi.Services
 {
     internal static class VipTopRewardPeriod
     {
-        private static readonly DateTime EpochDate = new(2024, 1, 1);
-
         /// <param name="applicationLocalNow">Local time in the application timezone (Quartz: Europe/Moscow).</param>
         public static string BuildKey(Guid seasonId, DateTime applicationLocalNow)
         {
-            var days = (int)(applicationLocalNow.Date - EpochDate).TotalDays;
+            var days = VipTopRewardSchedule.GetDaysSinceEpoch(applicationLocalNow);
             var period = Math.Max(0, days / VipTopRules.RewardPeriodDays);
             return $"{seasonId:N}:{period}";
         }

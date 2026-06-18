@@ -54,6 +54,8 @@ BTN_PRIVILEGES_REFERRAL = "🔗 Реферальная программа"
 BTN_PRIVILEGES_BACK = "◀️ К привилегиям"
 BTN_MAIN_MENU = "📱 В меню"
 BTN_REFERRAL_SHARE = "📤 Поделиться"
+BTN_CHANNEL_SUBSCRIBED = "✅ Подписался"
+BTN_CHANNEL_SKIP = "Пропустить"
 
 
 def main_menu() -> ReplyKeyboardMarkup:
@@ -389,6 +391,23 @@ def referral_program_keyboard(*, share_url: str | None) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=BTN_MAIN_MENU, callback_data=callbacks.SHOP_MAIN_MENU)]
     )
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def channel_subscribe_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=BTN_CHANNEL_SUBSCRIBED,
+                    callback_data=callbacks.CHANNEL_SUBSCRIBE_CONFIRM,
+                ),
+                InlineKeyboardButton(
+                    text=BTN_CHANNEL_SKIP,
+                    callback_data=callbacks.CHANNEL_SUBSCRIBE_SKIP,
+                ),
+            ],
+        ]
+    )
 
 
 def shop_keyboard(*, has_vip: bool = False) -> InlineKeyboardMarkup:

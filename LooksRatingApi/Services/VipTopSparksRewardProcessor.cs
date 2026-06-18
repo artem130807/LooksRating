@@ -35,6 +35,15 @@ namespace LooksRatingApi.Services
 
         public async Task<VipTopSparksRewardResult> ProcessAsync(CancellationToken cancellationToken = default)
         {
+            var applicationNow = _clock.GetNow();
+            if (!VipTopRewardSchedule.IsRewardDay(applicationNow))
+            {
+                _logger.LogInformation(
+                    "VIP top sparks reward skipped: not a biweekly reward day (next={NextRewardDay:yyyy-MM-dd})",
+                    VipTopRewardSchedule.GetNextRewardDay(applicationNow));
+                return new VipTopSparksRewardResult(0, 0, 0, 0, 0, 0, 0);
+            }
+
             await using var lockHandle = await _distributedLock.TryAcquireAsync(
                 DistributedLockKeys.VipTopSparksReward,
                 LockTtl,
@@ -63,7 +72,6 @@ namespace LooksRatingApi.Services
             }
 
             var seasonId = seasonIds[0];
-            var applicationNow = _clock.GetNow();
             var periodKey = VipTopRewardPeriod.BuildKey(seasonId, applicationNow);
 
             _logger.LogInformation(

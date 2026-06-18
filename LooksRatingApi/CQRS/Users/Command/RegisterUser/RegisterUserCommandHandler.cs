@@ -64,6 +64,7 @@ namespace LooksRatingApi.Cqrs.Users.Command.RegisterUser
                 TelegramUsername = string.IsNullOrWhiteSpace(request.TelegramUsername)
                     ? null
                     : request.TelegramUsername.Trim().TrimStart('@'),
+                IssubscribeChannel = false,
                 Name = displayNameResult.Value,
             };
 

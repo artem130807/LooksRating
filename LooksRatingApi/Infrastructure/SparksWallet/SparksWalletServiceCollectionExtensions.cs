@@ -40,6 +40,7 @@ namespace LooksRatingApi.Infrastructure.SparksWallet
             services.AddScoped<ISparksLedgerEventDispatcher, SparksLedgerEventDispatcher>();
             services.AddScoped<IDebitedSparksOrchestrator, DebitedSparksOrchestrator>();
             services.AddScoped<IRollBackDebitedSparksOrchestrator, RollBackDebitedSparksOrchestrator>();
+            services.AddScoped<ICurrentSparksForUserOrchestrator, CurrentSparksForUserOrchestrator>();
 
             services.AddSingleton<IKafkaEventProducer<CurrencyDebitedEvent>, LazyKafkaEventProducer<CurrencyDebitedEvent>>();
             services.AddSingleton<IKafkaEventProducer<CurrencySparksEvent>, LazyKafkaEventProducer<CurrencySparksEvent>>();

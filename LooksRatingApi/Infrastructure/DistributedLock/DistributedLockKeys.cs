@@ -7,6 +7,9 @@ namespace LooksRatingApi.Infrastructure.DistributedLock
         public const string VipStatusExpiry = "looksrating:lock:vip-expiry";
         public const string VipTopSparksReward = "looksrating:lock:vip-top-sparks-reward";
 
+        public static string ChannelSubscribeBonus(long telegramId) =>
+            $"looksrating:lock:channel-subscribe:{telegramId}";
+
         public static string UserTicketPhotoProfile(Guid photoProfileId) =>
             $"looksrating:lock:user-ticket:photo-profile:{photoProfileId:N}";
     }

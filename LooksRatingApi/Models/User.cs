@@ -11,6 +11,7 @@ namespace LooksRatingApi.Models
         public string? TelegramUsername { get; set; }
         public string? Name { get; set; }
         public int CountInTop {get; set;}
+        public bool IssubscribeChannel {get; set;} = false;
         public UserReferenceLink? UserReferenceLink {get; set;}
         public SparksWallet? SparksWallet { get; set; }
         public VipStatus Status {get; set;} = VipStatus.Unavaillable;
@@ -20,5 +21,6 @@ namespace LooksRatingApi.Models
         public ICollection<UserTicket> UserTickets { get; set; } = new List<UserTicket>();
         public ICollection<Review> Reviews { get; set; } = new List<Review>();
         public void UpdateVipStatus() => Status = VipStatus.Availlable;
+        public void SubscribeChannel() => IssubscribeChannel = true;
     }
 }

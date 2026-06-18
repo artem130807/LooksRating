@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using LooksRatingApi.Contracts.UserContracts;
+using LooksRatingApi.Filters;
 using LooksRatingApi.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -57,6 +59,33 @@ namespace LooksRatingApi.Repositories
         public async Task<List<User>> GetUsers()
         {
             return await _context.Users.ToListAsync();
+        }
+
+        public async Task<PagedResult<long>> GetTelegramIdsPagedAsync(
+            int page,
+            int pageSize,
+            bool onlyUnsubscribedChannel = false,
+            CancellationToken cancellationToken = default)
+        {
+            var normalizedPage = Math.Max(page, 1);
+            var normalizedPageSize = Math.Clamp(pageSize, 1, 500);
+
+            var query = _context.Users.AsNoTracking();
+            if (onlyUnsubscribedChannel)
+            {
+                query = query.Where(user => !user.IssubscribeChannel);
+            }
+
+            var telegramIds = query
+                .OrderBy(user => user.TelegramId)
+                .Select(user => user.TelegramId);
+
+            return await telegramIds.ToPagedAsync(
+                new PageParams
+                {
+                    Page = normalizedPage,
+                    PageSize = normalizedPageSize,
+                });
         }
 
         public async Task SaveChangesAsync()
