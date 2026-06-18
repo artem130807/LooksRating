@@ -28,10 +28,6 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             int age,
             bool vipOnly = false,
             CancellationToken cancellationToken = default);
-        Task<SeasonTopPosition?> GetSeasonTopPositionAsync(
-            PhotoProfile profile,
-            bool seasonIsClosed,
-            CancellationToken cancellationToken = default);
         Task<int> CountFeedProfilesAsync(
             Guid seasonId,
             Guid reviewerUserId,

@@ -1,6 +1,7 @@
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Enums;
+using LooksRatingApi.Models;
 using StackExchange.Redis;
 using System.Globalization;
 
@@ -56,6 +57,50 @@ namespace LooksRatingApi.Services
                 take,
                 vipOnly,
                 cancellationToken);
+        }
+
+        public async Task<SeasonTopPosition?> GetSeasonTopPositionAsync(
+            PhotoProfile profile,
+            bool seasonIsClosed,
+            CancellationToken cancellationToken = default)
+        {
+            var city = profile.CityNomination?.Value;
+            if (string.IsNullOrWhiteSpace(city))
+            {
+                return null;
+            }
+
+            var ageBracket = TopService.GetTop(profile.AgeNomination);
+            if (ageBracket.Length == 0)
+            {
+                return null;
+            }
+
+            var (rankedProfileIds, totalCount) = await GetTopProfileIdsAsync(
+                profile.SeasonId,
+                seasonIsClosed,
+                city,
+                profile.GenderNomination,
+                ageBracket[0],
+                skip: 0,
+                take: int.MaxValue,
+                vipOnly: false,
+                cancellationToken);
+
+            if (totalCount == 0)
+            {
+                return null;
+            }
+
+            for (var index = 0; index < rankedProfileIds.Count; index++)
+            {
+                if (rankedProfileIds[index] == profile.Id)
+                {
+                    return new SeasonTopPosition(index + 1, totalCount);
+                }
+            }
+
+            return null;
         }
 
         private async Task<(IReadOnlyList<Guid> ProfileIds, int TotalCount)> GetTopFromRedisAsync(
@@ -171,8 +216,14 @@ namespace LooksRatingApi.Services
                 return await TryGetRankedPhotoFromProfileAsync(photoId, genderEnum, age, vipOnly: true);
             }
 
+            var profile = await _photoProfileRepository.GetByIdAsync(photoId);
+            if (profile is null)
+            {
+                return null;
+            }
+
             var ratingCount = ratingCountValue.HasValue ? (int)ratingCountValue : 0;
-            return new RankedPhoto(photoId, rating, ratingCount, DateTime.MinValue);
+            return new RankedPhoto(photoId, rating, ratingCount, profile.CreatedAt);
         }
 
         private async Task<RankedPhoto?> TryGetRankedPhotoFromProfileAsync(

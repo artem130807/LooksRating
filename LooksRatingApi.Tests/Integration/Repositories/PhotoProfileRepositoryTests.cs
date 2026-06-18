@@ -2,10 +2,13 @@ using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
 using LooksRatingApi.Repositories;
+using LooksRatingApi.Services;
+using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Tests.Infrastructure.Builders;
 using LooksRatingApi.Tests.Infrastructure.Fixtures;
 using LooksRatingApi.Tests.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace LooksRatingApi.Tests.Integration.Repositories;
 
@@ -135,7 +138,8 @@ public sealed class PhotoProfileRepositoryTests
         await context.SaveChangesAsync();
 
         var repository = new PhotoProfileRepository(context);
-        var position = await repository.GetSeasonTopPositionAsync(target, seasonIsClosed: false);
+        var topReadService = CreateTopReadService(context);
+        var position = await topReadService.GetSeasonTopPositionAsync(target, seasonIsClosed: false);
 
         position.Should().NotBeNull();
         position!.Place.Should().Be(2);
@@ -169,6 +173,7 @@ public sealed class PhotoProfileRepositoryTests
         await context.SaveChangesAsync();
 
         var repository = new PhotoProfileRepository(context);
+        var topReadService = CreateTopReadService(context);
         var rankedIds = await repository.GetTopProfileIdsAsync(
             season.Id,
             seasonIsClosed: false,
@@ -181,7 +186,7 @@ public sealed class PhotoProfileRepositoryTests
         for (var index = 0; index < rankedIds.Count; index++)
         {
             var profile = profiles.Single(p => p.Id == rankedIds[index]);
-            var position = await repository.GetSeasonTopPositionAsync(profile, seasonIsClosed: false);
+            var position = await topReadService.GetSeasonTopPositionAsync(profile, seasonIsClosed: false);
 
             position.Should().NotBeNull();
             position!.Place.Should().Be(index + 1);
@@ -205,18 +210,21 @@ public sealed class PhotoProfileRepositoryTests
         };
 
         var city = CityVo.Create("samara").Value;
-        var createdAt = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
+        var oldestCreatedAt = new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc);
+        var middleCreatedAt = new DateTime(2026, 6, 1, 11, 0, 0, DateTimeKind.Utc);
+        var newestCreatedAt = new DateTime(2026, 6, 1, 12, 0, 0, DateTimeKind.Utc);
         var profiles = new[]
         {
-            CreateRankedProfile(users[0], season, city, rating: 8m, ratingCount: 0, createdAt, Guid.Parse("00000000-0000-0000-0000-000000000003")),
-            CreateRankedProfile(users[1], season, city, rating: 8m, ratingCount: 0, createdAt, Guid.Parse("00000000-0000-0000-0000-000000000001")),
-            CreateRankedProfile(users[2], season, city, rating: 8m, ratingCount: 0, createdAt, Guid.Parse("00000000-0000-0000-0000-000000000002")),
+            CreateRankedProfile(users[0], season, city, rating: 8m, ratingCount: 0, oldestCreatedAt),
+            CreateRankedProfile(users[1], season, city, rating: 8m, ratingCount: 0, middleCreatedAt),
+            CreateRankedProfile(users[2], season, city, rating: 8m, ratingCount: 0, newestCreatedAt),
         };
 
         context.PhotoProfiles.AddRange(profiles);
         await context.SaveChangesAsync();
 
         var repository = new PhotoProfileRepository(context);
+        var topReadService = CreateTopReadService(context);
         var rankedIds = await repository.GetTopProfileIdsAsync(
             season.Id,
             seasonIsClosed: false,
@@ -227,17 +235,28 @@ public sealed class PhotoProfileRepositoryTests
             take: 10);
 
         rankedIds.Should().HaveCount(3);
-        rankedIds[0].Should().Be(profiles[1].Id);
-        rankedIds[1].Should().Be(profiles[2].Id);
+        rankedIds[0].Should().Be(profiles[2].Id);
+        rankedIds[1].Should().Be(profiles[1].Id);
         rankedIds[2].Should().Be(profiles[0].Id);
 
         foreach (var profile in profiles)
         {
-            var position = await repository.GetSeasonTopPositionAsync(profile, seasonIsClosed: false);
+            var position = await topReadService.GetSeasonTopPositionAsync(profile, seasonIsClosed: false);
             position.Should().NotBeNull();
             position!.Place.Should().Be(rankedIds.IndexOf(profile.Id) + 1);
             position.TotalCount.Should().Be(3);
         }
+    }
+
+    private static PhotoTopReadService CreateTopReadService(LooksRatingDbContext context)
+    {
+        var database = Substitute.For<IDatabase>();
+        database.KeyExistsAsync(Arg.Any<RedisKey>(), Arg.Any<CommandFlags>()).Returns(false);
+
+        return new PhotoTopReadService(
+            database,
+            new NormalizeCityNameService(),
+            new PhotoProfileRepository(context));
     }
 
     private static PhotoProfile CreateRankedProfile(

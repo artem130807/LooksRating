@@ -11,10 +11,10 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
             PhotoProfile profile,
             IReadOnlyList<GetUserPhotosItem> photos,
             bool seasonIsClosed,
-            IPhotoProfileRepository photoProfileRepository,
+            IPhotoTopReadService photoTopReadService,
             CancellationToken cancellationToken)
         {
-            var seasonTop = await photoProfileRepository.GetSeasonTopPositionAsync(
+            var seasonTop = await photoTopReadService.GetSeasonTopPositionAsync(
                 profile,
                 seasonIsClosed,
                 cancellationToken);

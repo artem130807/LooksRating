@@ -58,11 +58,17 @@ public sealed class GetMyPhotoHandlerTests
         photoProfileRepository
             .GetByUserAndSeasonAsync(user.Id, seasonId, Arg.Any<CancellationToken>())
             .Returns(profile);
-        photoProfileRepository
+
+        var photoTopReadService = Substitute.For<IPhotoTopReadService>();
+        photoTopReadService
             .GetSeasonTopPositionAsync(profile, season.IsClosed, Arg.Any<CancellationToken>())
             .Returns(new SeasonTopPosition(12, 84));
 
-        var handler = new GetMyPhotoHandler(userRepository, photoProfileRepository, seasonRepository);
+        var handler = new GetMyPhotoHandler(
+            userRepository,
+            photoProfileRepository,
+            seasonRepository,
+            photoTopReadService);
 
         var result = await handler.Handle(new GetMyPhotoQuery(88001), CancellationToken.None);
 

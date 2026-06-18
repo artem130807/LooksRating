@@ -68,7 +68,9 @@ public sealed class GetUserPhotosHandlerTests
         photoProfileRepository
             .GetByIdAsync(profile.Id, Arg.Any<CancellationToken>())
             .Returns(profile);
-        photoProfileRepository
+
+        var photoTopReadService = Substitute.For<IPhotoTopReadService>();
+        photoTopReadService
             .GetSeasonTopPositionAsync(profile, season.IsClosed, Arg.Any<CancellationToken>())
             .Returns(new SeasonTopPosition(12, 84));
 
@@ -79,7 +81,8 @@ public sealed class GetUserPhotosHandlerTests
             userRepository,
             photoProfileRepository,
             recommendationService,
-            seasonRepository);
+            seasonRepository,
+            photoTopReadService);
 
         var result = await handler.Handle(new GetUserPhotosQuery(reviewer.TelegramId), CancellationToken.None);
 

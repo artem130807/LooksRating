@@ -12,15 +12,18 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
         private readonly IUserRepository _userRepository;
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
+        private readonly IPhotoTopReadService _photoTopReadService;
 
         public GetMyPhotoHandler(
             IUserRepository userRepository,
             IPhotoProfileRepository photoProfileRepository,
-            ISeasonRepository seasonRepository)
+            ISeasonRepository seasonRepository,
+            IPhotoTopReadService photoTopReadService)
         {
             _userRepository = userRepository;
             _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
+            _photoTopReadService = photoTopReadService;
         }
 
         public async Task<Result<GetMyPhotoResponse>> Handle(
@@ -58,7 +61,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetMyPhoto
                 user,
                 season.Id,
                 season.IsClosed,
-                _photoProfileRepository,
+                _photoTopReadService,
                 cancellationToken);
 
             return Result.Success(response);
