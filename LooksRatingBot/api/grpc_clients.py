@@ -44,7 +44,10 @@ class LooksRatingSparksGrpcClient:
     def debited_sparks(self, telegram_id: int, stars_count: int) -> SparksGrpcResponse:
         channel = grpc.insecure_channel(
             self._address,
-            options=(("grpc.enable_http_proxy", 0),),
+            options=(
+                ("grpc.enable_http_proxy", 0),
+                ("grpc.http2.scheme", "http"),
+            ),
         )
         try:
             stub = debited_sparks_pb2_grpc.DebitedSparksServiceStub(channel)
@@ -68,7 +71,10 @@ class LooksRatingSparksGrpcClient:
     ) -> SparksGrpcResponse:
         channel = grpc.insecure_channel(
             self._address,
-            options=(("grpc.enable_http_proxy", 0),),
+            options=(
+                ("grpc.enable_http_proxy", 0),
+                ("grpc.http2.scheme", "http"),
+            ),
         )
         try:
             stub = rollback_debited_sparks_pb2_grpc.RollBackDebitedSparksServiceStub(channel)
@@ -99,7 +105,10 @@ class LooksRatingGrpcClient:
     ) -> UsersForMessagePage:
         channel = grpc.insecure_channel(
             self._address,
-            options=(("grpc.enable_http_proxy", 0),),
+            options=(
+                ("grpc.enable_http_proxy", 0),
+                ("grpc.http2.scheme", "http"),
+            ),
         )
         try:
             stub = get_users_for_message_pb2_grpc.GetUsersForMessageServiceStub(channel)
@@ -129,7 +138,10 @@ class LooksRatingGrpcClient:
     ) -> ChannelSubscribeBonusResponse:
         channel = grpc.insecure_channel(
             self._address,
-            options=(("grpc.enable_http_proxy", 0),),
+            options=(
+                ("grpc.enable_http_proxy", 0),
+                ("grpc.http2.scheme", "http"),
+            ),
         )
         try:
             stub = current_sparks_for_user_pb2_grpc.CurrentSparksForUserServiceStub(channel)

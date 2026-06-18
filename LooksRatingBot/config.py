@@ -29,7 +29,7 @@ class Settings:
     def from_env(cls) -> "Settings":
         token = os.getenv("BOT_TOKEN", "").strip()
         base = os.getenv("API_BASE_URL", "http://api:8080").strip().rstrip("/")
-        api_grpc = os.getenv("API_GRPC_ADDRESS", "api:8080").strip()
+        api_grpc = os.getenv("API_GRPC_ADDRESS", "api:8081").strip()
         tgifts_grpc = os.getenv("TGIFTS_GRPC_ADDRESS", "tgifts-buyer:50051").strip()
         grpc_timeout_raw = os.getenv("GRPC_TIMEOUT_SECONDS", "60").strip()
         key = os.getenv("API_KEY", "").strip()

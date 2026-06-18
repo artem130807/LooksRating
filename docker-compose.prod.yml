@@ -176,7 +176,7 @@ services:
       - .env
     environment:
       API_BASE_URL: http://api-gateway:8080
-      API_GRPC_ADDRESS: api:8080
+      API_GRPC_ADDRESS: api:8081
       TGIFTS_GRPC_ADDRESS: tgifts-buyer:50051
       API_KEY: ${API_KEY:?Set API_KEY in .env}
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
@@ -242,7 +242,7 @@ services:
       TICKET_HTTP_ADDR: :8090
       TICKET_API_KEY: ${TICKET_API_KEY:?Set TICKET_API_KEY in .env}
       LOOKSRATING_HTTP_BASE_URL: http://api:8080
-      LOOKSRATING_GRPC_ADDRESS: api:8080
+      LOOKSRATING_GRPC_ADDRESS: api:8081
       LOOKSRATING_API_KEY: ${API_KEY:?Set API_KEY in .env}
       LOOKS_RATING_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
       MONITOR_ENABLED: ${MONITOR_ENABLED:-true}
@@ -302,7 +302,7 @@ services:
     env_file:
       - ./TGgifts-buyer/.env
     environment:
-      LOOKSRATING_GRPC_ADDRESS: api:8080
+      LOOKSRATING_GRPC_ADDRESS: api:8081
       APP_MODE: ${TGIFTS_APP_MODE:-gift_grpc}
       CHANNEL_ID: ${TGIFTS_CHANNEL_ID:-0}
       GIFT_GRPC_ENABLED: "true"

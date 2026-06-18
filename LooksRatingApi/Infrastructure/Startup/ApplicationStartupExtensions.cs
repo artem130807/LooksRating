@@ -25,9 +25,13 @@ namespace LooksRatingApi.Infrastructure.Startup
         {
             builder.WebHost.ConfigureKestrel(options =>
             {
-                options.ConfigureEndpointDefaults(listenOptions =>
+                options.ListenAnyIP(8080, listenOptions =>
                 {
                     listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+                });
+                options.ListenAnyIP(8081, listenOptions =>
+                {
+                    listenOptions.Protocols = HttpProtocols.Http2;
                 });
             });
 
