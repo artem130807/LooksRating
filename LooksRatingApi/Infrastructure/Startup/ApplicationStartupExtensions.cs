@@ -17,10 +17,6 @@ namespace LooksRatingApi.Infrastructure.Startup
 {
     public static class ApplicationStartupExtensions
     {
-        private const int VipProductCode = VipTopRules.VipProductCode;
-        private const int VipStarsPrice = VipTopRules.VipStarsPrice;
-        private const int VipDays = VipTopRules.DefaultVipDays;
-
         public static WebApplicationBuilder ConfigureHost(this WebApplicationBuilder builder)
         {
             builder.WebHost.ConfigureKestrel(options =>
@@ -108,28 +104,7 @@ namespace LooksRatingApi.Infrastructure.Startup
             var quartzSchemaBootstrap = services.GetRequiredService<QuartzSchemaBootstrap>();
             await quartzSchemaBootstrap.EnsureCreatedAsync();
 
-            var vipProduct = await dbContext.Products.FirstOrDefaultAsync(p => p.ProductCode == VipProductCode);
-            if (vipProduct is null)
-            {
-                var productResult = Product.Create("VIP-статус", VipProductCode, VipStarsPrice, "XTR", VipDays);
-                if (productResult.IsSuccess)
-                {
-                    dbContext.Products.Add(productResult.Value);
-                    await dbContext.SaveChangesAsync();
-                }
-            }
-            else if (vipProduct.CountStars != VipStarsPrice
-                || !vipProduct.IsActive
-                || !string.Equals(vipProduct.Currency, "XTR", StringComparison.OrdinalIgnoreCase)
-                || vipProduct.VipDays != VipDays)
-            {
-                dbContext.Entry(vipProduct).Property(nameof(Product.CountStars)).CurrentValue = VipStarsPrice;
-                dbContext.Entry(vipProduct).Property(nameof(Product.IsActive)).CurrentValue = true;
-                dbContext.Entry(vipProduct).Property(nameof(Product.Currency)).CurrentValue = "XTR";
-                dbContext.Entry(vipProduct).Property(nameof(Product.VipDays)).CurrentValue = VipDays;
-                dbContext.Entry(vipProduct).Property(nameof(Product.UpdatedAt)).CurrentValue = DateTime.UtcNow;
-                await dbContext.SaveChangesAsync();
-            }
+            await VipProductBootstrap.EnsureConfiguredAsync(dbContext);
 
             var env = services.GetRequiredService<IWebHostEnvironment>();
             var cityNames = services.GetRequiredService<ILoadingCityService>().CreateCityNames(env);

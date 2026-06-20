@@ -153,7 +153,7 @@ class FakeApiClient:
     async def create_payment_order(self, telegram_id: int, product_code: int) -> dict[str, Any]:
         order = {
             "payload": f"vip-{telegram_id}",
-            "amountStars": 100,
+            "amountStars": 140,
             "currency": "XTR",
             "productCode": product_code,
             "productName": "VIP",

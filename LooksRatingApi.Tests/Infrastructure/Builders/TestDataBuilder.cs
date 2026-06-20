@@ -115,7 +115,7 @@ internal static class TestDataBuilder
         DateTime paidAtUtc,
         CancellationToken cancellationToken = default)
     {
-        var order = PaymentOrder.Create(user.Id, product.Id, $"vip-{user.TelegramId}", 100).Value;
+        var order = PaymentOrder.Create(user.Id, product.Id, $"vip-{user.TelegramId}", product.CountStars).Value;
         order.MarkPaid($"charge-{user.TelegramId}", "provider");
 
         context.PaymentOrders.Add(order);

@@ -9,7 +9,7 @@ namespace LooksRatingApi.Services
         public const int ExtensionPlaceFrom = 6;
         public const int ExtensionPlaceTo = 10;
         public const int VipProductCode = 1001;
-        public const int VipStarsPrice = 100;
+        public const int VipStarsPrice = 140;
         public const int DefaultVipDays = 30;
         public const int RewardPeriodDays = 14;
     }
