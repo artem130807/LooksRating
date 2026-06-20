@@ -276,6 +276,33 @@ namespace LooksRatingApi.Services
                 DateTime.UtcNow);
 
             var reservedDuringRestart = new HashSet<Guid>();
+
+            var newProfileId = await TryReserveProfileAfterRestartAsync(
+                context,
+                reservedDuringRestart,
+                unviewableProfileIds,
+                skipProfileIds,
+                createdAfter: previousAnchor);
+            if (newProfileId.HasValue)
+            {
+                return newProfileId;
+            }
+
+            return await TryReserveProfileAfterRestartAsync(
+                context,
+                reservedDuringRestart,
+                unviewableProfileIds,
+                skipProfileIds,
+                createdAfter: null);
+        }
+
+        private async Task<Guid?> TryReserveProfileAfterRestartAsync(
+            FeedSearchContext context,
+            HashSet<Guid> reservedDuringRestart,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds,
+            DateTime? createdAfter)
+        {
             for (var attempt = 0; attempt < MaxReservationAttempts; attempt++)
             {
                 var excludeProfileIds = BuildExcludeProfileIds(
@@ -283,16 +310,16 @@ namespace LooksRatingApi.Services
                     unviewableProfileIds,
                     skipProfileIds);
 
-                var profileId = attempt == 0
+                var profileId = createdAfter.HasValue
                     ? await TryGetByRandomOrderAsync(
                         context,
                         excludeProfileIds,
-                        createdAfter: previousAnchor)
+                        createdAfter: createdAfter.Value)
                     : await TryGetByRandomOrderAsync(context, excludeProfileIds);
 
                 if (!profileId.HasValue)
                 {
-                    break;
+                    return null;
                 }
 
                 if (await _feedCycleStore.TryMarkProfileAsServedAsync(
