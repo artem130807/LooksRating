@@ -34,6 +34,7 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             string cityNomination,
             GenderEnum gender,
             int age,
+            IReadOnlyCollection<Guid>? excludeProfileIds = null,
             CancellationToken cancellationToken = default);
         Task<List<Guid>> GetFeedCandidateProfileIdsAsync(
             Guid seasonId,
@@ -63,6 +64,7 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             GenderEnum gender,
             int age,
             int take,
+            IReadOnlyCollection<Guid> excludeProfileIds,
             bool vipOnly = false,
             CancellationToken cancellationToken = default);
         Task<List<Guid>> GetRandomNewFeedCandidateProfileIdsAsync(
@@ -73,6 +75,7 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             int age,
             DateTime createdAfter,
             int take,
+            IReadOnlyCollection<Guid> excludeProfileIds,
             bool vipOnly = false,
             CancellationToken cancellationToken = default);
         Task<int> CountSeasonsWithProfileAsync(Guid userId, CancellationToken cancellationToken = default);

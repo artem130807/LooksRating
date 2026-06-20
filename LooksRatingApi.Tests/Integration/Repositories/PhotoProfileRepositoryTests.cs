@@ -248,6 +248,163 @@ public sealed class PhotoProfileRepositoryTests
         }
     }
 
+    [SkippableFact]
+    public async Task CountFeedProfilesAsync_ExcludesProfileIds()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 6051);
+        var city = CityVo.Create("moscow").Value;
+        var profiles = new List<PhotoProfile>();
+        for (var i = 0; i < 5; i++)
+        {
+            var user = await TestDataBuilder.SeedUserAsync(context, 6150 + i);
+            profiles.Add(CreateFeedProfile(user, season, city, age: 25));
+        }
+
+        context.PhotoProfiles.AddRange(profiles);
+        await context.SaveChangesAsync();
+
+        var repository = new PhotoProfileRepository(context);
+        var totalCount = await repository.CountFeedProfilesAsync(
+            season.Id,
+            reviewer.Id,
+            city.Value!,
+            GenderEnum.Male,
+            age: 25);
+        var availableCount = await repository.CountFeedProfilesAsync(
+            season.Id,
+            reviewer.Id,
+            city.Value!,
+            GenderEnum.Male,
+            age: 25,
+            excludeProfileIds: new[] { profiles[0].Id, profiles[1].Id });
+
+        totalCount.Should().Be(5);
+        availableCount.Should().Be(3);
+    }
+
+    [SkippableFact]
+    public async Task GetRandomFeedCandidateProfileIdsAsync_ExcludesProfileIds()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 6001);
+        var city = CityVo.Create("moscow").Value;
+        var profiles = new List<PhotoProfile>();
+        for (var i = 0; i < 5; i++)
+        {
+            var user = await TestDataBuilder.SeedUserAsync(context, 6100 + i);
+            profiles.Add(CreateFeedProfile(user, season, city, age: 25));
+        }
+
+        context.PhotoProfiles.AddRange(profiles);
+        await context.SaveChangesAsync();
+
+        var excluded = new[] { profiles[0].Id, profiles[1].Id };
+        var repository = new PhotoProfileRepository(context);
+
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var candidates = await repository.GetRandomFeedCandidateProfileIdsAsync(
+                season.Id,
+                reviewer.Id,
+                city.Value!,
+                GenderEnum.Male,
+                age: 25,
+                take: 10,
+                excludeProfileIds: excluded);
+
+            candidates.Should().NotBeEmpty();
+            candidates.Should().NotContain(excluded);
+        }
+    }
+
+    [SkippableFact]
+    public async Task GetRandomNewFeedCandidateProfileIdsAsync_ExcludesProfileIds()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 6201);
+        var city = CityVo.Create("moscow").Value;
+        var anchor = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var profiles = new List<PhotoProfile>();
+        for (var i = 0; i < 5; i++)
+        {
+            var user = await TestDataBuilder.SeedUserAsync(context, 6200 + i);
+            profiles.Add(CreateFeedProfile(
+                user,
+                season,
+                city,
+                age: 25,
+                createdAt: anchor.AddHours(i + 1)));
+        }
+
+        context.PhotoProfiles.AddRange(profiles);
+        await context.SaveChangesAsync();
+
+        var excluded = new[] { profiles[2].Id, profiles[3].Id };
+        var repository = new PhotoProfileRepository(context);
+
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var candidates = await repository.GetRandomNewFeedCandidateProfileIdsAsync(
+                season.Id,
+                reviewer.Id,
+                city.Value!,
+                GenderEnum.Male,
+                age: 25,
+                createdAfter: anchor,
+                take: 10,
+                excludeProfileIds: excluded);
+
+            candidates.Should().NotBeEmpty();
+            candidates.Should().NotContain(excluded);
+        }
+    }
+
+    private static PhotoProfile CreateFeedProfile(
+        User user,
+        Season season,
+        CityVo city,
+        int age,
+        DateTime? createdAt = null)
+    {
+        return new PhotoProfile
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            User = user,
+            SeasonId = season.Id,
+            Rating = 7m,
+            RatingCount = 5,
+            Rank = RankEnum.Cute,
+            Status = StatusEnum.Active,
+            CityNomination = city,
+            AgeNomination = age,
+            GenderNomination = GenderEnum.Male,
+            CreatedAt = createdAt ?? DateTime.UtcNow,
+            Photos =
+            {
+                new PhotoProfilePhoto
+                {
+                    Id = Guid.NewGuid(),
+                    TelegramFileId = $"feed-file-{user.TelegramId}",
+                    SortOrder = 0,
+                },
+            },
+        };
+    }
+
     private static PhotoTopReadService CreateTopReadService(LooksRatingDbContext context)
     {
         var database = Substitute.For<IDatabase>();

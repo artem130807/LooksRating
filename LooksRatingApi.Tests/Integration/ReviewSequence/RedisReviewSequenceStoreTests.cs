@@ -14,7 +14,7 @@ public sealed class RedisReviewSequenceStoreTests
         _redis = redis;
     }
 
-    [Fact]
+    [SkippableFact]
     public void ResolveNextReviewsCount_AdvancesCycleAtomically()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
@@ -40,7 +40,7 @@ public sealed class RedisReviewSequenceStoreTests
         }
     }
 
-    [Fact]
+    [SkippableFact]
     public void SetLastReviewsCount_IsVisibleAcrossStoreInstances()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);

@@ -26,5 +26,10 @@ namespace LooksRatingApi.Contracts.ReviewContracts
             int cycleNumber,
             int reviewsPerCycle,
             CancellationToken cancellationToken = default);
+
+        Task<IReadOnlyList<Guid>> GetRatedPhotoProfileIdsForSeasonAsync(
+            Guid reviewerUserId,
+            Guid seasonId,
+            CancellationToken cancellationToken = default);
     }
 }

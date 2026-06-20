@@ -45,6 +45,7 @@ namespace LooksRatingApi
             services.AddScoped<IKafkaPhotoRatedConsumer<PhotoRatedEvent>, KafkaPhotoRatedConsumer<PhotoRatedEvent>>();
 
             services.AddScoped<IPhotoRecommendationService, PhotoRecommendationService>();
+            services.AddSingleton<IFeedCycleStore, FeedCycleRedisStore>();
             services.AddScoped<IUnviewablePhotosProfilesService, UnviewablePhotosProfilesService>();
             services.AddScoped<IAddPhotoUsersCacheHandler, AddPhotoUsersCacheHandler>();
 

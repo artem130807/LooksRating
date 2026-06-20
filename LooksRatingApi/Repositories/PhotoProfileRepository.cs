@@ -132,9 +132,16 @@ namespace LooksRatingApi.Repositories
             string cityNomination,
             GenderEnum gender,
             int age,
+            IReadOnlyCollection<Guid>? excludeProfileIds = null,
             CancellationToken cancellationToken = default)
         {
-            return await BuildFeedQuery(seasonId, reviewerUserId, cityNomination, gender, age)
+            return await BuildFeedQuery(
+                    seasonId,
+                    reviewerUserId,
+                    cityNomination,
+                    gender,
+                    age,
+                    excludeProfileIds: excludeProfileIds)
                 .CountAsync(cancellationToken);
         }
 
@@ -201,10 +208,18 @@ namespace LooksRatingApi.Repositories
             GenderEnum gender,
             int age,
             int take,
+            IReadOnlyCollection<Guid> excludeProfileIds,
             bool vipOnly = false,
             CancellationToken cancellationToken = default)
         {
-            return await BuildFeedQuery(seasonId, reviewerUserId, cityNomination, gender, age, vipOnly)
+            return await BuildFeedQuery(
+                    seasonId,
+                    reviewerUserId,
+                    cityNomination,
+                    gender,
+                    age,
+                    vipOnly,
+                    excludeProfileIds)
                 .OrderBy(_ => EF.Functions.Random())
                 .Take(take)
                 .Select(p => p.Id)
@@ -219,10 +234,18 @@ namespace LooksRatingApi.Repositories
             int age,
             DateTime createdAfter,
             int take,
+            IReadOnlyCollection<Guid> excludeProfileIds,
             bool vipOnly = false,
             CancellationToken cancellationToken = default)
         {
-            return await BuildFeedQuery(seasonId, reviewerUserId, cityNomination, gender, age, vipOnly)
+            return await BuildFeedQuery(
+                    seasonId,
+                    reviewerUserId,
+                    cityNomination,
+                    gender,
+                    age,
+                    vipOnly,
+                    excludeProfileIds)
                 .Where(p => p.CreatedAt > createdAfter)
                 .OrderBy(_ => EF.Functions.Random())
                 .Take(take)
@@ -434,7 +457,8 @@ namespace LooksRatingApi.Repositories
             string cityNomination,
             GenderEnum gender,
             int age,
-            bool vipOnly = false)
+            bool vipOnly = false,
+            IReadOnlyCollection<Guid>? excludeProfileIds = null)
         {
             var topAge = TopService.GetTop(age);
             var query = _context.PhotoProfiles
@@ -451,6 +475,11 @@ namespace LooksRatingApi.Repositories
             }
 
             query = GenderFeedHelper.ApplyFilter(query, gender);
+
+            if (excludeProfileIds is { Count: > 0 })
+            {
+                query = query.Where(p => !excludeProfileIds.Contains(p.Id));
+            }
 
             if (age == TopService.AllAges)
             {

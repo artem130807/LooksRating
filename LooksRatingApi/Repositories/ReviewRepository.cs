@@ -98,6 +98,19 @@ namespace LooksRatingApi.Repositories
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<IReadOnlyList<Guid>> GetRatedPhotoProfileIdsForSeasonAsync(
+            Guid reviewerUserId,
+            Guid seasonId,
+            CancellationToken cancellationToken = default)
+        {
+            return await _context.Reviews
+                .Where(r => r.UserId == reviewerUserId)
+                .Where(r => r.PhotoProfile.SeasonId == seasonId)
+                .Select(r => r.PhotoProfileId)
+                .Distinct()
+                .ToListAsync(cancellationToken);
+        }
+
         public async Task Update(Review review)
         {
             _context.Reviews.Update(review);
