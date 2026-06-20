@@ -78,6 +78,7 @@ namespace LooksRatingApi.Services
         {
             await _db.KeyDeleteAsync(PhotoRedisKeys.UserRatedSet(reviewerUserId, seasonId));
             await SetCycleAnchorAsync(PhotoRedisKeys.CycleAnchor(reviewerUserId, seasonId), utcNow);
+            await _db.StringSetAsync(PhotoRedisKeys.SkipFeedRepair(reviewerUserId, seasonId), "1");
         }
 
         public async Task AddRatedProfileIdsAsync(
@@ -96,7 +97,7 @@ namespace LooksRatingApi.Services
             await _db.SetAddAsync(ratedKey, values);
         }
 
-        public async Task MarkProfileAsServedAsync(
+        public async Task<bool> TryMarkProfileAsServedAsync(
             Guid reviewerUserId,
             Guid seasonId,
             Guid profileId,
@@ -111,7 +112,16 @@ namespace LooksRatingApi.Services
                 await _db.StringIncrementAsync(
                     PhotoRedisKeys.FeedRatingCounter(reviewerUserId, seasonId));
             }
+
+            await _db.KeyDeleteAsync(PhotoRedisKeys.SkipFeedRepair(reviewerUserId, seasonId));
+            return added;
         }
+
+        public Task<bool> ShouldSkipRepairFromReviewsAsync(
+            Guid reviewerUserId,
+            Guid seasonId,
+            CancellationToken cancellationToken = default) =>
+            _db.KeyExistsAsync(PhotoRedisKeys.SkipFeedRepair(reviewerUserId, seasonId));
 
         private Task SetCycleAnchorAsync(RedisKey cycleAnchorKey, DateTime utcNow) =>
             _db.StringSetAsync(cycleAnchorKey, utcNow.Ticks.ToString());

@@ -34,10 +34,15 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             IReadOnlyCollection<Guid> profileIds,
             CancellationToken cancellationToken = default);
 
-        Task MarkProfileAsServedAsync(
+        Task<bool> TryMarkProfileAsServedAsync(
             Guid reviewerUserId,
             Guid seasonId,
             Guid profileId,
+            CancellationToken cancellationToken = default);
+
+        Task<bool> ShouldSkipRepairFromReviewsAsync(
+            Guid reviewerUserId,
+            Guid seasonId,
             CancellationToken cancellationToken = default);
     }
 }

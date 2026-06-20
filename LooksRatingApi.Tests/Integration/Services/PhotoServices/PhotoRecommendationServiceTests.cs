@@ -249,6 +249,79 @@ public sealed class PhotoRecommendationServiceTests
     }
 
     [SkippableFact]
+    public async Task DoesNotRepairFromReviewsAfterCycleReset()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres, _redis);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 7561);
+        var profiles = await SeedFeedProfilesAsync(context, season, count: 3);
+
+        foreach (var profile in profiles)
+        {
+            var review = Review.Create(8, reviewer.Id, profile.Id).Value;
+            context.Reviews.Add(review);
+        }
+
+        await context.SaveChangesAsync();
+        await SeedRatedSetAsync(
+            reviewer.Id,
+            season.Id,
+            profiles[0].Id,
+            profiles[1].Id,
+            profiles[2].Id);
+
+        var service = CreateService(context, season);
+        var result = await service.GetNextUnratedProfileIdsAsync(
+            reviewer.Id,
+            GenderEnum.Male,
+            age: 25,
+            city: "moscow");
+
+        result.Should().ContainSingle();
+
+        var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
+        ratedAfter.Should().ContainSingle().Which.Should().Be(result[0]);
+        ratedAfter.Should().NotContain(profiles.Where(p => p.Id != result[0]).Select(p => p.Id));
+    }
+
+    [SkippableFact]
+    public async Task DoesNotRestartCycleWhileUnseenProfilesRemain_WithStaleRatedIds()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres, _redis);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 7571);
+        var profiles = await SeedFeedProfilesAsync(context, season, count: 3);
+        var staleProfileIds = Enumerable.Range(0, 5).Select(_ => Guid.NewGuid()).ToArray();
+
+        var ratedSeedIds = new[] { profiles[0].Id }.Concat(staleProfileIds).ToArray();
+        await SeedRatedSetAsync(reviewer.Id, season.Id, ratedSeedIds);
+
+        var service = CreateService(context, season);
+        var seen = new HashSet<Guid>();
+
+        for (var i = 0; i < 2; i++)
+        {
+            var result = await service.GetNextUnratedProfileIdsAsync(
+                reviewer.Id,
+                GenderEnum.Male,
+                age: 25,
+                city: "moscow");
+
+            result.Should().ContainSingle();
+            result[0].Should().NotBe(profiles[0].Id);
+            seen.Add(result[0]).Should().BeTrue();
+        }
+
+        seen.Should().BeEquivalentTo(new[] { profiles[1].Id, profiles[2].Id });
+    }
+
+    [SkippableFact]
     public async Task RepairsRatedSetFromReviews_WhenRedisSetEmpty()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres, _redis);

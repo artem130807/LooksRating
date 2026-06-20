@@ -60,7 +60,7 @@ public sealed class FeedCycleRedisStoreTests
     }
 
     [SkippableFact]
-    public async Task MarkProfileAsServedAsync_IncrementsCounterOnlyOnce()
+    public async Task TryMarkProfileAsServedAsync_IncrementsCounterOnlyOnce()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
         var reviewerId = Guid.NewGuid();
@@ -72,11 +72,27 @@ public sealed class FeedCycleRedisStoreTests
         await db.KeyDeleteAsync(counterKey);
 
         var store = new FeedCycleRedisStore(_redis.Connection);
-        await store.MarkProfileAsServedAsync(reviewerId, seasonId, profileId);
-        await store.MarkProfileAsServedAsync(reviewerId, seasonId, profileId);
+        (await store.TryMarkProfileAsServedAsync(reviewerId, seasonId, profileId)).Should().BeTrue();
+        (await store.TryMarkProfileAsServedAsync(reviewerId, seasonId, profileId)).Should().BeFalse();
 
         var counter = await store.GetFeedRatingCounterAsync(reviewerId, seasonId);
         counter.Should().Be(1);
+    }
+
+    [SkippableFact]
+    public async Task ResetCycleAsync_SetsSkipRepairFlagUntilProfileServed()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        var reviewerId = Guid.NewGuid();
+        var seasonId = Guid.NewGuid();
+        var profileId = Guid.NewGuid();
+        var store = new FeedCycleRedisStore(_redis.Connection);
+
+        await store.ResetCycleAsync(reviewerId, seasonId, DateTime.UtcNow);
+
+        (await store.ShouldSkipRepairFromReviewsAsync(reviewerId, seasonId)).Should().BeTrue();
+        await store.TryMarkProfileAsServedAsync(reviewerId, seasonId, profileId);
+        (await store.ShouldSkipRepairFromReviewsAsync(reviewerId, seasonId)).Should().BeFalse();
     }
 
     [SkippableFact]

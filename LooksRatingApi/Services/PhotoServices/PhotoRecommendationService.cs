@@ -11,6 +11,7 @@ namespace LooksRatingApi.Services
     {
         private const int BatchSize = 50;
         private const int VipFeedInterval = 5;
+        private const int MaxReservationAttempts = 5;
 
         private readonly IFeedCycleStore _feedCycleStore;
         private readonly INormalizeCityNameService _normalizeCityNameService;
@@ -82,7 +83,8 @@ namespace LooksRatingApi.Services
             await _feedCycleStore.EnsureCycleAnchorAsync(reviewerUserId, season.Id);
 
             var ratedProfileIds = await _feedCycleStore.GetRatedProfileIdsAsync(reviewerUserId, season.Id);
-            if (ratedProfileIds.Count == 0)
+            if (ratedProfileIds.Count == 0
+                && !await _feedCycleStore.ShouldSkipRepairFromReviewsAsync(reviewerUserId, season.Id))
             {
                 ratedProfileIds = await TryRepairRatedSetFromReviewsAsync(
                     reviewerUserId,
@@ -111,10 +113,7 @@ namespace LooksRatingApi.Services
                     skipIds);
                 if (vipProfileId.HasValue)
                 {
-                    return await MarkServedAndReturnAsync(
-                        reviewerUserId,
-                        season.Id,
-                        vipProfileId.Value);
+                    return [vipProfileId.Value];
                 }
             }
 
@@ -125,10 +124,7 @@ namespace LooksRatingApi.Services
                 skipIds);
             if (profileId.HasValue)
             {
-                return await MarkServedAndReturnAsync(
-                    reviewerUserId,
-                    season.Id,
-                    profileId.Value);
+                return [profileId.Value];
             }
 
             var feedCount = await _photoProfileRepository.CountFeedProfilesAsync(
@@ -191,15 +187,14 @@ namespace LooksRatingApi.Services
             HashSet<Guid> unviewableProfileIds,
             HashSet<Guid> skipProfileIds)
         {
-            var excludeProfileIds = BuildExcludeProfileIds(
+            var reservedProfileId = await TryReserveProfileAsync(
+                context,
                 ratedProfileIds,
                 unviewableProfileIds,
                 skipProfileIds);
-
-            var profileId = await TryGetByRandomOrderAsync(context, excludeProfileIds);
-            if (profileId.HasValue)
+            if (reservedProfileId.HasValue)
             {
-                return profileId;
+                return reservedProfileId;
             }
 
             if (await IsCycleCompleteAsync(
@@ -225,17 +220,46 @@ namespace LooksRatingApi.Services
             return null;
         }
 
+        private async Task<Guid?> TryReserveProfileAsync(
+            FeedSearchContext context,
+            HashSet<Guid> ratedProfileIds,
+            HashSet<Guid> unviewableProfileIds,
+            HashSet<Guid> skipProfileIds)
+        {
+            for (var attempt = 0; attempt < MaxReservationAttempts; attempt++)
+            {
+                var excludeProfileIds = BuildExcludeProfileIds(
+                    ratedProfileIds,
+                    unviewableProfileIds,
+                    skipProfileIds);
+
+                var profileId = await TryGetByRandomOrderAsync(context, excludeProfileIds);
+                if (!profileId.HasValue)
+                {
+                    return null;
+                }
+
+                if (await _feedCycleStore.TryMarkProfileAsServedAsync(
+                        context.ReviewerUserId,
+                        context.SeasonId,
+                        profileId.Value))
+                {
+                    return profileId;
+                }
+
+                ratedProfileIds.Add(profileId.Value);
+            }
+
+            _logger.LogWarning(
+                "Failed to reserve feed profile for reviewer {ReviewerUserId} after {AttemptCount} attempts",
+                context.ReviewerUserId,
+                MaxReservationAttempts);
+
+            return null;
+        }
+
         private static bool IsVipFeedTurn(int completedRatings) =>
             (completedRatings + 1) % VipFeedInterval == 0;
-
-        private async Task<List<Guid>> MarkServedAndReturnAsync(
-            Guid reviewerUserId,
-            Guid seasonId,
-            Guid profileId)
-        {
-            await _feedCycleStore.MarkProfileAsServedAsync(reviewerUserId, seasonId, profileId);
-            return [profileId];
-        }
 
         private async Task<Guid?> RestartCycleAndGetNextAsync(
             FeedSearchContext context,
@@ -251,21 +275,38 @@ namespace LooksRatingApi.Services
                 context.SeasonId,
                 DateTime.UtcNow);
 
-            var excludeProfileIds = BuildExcludeProfileIds(
-                new HashSet<Guid>(),
-                unviewableProfileIds,
-                skipProfileIds);
-
-            var profileId = await TryGetByRandomOrderAsync(
-                context,
-                excludeProfileIds,
-                createdAfter: previousAnchor);
-            if (profileId.HasValue)
+            var reservedDuringRestart = new HashSet<Guid>();
+            for (var attempt = 0; attempt < MaxReservationAttempts; attempt++)
             {
-                return profileId;
+                var excludeProfileIds = BuildExcludeProfileIds(
+                    reservedDuringRestart,
+                    unviewableProfileIds,
+                    skipProfileIds);
+
+                var profileId = attempt == 0
+                    ? await TryGetByRandomOrderAsync(
+                        context,
+                        excludeProfileIds,
+                        createdAfter: previousAnchor)
+                    : await TryGetByRandomOrderAsync(context, excludeProfileIds);
+
+                if (!profileId.HasValue)
+                {
+                    break;
+                }
+
+                if (await _feedCycleStore.TryMarkProfileAsServedAsync(
+                        context.ReviewerUserId,
+                        context.SeasonId,
+                        profileId.Value))
+                {
+                    return profileId;
+                }
+
+                reservedDuringRestart.Add(profileId.Value);
             }
 
-            return await TryGetByRandomOrderAsync(context, excludeProfileIds);
+            return null;
         }
 
         private async Task<Guid?> TryGetByRandomOrderAsync(
@@ -341,7 +382,25 @@ namespace LooksRatingApi.Services
                 context.Age,
                 excludeProfileIds: excludedFromCycle);
 
-            return availableFeedCount > 0 && ratedProfileIds.Count >= availableFeedCount;
+            if (availableFeedCount == 0)
+            {
+                return false;
+            }
+
+            var excludeProfileIds = BuildExcludeProfileIds(
+                ratedProfileIds,
+                unviewableProfileIds,
+                skipProfileIds);
+
+            var remainingFeedCount = await _photoProfileRepository.CountFeedProfilesAsync(
+                context.SeasonId,
+                context.ReviewerUserId,
+                context.CityNomination,
+                context.Gender,
+                context.Age,
+                excludeProfileIds: excludeProfileIds);
+
+            return remainingFeedCount == 0;
         }
 
         private static IReadOnlyCollection<Guid> BuildCycleExcludedProfileIds(
