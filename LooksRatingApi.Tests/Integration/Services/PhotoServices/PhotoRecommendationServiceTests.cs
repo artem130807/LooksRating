@@ -46,7 +46,8 @@ public sealed class PhotoRecommendationServiceTests
         await SeedRatedSetAsync(reviewer.Id, season.Id, ratedProfileId);
         var service = CreateService(context, season);
 
-        for (var attempt = 0; attempt < 15; attempt++)
+        // Only two unrated profiles remain in this cycle; a third call would restart the cycle.
+        for (var attempt = 0; attempt < 2; attempt++)
         {
             var result = await service.GetNextUnratedProfileIdsAsync(
                 reviewer.Id,
@@ -276,7 +277,8 @@ public sealed class PhotoRecommendationServiceTests
         result[0].Should().NotBe(reviewedProfileId);
 
         var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
-        ratedAfter.Should().ContainSingle().Which.Should().Be(reviewedProfileId);
+        ratedAfter.Should().Contain(reviewedProfileId);
+        ratedAfter.Should().Contain(result[0]);
     }
 
     private PhotoRecommendationService CreateService(
