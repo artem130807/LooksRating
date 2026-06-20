@@ -111,7 +111,10 @@ namespace LooksRatingApi.Services
                     skipIds);
                 if (vipProfileId.HasValue)
                 {
-                    return [vipProfileId.Value];
+                    return await MarkServedAndReturnAsync(
+                        reviewerUserId,
+                        season.Id,
+                        vipProfileId.Value);
                 }
             }
 
@@ -122,7 +125,10 @@ namespace LooksRatingApi.Services
                 skipIds);
             if (profileId.HasValue)
             {
-                return [profileId.Value];
+                return await MarkServedAndReturnAsync(
+                    reviewerUserId,
+                    season.Id,
+                    profileId.Value);
             }
 
             var feedCount = await _photoProfileRepository.CountFeedProfilesAsync(
@@ -221,6 +227,15 @@ namespace LooksRatingApi.Services
 
         private static bool IsVipFeedTurn(int completedRatings) =>
             (completedRatings + 1) % VipFeedInterval == 0;
+
+        private async Task<List<Guid>> MarkServedAndReturnAsync(
+            Guid reviewerUserId,
+            Guid seasonId,
+            Guid profileId)
+        {
+            await _feedCycleStore.MarkProfileAsServedAsync(reviewerUserId, seasonId, profileId);
+            return [profileId];
+        }
 
         private async Task<Guid?> RestartCycleAndGetNextAsync(
             FeedSearchContext context,

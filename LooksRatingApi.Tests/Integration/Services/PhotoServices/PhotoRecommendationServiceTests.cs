@@ -84,7 +84,7 @@ public sealed class PhotoRecommendationServiceTests
         result[0].Should().Be(remainingProfileId);
 
         var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
-        ratedAfter.Should().BeEquivalentTo(new[] { profiles[0].Id, profiles[1].Id });
+        ratedAfter.Should().BeEquivalentTo(new[] { profiles[0].Id, profiles[1].Id, remainingProfileId });
     }
 
     [SkippableFact]
@@ -113,7 +113,7 @@ public sealed class PhotoRecommendationServiceTests
         result[0].Should().Be(profiles[0].Id);
 
         var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
-        ratedAfter.Should().BeEmpty();
+        ratedAfter.Should().ContainSingle().Which.Should().Be(profiles[0].Id);
     }
 
     [SkippableFact]
@@ -145,7 +145,7 @@ public sealed class PhotoRecommendationServiceTests
         result[0].Should().Be(profiles[0].Id);
 
         var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
-        ratedAfter.Should().BeEmpty();
+        ratedAfter.Should().ContainSingle().Which.Should().Be(profiles[0].Id);
     }
 
     [SkippableFact]
@@ -178,7 +178,7 @@ public sealed class PhotoRecommendationServiceTests
         profiles.Select(p => p.Id).Should().Contain(result[0]);
 
         var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
-        ratedAfter.Should().BeEmpty();
+        ratedAfter.Should().ContainSingle().Which.Should().Be(result[0]);
     }
 
     [SkippableFact]
@@ -218,6 +218,33 @@ public sealed class PhotoRecommendationServiceTests
 
         result.Should().ContainSingle();
         result[0].Should().Be(vipProfile.Id);
+    }
+
+    [SkippableFact]
+    public async Task DoesNotReturnSameProfileTwiceBeforeCycleCompletes()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres, _redis);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 7551);
+        await SeedFeedProfilesAsync(context, season, count: 5);
+
+        var service = CreateService(context, season);
+        var seen = new HashSet<Guid>();
+
+        for (var i = 0; i < 5; i++)
+        {
+            var result = await service.GetNextUnratedProfileIdsAsync(
+                reviewer.Id,
+                GenderEnum.Male,
+                age: 25,
+                city: "moscow");
+
+            result.Should().ContainSingle();
+            seen.Add(result[0]).Should().BeTrue($"profile {result[0]} was already served in this cycle");
+        }
     }
 
     [SkippableFact]

@@ -60,6 +60,26 @@ public sealed class FeedCycleRedisStoreTests
     }
 
     [SkippableFact]
+    public async Task MarkProfileAsServedAsync_IncrementsCounterOnlyOnce()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        var reviewerId = Guid.NewGuid();
+        var seasonId = Guid.NewGuid();
+        var profileId = Guid.NewGuid();
+        var db = _redis.Connection.GetDatabase();
+        var counterKey = PhotoRedisKeys.FeedRatingCounter(reviewerId, seasonId);
+        await db.KeyDeleteAsync(PhotoRedisKeys.UserRatedSet(reviewerId, seasonId));
+        await db.KeyDeleteAsync(counterKey);
+
+        var store = new FeedCycleRedisStore(_redis.Connection);
+        await store.MarkProfileAsServedAsync(reviewerId, seasonId, profileId);
+        await store.MarkProfileAsServedAsync(reviewerId, seasonId, profileId);
+
+        var counter = await store.GetFeedRatingCounterAsync(reviewerId, seasonId);
+        counter.Should().Be(1);
+    }
+
+    [SkippableFact]
     public async Task GetFeedRatingCounterAsync_ReturnsZeroWhenMissing()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);

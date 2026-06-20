@@ -96,6 +96,23 @@ namespace LooksRatingApi.Services
             await _db.SetAddAsync(ratedKey, values);
         }
 
+        public async Task MarkProfileAsServedAsync(
+            Guid reviewerUserId,
+            Guid seasonId,
+            Guid profileId,
+            CancellationToken cancellationToken = default)
+        {
+            var added = await _db.SetAddAsync(
+                PhotoRedisKeys.UserRatedSet(reviewerUserId, seasonId),
+                profileId.ToString());
+
+            if (added)
+            {
+                await _db.StringIncrementAsync(
+                    PhotoRedisKeys.FeedRatingCounter(reviewerUserId, seasonId));
+            }
+        }
+
         private Task SetCycleAnchorAsync(RedisKey cycleAnchorKey, DateTime utcNow) =>
             _db.StringSetAsync(cycleAnchorKey, utcNow.Ticks.ToString());
     }
