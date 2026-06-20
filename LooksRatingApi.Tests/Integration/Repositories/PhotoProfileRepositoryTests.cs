@@ -334,13 +334,13 @@ public sealed class PhotoProfileRepositoryTests
         await DatabaseCleaner.ResetAsync(context);
 
         var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
-        var reviewer = await TestDataBuilder.SeedUserAsync(context, 6201);
+        var reviewer = await TestDataBuilder.SeedUserAsync(context, 6301);
         var city = CityVo.Create("moscow").Value;
         var anchor = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
         var profiles = new List<PhotoProfile>();
         for (var i = 0; i < 5; i++)
         {
-            var user = await TestDataBuilder.SeedUserAsync(context, 6200 + i);
+            var user = await TestDataBuilder.SeedUserAsync(context, 6310 + i);
             profiles.Add(CreateFeedProfile(
                 user,
                 season,
