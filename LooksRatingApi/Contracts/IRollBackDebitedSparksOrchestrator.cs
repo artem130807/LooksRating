@@ -9,6 +9,7 @@ namespace LooksRatingApi.Contracts
             long telegramId,
             int starsCount,
             string reason,
+            string? idempotencyKey,
             CancellationToken cancellationToken);
     }
 }

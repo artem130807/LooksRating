@@ -34,6 +34,10 @@ namespace LooksRatingApi.Configurations
                 .HasForeignKey(u => u.UserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            builder.HasMany(x => x.WritingOffSparks)
+            .WithOne(x => x.User)
+            .HasForeignKey(x => x.UserId);
         }
     }
 }

@@ -142,6 +142,11 @@ namespace LooksRatingApi.Infrastructure.Startup
             app.MapGrpcService<CurrentSparksForUserGrpcService>().AllowAnonymous();
             app.MapGrpcService<DebitedSparksGrpcService>().AllowAnonymous();
             app.MapGrpcService<RollBackDebitedSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<CreateWritingOffSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<UpdateStatusWritingOffSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<GetWritingOffSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<GetWritingsOffSparksGrpcService>().AllowAnonymous();
+            app.MapGrpcService<ListWritingOffSparksCitiesGrpcService>().AllowAnonymous();
             app.MapGrpcService<AdminTicketGrpcService>().AllowAnonymous();
             app.MapGrpcService<RemoveTicketsPhotoprofileGrpcService>().AllowAnonymous();
             app.MapGrpcService<RejectTicketPhotoProfileGrpcService>().AllowAnonymous();

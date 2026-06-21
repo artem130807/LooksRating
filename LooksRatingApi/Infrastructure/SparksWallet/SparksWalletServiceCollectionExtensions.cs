@@ -36,6 +36,7 @@ namespace LooksRatingApi.Infrastructure.SparksWallet
             services.AddScoped<IRatedProfileSparksRewardService, RatedProfileSparksRewardService>();
             services.AddScoped<ICurrencyCreditedSparksByLinkService, CurrencyCreditedSparksByLinkService>();
             services.AddScoped<ICurrencyDebitCompensatedService, CurrencyDebitCompensatedService>();
+            services.AddScoped<ISparksOrphanDebitResolver, SparksOrphanDebitResolver>();
             services.AddScoped<IChangeSparksLedgersService, ChangeSparksLedgersService>();
             services.AddScoped<ISparksLedgerEventDispatcher, SparksLedgerEventDispatcher>();
             services.AddScoped<IDebitedSparksOrchestrator, DebitedSparksOrchestrator>();

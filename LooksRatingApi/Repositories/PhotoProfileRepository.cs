@@ -496,5 +496,6 @@ namespace LooksRatingApi.Repositories
                 || p.AgeNomination == topAge[1]
                 || p.AgeNomination == topAge[2]);
         }
+
     }
 }

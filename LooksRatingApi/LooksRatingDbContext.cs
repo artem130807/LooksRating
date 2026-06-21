@@ -29,6 +29,8 @@ namespace LooksRatingApi
         public DbSet<UserReferenceLink> UserReferenceLinks {get; set;}
         public DbSet<ReferralInvite> ReferralInvites {get; set;}
         public DbSet<ReviewMilestoneNotification> ReviewMilestoneNotifications {get; set;}
+        public DbSet<WritingOffSparks> WritingOffSparks {get; set;}
+        public DbSet<SparksDebitIdempotency> SparksDebitIdempotency {get; set;}
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new UserConfigurations());
@@ -49,6 +51,8 @@ namespace LooksRatingApi
             modelBuilder.ApplyConfiguration(new ReviewMilestoneNotificationConfigurations());
             modelBuilder.ApplyConfiguration(new UserReferenceLinkConfigurations());
             modelBuilder.ApplyConfiguration(new ReferralInviteConfigurations());
+            modelBuilder.ApplyConfiguration(new WritingOffSparksConfigurations());
+            modelBuilder.ApplyConfiguration(new SparksDebitIdempotencyConfigurations());
         }
     }
 }

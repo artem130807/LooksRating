@@ -16,6 +16,7 @@ namespace LooksRatingApi.Models
         public SparksWallet? SparksWallet { get; set; }
         public VipStatus Status {get; set;} = VipStatus.Unavaillable;
         public RecomendationSettings? RecomendationSettings { get; set; }
+        public ICollection<WritingOffSparks> WritingOffSparks {get; set;} = new List<WritingOffSparks>();
         public ICollection<PhotoUser> PhotoUsers { get; set; } = new List<PhotoUser>();
         public ICollection<PhotoProfile> PhotoProfiles { get; set; } = new List<PhotoProfile>();
         public ICollection<UserTicket> UserTickets { get; set; } = new List<UserTicket>();

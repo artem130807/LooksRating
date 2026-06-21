@@ -495,6 +495,44 @@ namespace LooksRatingApi.Migrations
                     b.ToTable("Season", (string)null);
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.SparksDebitIdempotency", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CompensatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("DebitEventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<decimal>("SparksAmount")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("StarsCount")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_SparksDebitIdempotency_UserId_IdempotencyKey");
+
+                    b.ToTable("SparksDebitIdempotency", (string)null);
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.SparksWallet", b =>
                 {
                     b.Property<Guid>("Id")
@@ -690,6 +728,47 @@ namespace LooksRatingApi.Migrations
                     b.ToTable("UserTicket", (string)null);
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.WritingOffSparks", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IdempotencyKey")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<decimal>("SparksCount")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("Stars")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("City", "Status");
+
+                    b.HasIndex("UserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Withdrawals_UserId_IdempotencyKey");
+
+                    b.ToTable("WritingOffSparks", (string)null);
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.PaymentOrder", b =>
                 {
                     b.HasOne("LooksRatingApi.Models.Product", "Product")
@@ -860,6 +939,17 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LooksRatingApi.Models.WritingOffSparks", b =>
+                {
+                    b.HasOne("LooksRatingApi.Models.User", "User")
+                        .WithMany("WritingOffSparks")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LooksRatingApi.Models.ListSeasons", b =>
                 {
                     b.Navigation("Seasons");
@@ -903,6 +993,8 @@ namespace LooksRatingApi.Migrations
                     b.Navigation("UserReferenceLink");
 
                     b.Navigation("UserTickets");
+
+                    b.Navigation("WritingOffSparks");
                 });
 #pragma warning restore 612, 618
         }

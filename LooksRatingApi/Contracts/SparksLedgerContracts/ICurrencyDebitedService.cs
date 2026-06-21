@@ -8,6 +8,6 @@ namespace LooksRatingApi.Contracts.SparksLedgerContracts
 {
     public interface ICurrencyDebitedService
     {
-        Task Debited(Guid userId, decimal debitedSparks, CancellationToken cancellationToken);
+        Task<Guid> Debited(Guid userId, decimal debitedSparks, CancellationToken cancellationToken);
     }
 }

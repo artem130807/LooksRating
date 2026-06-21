@@ -3,6 +3,7 @@ using LooksRatingApi.Contracts.SparksLedgerContracts;
 using LooksRatingApi.Domain.Base;
 using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Messages.Kafka.PhotoRated.Producers.EventProducer;
+using LooksRatingApi.Services.SparksLedger;
 
 namespace LooksRatingApi.Services.SparksLedger
 {
@@ -35,7 +36,7 @@ namespace LooksRatingApi.Services.SparksLedger
             var sparks = await _sparksLedgerRepository.GetSparksByUserId(userId, cancellationToken);
             if (sparks is null)
             {
-                return;
+                throw new SparksLedgerOperationException("Кошелёк искр не найден");
             }
 
             sparks.AddSparksCount(compensatedAmount);
@@ -47,7 +48,6 @@ namespace LooksRatingApi.Services.SparksLedger
                 reason);
 
             await _eventStoreRepository.SaveEventsAsync(domainEvent.AggregateId, new List<DomainEvent> { domainEvent });
-            await _eventDispatcher.DispatchAsync(domainEvent, cancellationToken);
             await _producer.Produce(domainEvent, cancellationToken);
         }
     }
