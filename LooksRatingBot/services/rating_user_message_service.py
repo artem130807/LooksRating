@@ -120,9 +120,7 @@ class RatingUserMessageService:
             text=validated,
         )
 
-        notification_text = texts.RATING_MESSAGE_RECEIVED_NOTIFICATION.format(
-            sender_name=escape_telegram_html(sender_display_name),
-        )
+        notification_text = texts.RATING_MESSAGE_RECEIVED_NOTIFICATION
         keyboard: InlineKeyboardMarkup = rating_message_notification_keyboard(pending.token)
 
         try:

@@ -155,7 +155,7 @@ RATING_MESSAGE_REPLY_PROMPT = (
 )
 RATING_MESSAGE_SENT = "Сообщение отправлено."
 RATING_MESSAGE_RECEIVED_NOTIFICATION = (
-    "✉️ Пользователь <b>{sender_name}</b> отправил вам сообщение."
+    "✉️ Кто-то отправил(а) вам сообщение. Хотите узнать, кто это?"
 )
 RATING_MESSAGE_BODY = (
     "✉️ <b>Сообщение от {sender_name}</b>\n\n"

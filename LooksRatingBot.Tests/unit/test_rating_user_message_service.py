@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from bot import texts
 from services.rating_user_message_service import (
     RatingUserMessageService,
     resolve_sender_display_name,
@@ -77,6 +78,9 @@ async def test_send_message_delivers_notification() -> None:
     assert message == "Сообщение отправлено."
     bot.send_message.assert_awaited_once()
     assert bot.send_message.await_args.kwargs["chat_id"] == 20_001
+    notification_text = bot.send_message.await_args.kwargs["text"]
+    assert notification_text == texts.RATING_MESSAGE_RECEIVED_NOTIFICATION
+    assert "Иван" not in notification_text
     callback_data = bot.send_message.await_args.kwargs["reply_markup"].inline_keyboard[0][0].callback_data
     token = callback_data.removeprefix("rms:sh:")
     stored = await store.get(token)
