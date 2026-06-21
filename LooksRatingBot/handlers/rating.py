@@ -72,6 +72,9 @@ def _normalize_photo_payload(photo: dict) -> dict:
         "rating": photo.get("rating") if photo.get("rating") is not None else photo.get("Rating", 0),
         "ratingCount": photo.get("ratingCount") if photo.get("ratingCount") is not None else photo.get("RatingCount", 0),
         "displayName": photo.get("displayName") or photo.get("DisplayName"),
+        "recipientTelegramId": photo.get("recipientTelegramId")
+        if photo.get("recipientTelegramId") is not None
+        else photo.get("RecipientTelegramId"),
         "gender": photo.get("gender") or photo.get("Gender"),
         "age": photo.get("age") if photo.get("age") is not None else photo.get("Age"),
         "city": photo.get("city") or photo.get("City"),
@@ -122,6 +125,7 @@ async def _present_rating_card(
     file_id: str,
     caption: str,
     photos: list[dict],
+    recipient_telegram_id: int,
 ) -> bool:
     await state.set_state(RatingStates.awaiting_rating)
     await state.update_data(
@@ -130,6 +134,7 @@ async def _present_rating_card(
         current_file_id=file_id,
         current_caption=caption,
         current_photos=photos,
+        current_recipient_telegram_id=recipient_telegram_id,
     )
 
     try:
@@ -193,6 +198,7 @@ async def show_next_photo(
 
     photo_id = str(photo_id)
     caption = _photo_caption(photo)
+    recipient_telegram_id = int(photo.get("recipientTelegramId") or 0)
     delivered = await _present_rating_card(
         message,
         state,
@@ -201,6 +207,7 @@ async def show_next_photo(
         file_id=file_id,
         caption=caption,
         photos=photos,
+        recipient_telegram_id=recipient_telegram_id,
     )
     if not delivered:
         await state.clear()
@@ -217,6 +224,7 @@ async def _resend_current_photo(message: Message, state: FSMContext) -> None:
     profile_id = data.get("current_profile_id")
     if not file_id or not photo_id or not profile_id:
         return
+    recipient_telegram_id = int(data.get("current_recipient_telegram_id") or 0)
     await _present_rating_card(
         message,
         state,
@@ -225,6 +233,7 @@ async def _resend_current_photo(message: Message, state: FSMContext) -> None:
         file_id=file_id,
         caption=caption,
         photos=photos,
+        recipient_telegram_id=recipient_telegram_id,
     )
 
 
@@ -282,7 +291,7 @@ async def rate_photo(
 
 
 @router.callback_query(RatingStates.awaiting_rating, F.data.startswith("complain:"))
-async def complain_start(callback: CallbackQuery, state: FSMContext) -> None:
+async def complain_start(callback: CallbackQuery, state: FSMContext, api: LooksRatingApiClient) -> None:
     photo_id = callback.data.split(":", 1)[1]
     data = await state.get_data()
     if photo_id != data.get("current_photo_id"):

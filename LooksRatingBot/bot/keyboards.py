@@ -37,6 +37,7 @@ BTN_DISPLAY_CUSTOM = "✏️ Нет, указать имя"
 BTN_PROFILE_NOMINATION = "📋 Как в ленте"
 BTN_CUSTOM_NOMINATION = "✏️ Своя номинация"
 BTN_COMPLAIN = "🚩 Жалоба"
+BTN_RATING_MESSAGE = "✉️"
 
 GENDER_MALE = "👨 Мужской"
 GENDER_FEMALE = "👩 Женский"
@@ -492,12 +493,51 @@ def rating_keyboard(photo_id: str) -> InlineKeyboardMarkup:
             low,
             high,
             [
+                InlineKeyboardButton(
+                    text=BTN_RATING_MESSAGE,
+                    callback_data=f"msg:{photo_id}",
+                ),
                 InlineKeyboardButton(text=BTN_COMPLAIN, callback_data=f"complain:{photo_id}"),
-                InlineKeyboardButton(text=BTN_RATING_EXIT, callback_data="rate:exit"),
             ],
+            [InlineKeyboardButton(text=BTN_RATING_EXIT, callback_data="rate:exit")],
         ]
     )
 
 
 def remove_keyboard() -> ReplyKeyboardRemove:
     return ReplyKeyboardRemove()
+
+
+CALLBACK_RATING_MESSAGE_SHOW_PREFIX = "rms:sh:"
+CALLBACK_RATING_MESSAGE_REPLY_PREFIX = "rms:rp:"
+CALLBACK_RATING_MESSAGE_OK_PREFIX = "rms:ok:"
+
+
+def rating_message_notification_keyboard(message_token: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Показать",
+                    callback_data=f"{CALLBACK_RATING_MESSAGE_SHOW_PREFIX}{message_token}",
+                )
+            ]
+        ]
+    )
+
+
+def rating_message_reveal_keyboard(message_token: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Ответить",
+                    callback_data=f"{CALLBACK_RATING_MESSAGE_REPLY_PREFIX}{message_token}",
+                ),
+                InlineKeyboardButton(
+                    text="Ок",
+                    callback_data=f"{CALLBACK_RATING_MESSAGE_OK_PREFIX}{message_token}",
+                ),
+            ]
+        ]
+    )

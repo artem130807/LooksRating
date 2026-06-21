@@ -61,6 +61,7 @@ public sealed class GetUserPhotosHandlerTests
         var result = await handler.Handle(new GetUserPhotosQuery(reviewer.TelegramId), CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        result.Value.RecipientTelegramId.Should().Be(ratedUser.TelegramId);
         result.Value.SeasonTopPlace.Should().Be(12);
         result.Value.SeasonTopTotal.Should().Be(84);
     }

@@ -3,3 +3,4 @@ aiohttp-socks==0.11.0
 python-dotenv==1.2.1
 grpcio==1.81.1
 protobuf==6.33.5
+redis==5.2.1

@@ -26,6 +26,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
                 Rating = profile.Rating,
                 RatingCount = profile.RatingCount,
                 UserId = profile.UserId,
+                RecipientTelegramId = profile.User.TelegramId,
                 Gender = GenderDisplay.GetGender(profile.GenderNomination),
                 Age = profile.AgeNomination,
                 City = profile.CityNomination.Value ?? string.Empty,

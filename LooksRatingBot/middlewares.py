@@ -13,6 +13,7 @@ from api.grpc_clients import LooksRatingGrpcClient, LooksRatingSparksGrpcClient
 from bot.services import format_api_error
 from bot.session_sync import restore_fsm_from_api
 from services.writing_off_sparks_saga import WritingOffSparksSagaOrchestrator
+from services.rating_user_message_service import RatingUserMessageService
 
 logger = logging.getLogger(__name__)
 
@@ -145,3 +146,17 @@ def build_sparks_exchange_saga(settings) -> WritingOffSparksSagaOrchestrator:
         api_key=settings.api_key,
     )
     return WritingOffSparksSagaOrchestrator(sparks_client, writing_off_client)
+
+
+class RatingUserMessageMiddleware(BaseMiddleware):
+    def __init__(self, rating_user_message_service: RatingUserMessageService):
+        self._rating_user_message_service = rating_user_message_service
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
+    ) -> Any:
+        data["rating_user_message_service"] = self._rating_user_message_service
+        return await handler(event, data)

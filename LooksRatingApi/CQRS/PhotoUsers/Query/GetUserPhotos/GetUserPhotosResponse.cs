@@ -15,6 +15,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
     {
         public Guid ProfileId { get; set; }
         public Guid UserId { get; set; }
+        public long RecipientTelegramId { get; set; }
         public string Rank {get; set;} = string.Empty;
         public decimal Rating { get; set; }
         public int RatingCount { get; set; }

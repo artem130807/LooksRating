@@ -131,6 +131,8 @@ services:
     depends_on:
       api-gateway:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     env_file:
       - .env
     environment:
@@ -140,6 +142,7 @@ services:
       API_KEY: ${API_KEY:-default_secret_api_key}
       INTERNAL_NOTIFY_API_KEY: ${INTERNAL_NOTIFY_API_KEY:-${API_KEY:-default_secret_api_key}}
       INTERNAL_NOTIFY_PORT: 8092
+      REDIS_URL: redis://redis:6379/0
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
     ports:
       - "8092:8092"

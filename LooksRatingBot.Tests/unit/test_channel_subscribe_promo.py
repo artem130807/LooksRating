@@ -31,6 +31,11 @@ def _settings(**overrides) -> Settings:
         internal_notify_host="0.0.0.0",
         internal_notify_port=8092,
         internal_notify_api_key="test-key",
+        redis_url="redis://redis:6379/0",
+        rating_message_ttl_seconds=604800,
+        rating_message_sender_limit_per_window=15,
+        rating_message_pair_limit_per_window=3,
+        rating_message_rate_limit_window_seconds=3600,
     )
     defaults.update(overrides)
     return Settings(**defaults)

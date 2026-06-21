@@ -47,3 +47,8 @@ class RatingStates(StatesGroup):
 
 class TicketStates(StatesGroup):
     description = State()
+
+
+class RatingMessageStates(StatesGroup):
+    compose = State()
+    reply_compose = State()

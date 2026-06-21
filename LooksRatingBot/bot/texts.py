@@ -144,6 +144,38 @@ COMPLAIN_PROMPT = (
 )
 COMPLAIN_DONE = "Жалоба отправлена. Теперь поставьте оценку 👇"
 
+RATING_MESSAGE_PROMPT = (
+    "✉️ <b>Сообщение участнику</b>\n\n"
+    "Напишите текст сообщения. Получатель увидит его после нажатия «Показать».\n"
+    f"Длина: {1}–{500} символов."
+)
+RATING_MESSAGE_REPLY_PROMPT = (
+    "✉️ <b>Ответ</b>\n\n"
+    "Напишите текст ответа."
+)
+RATING_MESSAGE_SENT = "Сообщение отправлено."
+RATING_MESSAGE_RECEIVED_NOTIFICATION = (
+    "✉️ Пользователь <b>{sender_name}</b> отправил вам сообщение."
+)
+RATING_MESSAGE_BODY = (
+    "✉️ <b>Сообщение от {sender_name}</b>\n\n"
+    "{text}"
+)
+RATING_MESSAGE_INVALID_LENGTH = (
+    "Сообщение должно быть от {min_length} до {max_length} символов."
+)
+RATING_MESSAGE_SELF_FORBIDDEN = "Нельзя отправить сообщение самому себе."
+RATING_MESSAGE_RECIPIENT_UNAVAILABLE = "Не удалось отправить сообщение этому участнику."
+RATING_MESSAGE_RECIPIENT_BLOCKED_BOT = (
+    "Участник недоступен: он не запускал бота или заблокировал его."
+)
+RATING_MESSAGE_DELIVERY_FAILED = "Не удалось доставить сообщение. Попробуйте позже."
+RATING_MESSAGE_NOT_FOUND = "Сообщение устарело или уже удалено."
+RATING_MESSAGE_DISMISSED = "Сообщение скрыто."
+RATING_MESSAGE_RATE_LIMITED = (
+    "Слишком много сообщений за короткое время. Попробуйте позже."
+)
+
 VIP_FEATURES = (
     "• Срок действия — <b>30 дней</b>\n"
     "• До <b>4 фото</b> в текущем сезоне\n"

@@ -18,13 +18,20 @@ from bot.top_notifications import TopNotificationsService
 from bot.writing_off_sparks_user_notifier import WritingOffSparksUserNotifier
 from config import Settings
 from handlers import log_errors, setup_routers
+from infrastructure.redis_client import close_redis_client, create_redis_client
 from middlewares import (
     LooksRatingGrpcMiddleware,
+    RatingUserMessageMiddleware,
     SettingsMiddleware,
     SparksExchangeMiddleware,
     build_sparks_exchange_saga,
 )
 from services.channel_subscribe_promo import ChannelSubscribePromoService
+from services.rating_user_message_factory import (
+    build_rating_user_message_rate_limiter,
+    build_rating_user_message_store,
+)
+from services.rating_user_message_service import build_rating_user_message_service
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
@@ -77,6 +84,21 @@ async def main() -> None:
         )
 
     bot = _build_bot(settings)
+    redis_client = None
+    if settings.redis_enabled:
+        try:
+            redis_client = await create_redis_client(settings.redis_url)  # type: ignore[arg-type]
+        except Exception:
+            logging.exception("Failed to connect to Redis at %s", settings.redis_url)
+            sys.exit(1)
+
+    rating_message_store = build_rating_user_message_store(settings, redis_client)
+    rating_message_rate_limiter = build_rating_user_message_rate_limiter(settings, redis_client)
+    rating_user_message_service = build_rating_user_message_service(
+        bot,
+        rating_message_store,
+        rating_message_rate_limiter,
+    )
     notifications = TopNotificationsService(
         api=api,
         bot=bot,
@@ -112,6 +134,7 @@ async def main() -> None:
         dp.update.outer_middleware(SettingsMiddleware(settings))
         dp.update.outer_middleware(LooksRatingGrpcMiddleware(grpc_client))
         dp.update.outer_middleware(SparksExchangeMiddleware(api, sparks_exchange_saga))
+        dp.update.outer_middleware(RatingUserMessageMiddleware(rating_user_message_service))
         dp.errors.register(log_errors)
         dp.include_router(setup_routers(api))
 
@@ -131,6 +154,7 @@ async def main() -> None:
         await channel_promo.stop()
         await review_notifications.stop()
         await notifications.stop()
+        await close_redis_client(redis_client)
         await api.close()
         await bot.session.close()
 

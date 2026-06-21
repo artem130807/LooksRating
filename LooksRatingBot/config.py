@@ -27,6 +27,15 @@ class Settings:
     channel_promo_page_size: int
     channel_promo_send_delay_seconds: float
     channel_promo_enabled: bool
+    redis_url: str | None
+    rating_message_ttl_seconds: int
+    rating_message_sender_limit_per_window: int
+    rating_message_pair_limit_per_window: int
+    rating_message_rate_limit_window_seconds: int
+
+    @property
+    def redis_enabled(self) -> bool:
+        return bool(self.redis_url)
 
     @classmethod
     def from_env(cls) -> "Settings":
@@ -80,6 +89,27 @@ class Settings:
         except ValueError:
             channel_promo_send_delay = 0.05
         channel_promo_enabled = channel_promo_enabled_raw not in {"0", "false", "no", "off"}
+        redis_url = os.getenv("REDIS_URL", "").strip() or None
+        rating_message_ttl_raw = os.getenv("RATING_MESSAGE_TTL_SECONDS", "604800").strip()
+        try:
+            rating_message_ttl_seconds = max(3600, int(rating_message_ttl_raw))
+        except ValueError:
+            rating_message_ttl_seconds = 604800
+        sender_limit_raw = os.getenv("RATING_MESSAGE_SENDER_LIMIT_PER_WINDOW", "15").strip()
+        pair_limit_raw = os.getenv("RATING_MESSAGE_PAIR_LIMIT_PER_WINDOW", "3").strip()
+        rate_window_raw = os.getenv("RATING_MESSAGE_RATE_LIMIT_WINDOW_SECONDS", "3600").strip()
+        try:
+            rating_message_sender_limit_per_window = max(1, int(sender_limit_raw))
+        except ValueError:
+            rating_message_sender_limit_per_window = 15
+        try:
+            rating_message_pair_limit_per_window = max(1, int(pair_limit_raw))
+        except ValueError:
+            rating_message_pair_limit_per_window = 3
+        try:
+            rating_message_rate_limit_window_seconds = max(60, int(rate_window_raw))
+        except ValueError:
+            rating_message_rate_limit_window_seconds = 3600
         if not token:
             raise RuntimeError("BOT_TOKEN is not set")
         return cls(
@@ -102,4 +132,9 @@ class Settings:
             channel_promo_page_size=channel_promo_page_size,
             channel_promo_send_delay_seconds=channel_promo_send_delay,
             channel_promo_enabled=channel_promo_enabled,
+            redis_url=redis_url,
+            rating_message_ttl_seconds=rating_message_ttl_seconds,
+            rating_message_sender_limit_per_window=rating_message_sender_limit_per_window,
+            rating_message_pair_limit_per_window=rating_message_pair_limit_per_window,
+            rating_message_rate_limit_window_seconds=rating_message_rate_limit_window_seconds,
         )
