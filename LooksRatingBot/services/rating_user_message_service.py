@@ -98,7 +98,7 @@ class RatingUserMessageService:
                 max_length=MAX_MESSAGE_LENGTH,
             )
 
-        if not await self._rate_limiter.try_acquire(
+        if not await self._rate_limiter.is_allowed(
             sender_telegram_id=sender_telegram_id,
             recipient_telegram_id=recipient_telegram_id,
         ):
@@ -128,18 +128,10 @@ class RatingUserMessageService:
                 reply_markup=keyboard,
             )
         except TelegramForbiddenError:
-            await self._rollback_failed_delivery(
-                pending.token,
-                sender_telegram_id=sender_telegram_id,
-                recipient_telegram_id=recipient_telegram_id,
-            )
+            await self._store.remove(pending.token)
             return False, texts.RATING_MESSAGE_RECIPIENT_BLOCKED_BOT
         except TelegramBadRequest:
-            await self._rollback_failed_delivery(
-                pending.token,
-                sender_telegram_id=sender_telegram_id,
-                recipient_telegram_id=recipient_telegram_id,
-            )
+            await self._store.remove(pending.token)
             return False, texts.RATING_MESSAGE_RECIPIENT_UNAVAILABLE
         except Exception:
             logger.exception(
@@ -147,27 +139,14 @@ class RatingUserMessageService:
                 sender_telegram_id,
                 recipient_telegram_id,
             )
-            await self._rollback_failed_delivery(
-                pending.token,
-                sender_telegram_id=sender_telegram_id,
-                recipient_telegram_id=recipient_telegram_id,
-            )
+            await self._store.remove(pending.token)
             return False, texts.RATING_MESSAGE_DELIVERY_FAILED
 
-        return True, texts.RATING_MESSAGE_SENT
-
-    async def _rollback_failed_delivery(
-        self,
-        token: str,
-        *,
-        sender_telegram_id: int,
-        recipient_telegram_id: int,
-    ) -> None:
-        await self._store.remove(token)
-        await self._rate_limiter.release(
+        await self._rate_limiter.record_delivery(
             sender_telegram_id=sender_telegram_id,
             recipient_telegram_id=recipient_telegram_id,
         )
+        return True, texts.RATING_MESSAGE_SENT
 
     async def get_pending_for_recipient(
         self,

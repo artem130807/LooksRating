@@ -29,35 +29,40 @@ class InMemoryRatingUserMessageRateLimiter(RatingUserMessageRateLimiter):
         self._sender_buckets: dict[str, _RateBucket] = {}
         self._pair_buckets: dict[str, _RateBucket] = {}
 
-    async def try_acquire(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> bool:
+    async def is_allowed(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> bool:
         now = time.monotonic()
-        sender_bucket = self._touch_bucket(
-            self._sender_buckets,
-            str(sender_telegram_id),
+        sender_count = self._read_count(self._sender_buckets, str(sender_telegram_id), now)
+        if sender_count >= self._sender_limit:
+            return False
+
+        pair_count = self._read_count(
+            self._pair_buckets,
+            pair_rate_key(sender_telegram_id, recipient_telegram_id),
             now,
         )
-        if sender_bucket.count >= self._sender_limit:
-            return False
+        return pair_count < self._pair_limit
 
-        pair_key = pair_rate_key(sender_telegram_id, recipient_telegram_id)
-        pair_bucket = self._touch_bucket(self._pair_buckets, pair_key, now)
-        if pair_bucket.count >= self._pair_limit:
-            return False
-
-        sender_bucket.count += 1
-        pair_bucket.count += 1
-        return True
-
-    async def release(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> None:
+    async def record_delivery(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> None:
         now = time.monotonic()
-        self._decrement_bucket(self._sender_buckets, str(sender_telegram_id), now)
-        self._decrement_bucket(
+        self._increment_bucket(self._sender_buckets, str(sender_telegram_id), now)
+        self._increment_bucket(
             self._pair_buckets,
             pair_rate_key(sender_telegram_id, recipient_telegram_id),
             now,
         )
 
-    def _decrement_bucket(
+    def _read_count(
+        self,
+        buckets: dict[str, _RateBucket],
+        key: str,
+        now: float,
+    ) -> int:
+        bucket = buckets.get(key)
+        if bucket is None or bucket.expires_at_monotonic <= now:
+            return 0
+        return bucket.count
+
+    def _increment_bucket(
         self,
         buckets: dict[str, _RateBucket],
         key: str,
@@ -65,20 +70,6 @@ class InMemoryRatingUserMessageRateLimiter(RatingUserMessageRateLimiter):
     ) -> None:
         bucket = buckets.get(key)
         if bucket is None or bucket.expires_at_monotonic <= now:
-            return
-        if bucket.count > 0:
-            bucket.count -= 1
-        if bucket.count <= 0:
-            buckets.pop(key, None)
-
-    def _touch_bucket(
-        self,
-        buckets: dict[str, _RateBucket],
-        key: str,
-        now: float,
-    ) -> _RateBucket:
-        bucket = buckets.get(key)
-        if bucket is None or bucket.expires_at_monotonic <= now:
             bucket = _RateBucket(count=0, expires_at_monotonic=now + self._window_seconds)
             buckets[key] = bucket
-        return bucket
+        bucket.count += 1

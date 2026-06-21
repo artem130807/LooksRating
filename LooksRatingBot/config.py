@@ -96,7 +96,7 @@ class Settings:
         except ValueError:
             rating_message_ttl_seconds = 604800
         sender_limit_raw = os.getenv("RATING_MESSAGE_SENDER_LIMIT_PER_WINDOW", "15").strip()
-        pair_limit_raw = os.getenv("RATING_MESSAGE_PAIR_LIMIT_PER_WINDOW", "3").strip()
+        pair_limit_raw = os.getenv("RATING_MESSAGE_PAIR_LIMIT_PER_WINDOW", "10").strip()
         rate_window_raw = os.getenv("RATING_MESSAGE_RATE_LIMIT_WINDOW_SECONDS", "3600").strip()
         try:
             rating_message_sender_limit_per_window = max(1, int(sender_limit_raw))
@@ -105,7 +105,7 @@ class Settings:
         try:
             rating_message_pair_limit_per_window = max(1, int(pair_limit_raw))
         except ValueError:
-            rating_message_pair_limit_per_window = 3
+            rating_message_pair_limit_per_window = 10
         try:
             rating_message_rate_limit_window_seconds = max(60, int(rate_window_raw))
         except ValueError:

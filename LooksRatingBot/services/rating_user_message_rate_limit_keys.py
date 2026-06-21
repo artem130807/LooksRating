@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-KEY_PREFIX = "looksrating:rating-msg-rate:"
+KEY_PREFIX = "looksrating:rating-msg-rate:v2:"
 
 
 def sender_rate_key(sender_telegram_id: int) -> str:

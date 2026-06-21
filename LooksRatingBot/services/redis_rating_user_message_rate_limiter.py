@@ -22,42 +22,41 @@ class RedisRatingUserMessageRateLimiter(RatingUserMessageRateLimiter):
         self._pair_limit = pair_limit
         self._window_seconds = window_seconds
 
-    async def try_acquire(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> bool:
-        sender_key = sender_rate_key(sender_telegram_id)
-        pair_key = pair_rate_key(sender_telegram_id, recipient_telegram_id)
-
-        sender_count = await self._increment_with_window(sender_key)
-        if sender_count > self._sender_limit:
+    async def is_allowed(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> bool:
+        sender_count = await self._read_count(sender_rate_key(sender_telegram_id))
+        if sender_count >= self._sender_limit:
             return False
 
-        pair_count = await self._increment_with_window(pair_key)
-        if pair_count > self._pair_limit:
-            await self._redis.decr(sender_key)
-            return False
+        pair_count = await self._read_count(
+            pair_rate_key(sender_telegram_id, recipient_telegram_id),
+        )
+        return pair_count < self._pair_limit
 
-        return True
-
-    async def release(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> None:
-        await self._decrement_if_positive(sender_rate_key(sender_telegram_id))
-        await self._decrement_if_positive(
+    async def record_delivery(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> None:
+        await self._increment_with_window(sender_rate_key(sender_telegram_id))
+        await self._increment_with_window(
             pair_rate_key(sender_telegram_id, recipient_telegram_id),
         )
 
-    async def _decrement_if_positive(self, key: str) -> None:
-        count = await self._redis.get(key)
-        if count is None:
-            return
+    async def _read_count(self, key: str) -> int:
+        raw = await self._redis.get(key)
+        if raw is None:
+            return 0
         try:
-            current = int(count)
+            count = int(raw)
         except (TypeError, ValueError):
-            return
-        if current <= 1:
-            await self._redis.delete(key)
-            return
-        await self._redis.decr(key)
+            return 0
+        if count <= 0:
+            return 0
+
+        ttl = await self._redis.ttl(key)
+        if ttl == -1:
+            await self._redis.expire(key, self._window_seconds)
+        return count
 
     async def _increment_with_window(self, key: str) -> int:
         count = int(await self._redis.incr(key))
-        if count == 1:
+        ttl = await self._redis.ttl(key)
+        if count == 1 or ttl == -1:
             await self._redis.expire(key, self._window_seconds)
         return count

@@ -179,7 +179,7 @@ async def test_get_pending_for_recipient_rejects_wrong_user() -> None:
 
 
 @pytest.mark.asyncio
-async def test_send_message_rolls_back_rate_limit_on_delivery_failure() -> None:
+async def test_send_message_does_not_count_rate_limit_on_delivery_failure() -> None:
     from aiogram.exceptions import TelegramForbiddenError
 
     bot = MagicMock()
