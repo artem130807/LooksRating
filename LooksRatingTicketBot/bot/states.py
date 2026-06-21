@@ -7,7 +7,11 @@ class AuthStates(StatesGroup):
 
 
 class ModerationStates(StatesGroup):
+    selecting_moderation_type = State()
     selecting_city = State()
+    selecting_withdrawal_city = State()
+    viewing_withdrawal_list = State()
+    viewing_withdrawal_detail = State()
     moderating = State()
     confirming_delete_profile = State()
     confirming_delete_account = State()

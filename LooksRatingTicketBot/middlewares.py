@@ -10,6 +10,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, TelegramObject
 
 from api.client import ApiError, TicketApiClient
+from api.main_bot_notify_client import MainBotNotifyClient
+from api.writing_off_sparks_client import WritingOffSparksGrpcClient
 from bot.session_sync import restore_fsm_from_api
 from bot.telegram_media import MainBotMediaService
 
@@ -43,6 +45,34 @@ class ApiErrorMiddleware(BaseMiddleware):
         elif isinstance(event, CallbackQuery):
             await event.answer(text, show_alert=True)
         return None
+
+
+class WritingOffSparksMiddleware(BaseMiddleware):
+    def __init__(self, client: WritingOffSparksGrpcClient):
+        self._client = client
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        data["writing_off_sparks"] = self._client
+        return await handler(event, data)
+
+
+class MainBotNotifyMiddleware(BaseMiddleware):
+    def __init__(self, client: MainBotNotifyClient):
+        self._client = client
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: dict[str, Any],
+    ) -> Any:
+        data["main_bot_notify"] = self._client
+        return await handler(event, data)
 
 
 class ApiClientMiddleware(BaseMiddleware):

@@ -17,6 +17,9 @@ class Settings:
     telegram_proxy: str | None
     top_notify_interval_seconds: int
     review_notify_interval_seconds: int
+    internal_notify_host: str
+    internal_notify_port: int
+    internal_notify_api_key: str
     stars_provider_token: str
     channel_username: str
     channel_url: str
@@ -36,6 +39,11 @@ class Settings:
         proxy = os.getenv("TELEGRAM_PROXY", "").strip() or None
         interval_raw = os.getenv("TOP_NOTIFY_INTERVAL_SECONDS", "60").strip()
         review_interval_raw = os.getenv("REVIEW_NOTIFY_INTERVAL_SECONDS", "60").strip()
+        internal_notify_host = os.getenv("INTERNAL_NOTIFY_HOST", "0.0.0.0").strip() or "0.0.0.0"
+        internal_notify_port_raw = os.getenv("INTERNAL_NOTIFY_PORT", "8092").strip()
+        internal_notify_api_key = (
+            os.getenv("INTERNAL_NOTIFY_API_KEY", "").strip() or key
+        )
         stars_provider_token = os.getenv("STARS_PROVIDER_TOKEN", "").strip()
         channel_username = os.getenv("CHANNEL_USERNAME", "LooksRatingBotOfficial").strip().lstrip("@")
         channel_url = os.getenv("CHANNEL_URL", "https://t.me/LooksRatingBotOfficial").strip()
@@ -51,6 +59,10 @@ class Settings:
             review_interval = max(10, int(review_interval_raw))
         except ValueError:
             review_interval = 60
+        try:
+            internal_notify_port = max(1, min(65535, int(internal_notify_port_raw)))
+        except ValueError:
+            internal_notify_port = 8092
         try:
             grpc_timeout = max(5.0, float(grpc_timeout_raw))
         except ValueError:
@@ -80,6 +92,9 @@ class Settings:
             telegram_proxy=proxy,
             top_notify_interval_seconds=interval,
             review_notify_interval_seconds=review_interval,
+            internal_notify_host=internal_notify_host,
+            internal_notify_port=internal_notify_port,
+            internal_notify_api_key=internal_notify_api_key,
             stars_provider_token=stars_provider_token,
             channel_username=channel_username,
             channel_url=channel_url,

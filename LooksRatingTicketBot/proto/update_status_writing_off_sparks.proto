@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service UpdateStatusWritingOffSparksService {
+    rpc UpdateStatusWritingOffSparks(UpdateStatusWritingOffSparksRequest) returns (UpdateStatusWritingOffSparksResponse);
+}
+
+enum OutputStatusEnum {
+    OUTPUT_STATUS_ENUM_UNSPECIFIED = 0;
+    PENDING = 1;
+    CANCELLED = 2;
+    CONFIRMED = 3;
+    FAILED = 4;
+}
+
+message UpdateStatusWritingOffSparksRequest {
+    string writing_off_sparks_id = 1;
+    OutputStatusEnum status = 2;
+}
+
+message UpdateStatusWritingOffSparksResponse {
+    bool success = 1;
+    string message = 2;
+}

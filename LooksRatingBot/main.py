@@ -12,15 +12,17 @@ from aiogram.fsm.storage.memory import MemoryStorage
 
 from api.client import ApiError, LooksRatingApiClient
 from api.grpc_clients import LooksRatingGrpcClient
+from bot.internal_notify_server import start_internal_notify_server
 from bot.review_milestone_notifications import ReviewMilestoneNotificationsService
 from bot.top_notifications import TopNotificationsService
+from bot.writing_off_sparks_user_notifier import WritingOffSparksUserNotifier
 from config import Settings
 from handlers import log_errors, setup_routers
 from middlewares import (
-    GiftPurchaseMiddleware,
     LooksRatingGrpcMiddleware,
     SettingsMiddleware,
-    build_gift_purchase_saga,
+    SparksExchangeMiddleware,
+    build_sparks_exchange_saga,
 )
 from services.channel_subscribe_promo import ChannelSubscribePromoService
 
@@ -85,12 +87,14 @@ async def main() -> None:
         bot=bot,
         interval_seconds=settings.review_notify_interval_seconds,
     )
+    writing_off_user_notifier = WritingOffSparksUserNotifier(bot)
     channel_promo = ChannelSubscribePromoService(settings=settings, bot=bot)
     if settings.telegram_proxy:
         logging.info("Telegram proxy: %s", settings.telegram_proxy)
     else:
         logging.warning("TELEGRAM_PROXY не задан — нужен прямой доступ к api.telegram.org")
 
+    internal_notify_runner = None
     try:
         try:
             me = await bot.get_me()
@@ -100,22 +104,30 @@ async def main() -> None:
             sys.exit(1)
 
         dp = Dispatcher(storage=MemoryStorage())
-        gift_purchase_saga = build_gift_purchase_saga(settings)
+        sparks_exchange_saga = build_sparks_exchange_saga(settings)
         grpc_client = LooksRatingGrpcClient(
             settings.api_grpc_address,
             timeout=settings.grpc_timeout_seconds,
         )
         dp.update.outer_middleware(SettingsMiddleware(settings))
         dp.update.outer_middleware(LooksRatingGrpcMiddleware(grpc_client))
-        dp.update.outer_middleware(GiftPurchaseMiddleware(api, gift_purchase_saga))
+        dp.update.outer_middleware(SparksExchangeMiddleware(api, sparks_exchange_saga))
         dp.errors.register(log_errors)
         dp.include_router(setup_routers(api))
 
         await notifications.start()
         await review_notifications.start()
+        internal_notify_runner = await start_internal_notify_server(
+            writing_off_user_notifier,
+            host=settings.internal_notify_host,
+            port=settings.internal_notify_port,
+            api_key=settings.internal_notify_api_key,
+        )
         await channel_promo.start()
         await dp.start_polling(bot)
     finally:
+        if internal_notify_runner is not None:
+            await internal_notify_runner.cleanup()
         await channel_promo.stop()
         await review_notifications.stop()
         await notifications.stop()

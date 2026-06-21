@@ -14,6 +14,15 @@ CALLBACK_SKIP = "mod:skip"
 CALLBACK_CURRENT = "mod:current"
 CALLBACK_HELP = "mod:help"
 CALLBACK_PREFIX_CITY = "city:"
+CALLBACK_MOD_HUB_COMPLAINTS = "mod:hub:complaints"
+CALLBACK_MOD_HUB_WITHDRAWALS = "mod:hub:withdrawals"
+CALLBACK_PREFIX_WITHDRAWAL_CITY = "wcity:"
+CALLBACK_PREFIX_WITHDRAWAL_PAGE = "wos:page:"
+CALLBACK_PREFIX_WITHDRAWAL_OPEN = "wos:open:"
+CALLBACK_WITHDRAWAL_BACK = "wos:back"
+CALLBACK_PREFIX_WITHDRAWAL_EXIT = "wos:exit:"
+CALLBACK_PREFIX_WITHDRAWAL_DONE = "wos:done:"
+CALLBACK_PREFIX_WITHDRAWAL_CANCEL = "wos:cancel:"
 
 # Reply keyboard
 BTN_CITIES = "🏙 Города"
@@ -159,6 +168,99 @@ def monitoring_log_actions(auto_refresh: bool = True) -> InlineKeyboardMarkup:
             ],
         ]
     )
+
+
+def moderation_hub() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="📋 Жалобы", callback_data=CALLBACK_MOD_HUB_COMPLAINTS)],
+            [
+                InlineKeyboardButton(
+                    text="💫 Заявки на выводы",
+                    callback_data=CALLBACK_MOD_HUB_WITHDRAWALS,
+                )
+            ],
+        ]
+    )
+
+
+def withdrawal_city_selection(cities: list[str]) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
+    for index, city in enumerate(cities):
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=city,
+                    callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_CITY}{index}",
+                )
+            ]
+        )
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def withdrawal_list_keyboard(
+    items: list,
+    *,
+    page: int,
+    has_next_page: bool,
+) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = []
+    from bot.withdrawal_views import withdrawal_list_button_label
+
+    for index, item in enumerate(items):
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text=withdrawal_list_button_label(item, index_on_page=index),
+                    callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_OPEN}{item.id}",
+                )
+            ]
+        )
+
+    nav_row: list[InlineKeyboardButton] = []
+    if page > 1:
+        nav_row.append(
+            InlineKeyboardButton(
+                text="◀️ Назад",
+                callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_PAGE}{page - 1}",
+            )
+        )
+    if has_next_page:
+        nav_row.append(
+            InlineKeyboardButton(
+                text="Вперёд ▶️",
+                callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_PAGE}{page + 1}",
+            )
+        )
+    if nav_row:
+        rows.append(nav_row)
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def withdrawal_detail_actions(request_id: str, *, allow_status_change: bool = True) -> InlineKeyboardMarkup:
+    rows: list[list[InlineKeyboardButton]] = [
+        [
+            InlineKeyboardButton(
+                text="↩️ Выйти из заявки",
+                callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_EXIT}{request_id}",
+            )
+        ],
+    ]
+    if allow_status_change:
+        rows.append(
+            [
+                InlineKeyboardButton(
+                    text="✅ Выполнена",
+                    callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_DONE}{request_id}",
+                ),
+                InlineKeyboardButton(
+                    text="❌ Отменить",
+                    callback_data=f"{CALLBACK_PREFIX_WITHDRAWAL_CANCEL}{request_id}",
+                ),
+            ]
+        )
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def city_selection(cities: list[str]) -> InlineKeyboardMarkup:

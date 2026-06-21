@@ -16,7 +16,8 @@ from bot.session_sync import (
 from bot.states import AuthStates
 from bot.telegram_media import MainBotMediaService
 from handlers.common import reset_auth_flow
-from handlers.moderation import present_current_ticket, show_city_selection
+from handlers.moderation import present_current_ticket
+from handlers.withdrawals import show_moderation_hub
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ async def resume_authenticated_flow(
 
     await message.answer(texts.START_AUTH, reply_markup=keyboards.admin_reply_keyboard())
     if api_state in {"awaiting_city", "authenticated"}:
-        await show_city_selection(message, state, api, telegram_id)
+        await show_moderation_hub(message, state)
     return True
 
 

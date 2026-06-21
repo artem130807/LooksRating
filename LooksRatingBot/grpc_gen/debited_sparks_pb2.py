@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x64\x65\x62ited_sparks.proto\"A\n\x14\x44\x65\x62itedSparksRequest\x12\x13\n\x0btelegram_id\x18\x01 \x01(\x03\x12\x14\n\x0csparks_count\x18\x02 \x01(\x05\"9\n\x15\x44\x65\x62itedSparksResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2V\n\x14\x44\x65\x62itedSparksService\x12>\n\rDebitedSparks\x12\x15.DebitedSparksRequest\x1a\x16.DebitedSparksResponseB\x12\xaa\x02\x0fLooksRatingGrpcb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x14\x64\x65\x62ited_sparks.proto\"N\n\x14\x44\x65\x62itedSparksRequest\x12\x13\n\x0btelegram_id\x18\x01 \x01(\x03\x12\x14\n\x0csparks_count\x18\x02 \x01(\x05\x12\x0b\n\x03key\x18\x03 \x01(\t\"9\n\x15\x44\x65\x62itedSparksResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2V\n\x14\x44\x65\x62itedSparksService\x12>\n\rDebitedSparks\x12\x15.DebitedSparksRequest\x1a\x16.DebitedSparksResponseB\x12\xaa\x02\x0fLooksRatingGrpcb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,9 +33,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\252\002\017LooksRatingGrpc'
   _globals['_DEBITEDSPARKSREQUEST']._serialized_start=24
-  _globals['_DEBITEDSPARKSREQUEST']._serialized_end=89
-  _globals['_DEBITEDSPARKSRESPONSE']._serialized_start=91
-  _globals['_DEBITEDSPARKSRESPONSE']._serialized_end=148
-  _globals['_DEBITEDSPARKSSERVICE']._serialized_start=150
-  _globals['_DEBITEDSPARKSSERVICE']._serialized_end=236
+  _globals['_DEBITEDSPARKSREQUEST']._serialized_end=102
+  _globals['_DEBITEDSPARKSRESPONSE']._serialized_start=104
+  _globals['_DEBITEDSPARKSRESPONSE']._serialized_end=161
+  _globals['_DEBITEDSPARKSSERVICE']._serialized_start=163
+  _globals['_DEBITEDSPARKSSERVICE']._serialized_end=249
 # @@protoc_insertion_point(module_scope)

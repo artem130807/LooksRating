@@ -28,6 +28,9 @@ def _settings(**overrides) -> Settings:
         channel_promo_page_size=2,
         channel_promo_send_delay_seconds=0.0,
         channel_promo_enabled=True,
+        internal_notify_host="0.0.0.0",
+        internal_notify_port=8092,
+        internal_notify_api_key="test-key",
     )
     defaults.update(overrides)
     return Settings(**defaults)

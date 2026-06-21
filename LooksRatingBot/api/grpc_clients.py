@@ -36,12 +36,22 @@ class ChannelSubscribeBonusResponse:
     status: str
 
 
+from api.grpc_auth import build_grpc_metadata
+
+
 class LooksRatingSparksGrpcClient:
-    def __init__(self, address: str, timeout: float = 30.0):
+    def __init__(self, address: str, timeout: float = 30.0, *, api_key: str = ""):
         self._address = address
         self._timeout = timeout
+        self._metadata = build_grpc_metadata(api_key)
 
-    def debited_sparks(self, telegram_id: int, stars_count: int) -> SparksGrpcResponse:
+    def debited_sparks(
+        self,
+        telegram_id: int,
+        stars_count: int,
+        *,
+        idempotency_key: str | None = None,
+    ) -> SparksGrpcResponse:
         channel = grpc.insecure_channel(
             self._address,
             options=(
@@ -51,12 +61,16 @@ class LooksRatingSparksGrpcClient:
         )
         try:
             stub = debited_sparks_pb2_grpc.DebitedSparksServiceStub(channel)
+            request = debited_sparks_pb2.DebitedSparksRequest(
+                telegram_id=telegram_id,
+                sparks_count=stars_count,
+            )
+            if idempotency_key is not None:
+                request.key = idempotency_key
             response = stub.DebitedSparks(
-                debited_sparks_pb2.DebitedSparksRequest(
-                    telegram_id=telegram_id,
-                    sparks_count=stars_count,
-                ),
+                request,
                 timeout=self._timeout,
+                metadata=self._metadata,
             )
             return SparksGrpcResponse(success=bool(response.success), message=response.message or "")
         except grpc.RpcError as exc:
@@ -70,6 +84,7 @@ class LooksRatingSparksGrpcClient:
         stars_count: int,
         *,
         reason: str = "gift_delivery_failed",
+        idempotency_key: str | None = None,
     ) -> SparksGrpcResponse:
         channel = grpc.insecure_channel(
             self._address,
@@ -80,13 +95,17 @@ class LooksRatingSparksGrpcClient:
         )
         try:
             stub = rollback_debited_sparks_pb2_grpc.RollBackDebitedSparksServiceStub(channel)
+            request = rollback_debited_sparks_pb2.RollBackDebitedSparksRequest(
+                telegram_id=telegram_id,
+                stars_count=stars_count,
+                reason=reason,
+            )
+            if idempotency_key is not None:
+                request.key = idempotency_key
             response = stub.RollBackDebitedSparks(
-                rollback_debited_sparks_pb2.RollBackDebitedSparksRequest(
-                    telegram_id=telegram_id,
-                    stars_count=stars_count,
-                    reason=reason,
-                ),
+                request,
                 timeout=self._timeout,
+                metadata=self._metadata,
             )
             return SparksGrpcResponse(success=bool(response.success), message=response.message or "")
         except grpc.RpcError as exc:

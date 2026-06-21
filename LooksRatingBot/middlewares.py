@@ -5,20 +5,19 @@ import aiohttp
 from aiogram import BaseMiddleware
 from aiogram.types import CallbackQuery, Message, TelegramObject
 
-from adapters.tgifts_grpc_client import TGiftsGrpcClient
+from adapters.writing_off_sparks_grpc_client import WritingOffSparksGrpcClient
 from aiogram.fsm.context import FSMContext
 
 from api.client import ApiError, LooksRatingApiClient
-from api.grpc_clients import LooksRatingSparksGrpcClient
+from api.grpc_clients import LooksRatingGrpcClient, LooksRatingSparksGrpcClient
 from bot.services import format_api_error
 from bot.session_sync import restore_fsm_from_api
-from services.gift_purchase_saga import GiftPurchaseSagaOrchestrator
+from services.writing_off_sparks_saga import WritingOffSparksSagaOrchestrator
 
 logger = logging.getLogger(__name__)
 
 
 from config import Settings
-from api.grpc_clients import LooksRatingGrpcClient
 
 
 class SettingsMiddleware(BaseMiddleware):
@@ -114,14 +113,14 @@ class SessionRecoveryMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-class GiftPurchaseMiddleware(BaseMiddleware):
+class SparksExchangeMiddleware(BaseMiddleware):
     def __init__(
         self,
         api: LooksRatingApiClient,
-        gift_purchase_saga: GiftPurchaseSagaOrchestrator,
+        sparks_exchange_saga: WritingOffSparksSagaOrchestrator,
     ):
         self._api = api
-        self._gift_purchase_saga = gift_purchase_saga
+        self._sparks_exchange_saga = sparks_exchange_saga
 
     async def __call__(
         self,
@@ -130,17 +129,19 @@ class GiftPurchaseMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         data["api"] = self._api
-        data["gift_purchase_saga"] = self._gift_purchase_saga
+        data["sparks_exchange_saga"] = self._sparks_exchange_saga
         return await handler(event, data)
 
 
-def build_gift_purchase_saga(settings) -> GiftPurchaseSagaOrchestrator:
+def build_sparks_exchange_saga(settings) -> WritingOffSparksSagaOrchestrator:
     sparks_client = LooksRatingSparksGrpcClient(
         settings.api_grpc_address,
         timeout=settings.grpc_timeout_seconds,
+        api_key=settings.api_key,
     )
-    tgifts_client = TGiftsGrpcClient(
-        settings.tgifts_grpc_address,
-        timeout=max(settings.grpc_timeout_seconds, 120.0),
+    writing_off_client = WritingOffSparksGrpcClient(
+        settings.api_grpc_address,
+        timeout=settings.grpc_timeout_seconds,
+        api_key=settings.api_key,
     )
-    return GiftPurchaseSagaOrchestrator(sparks_client, tgifts_client)
+    return WritingOffSparksSagaOrchestrator(sparks_client, writing_off_client)

@@ -124,7 +124,7 @@ async def process_password_text(
     api: TicketApiClient,
 ) -> None:
     from bot import texts
-    from handlers.moderation import show_city_selection
+    from handlers.withdrawals import show_moderation_hub
 
     password = (message.text or "").strip()
     if not password:
@@ -161,4 +161,4 @@ async def process_password_text(
 
     await state.clear()
     await message.answer(texts.LOGIN_SUCCESS, reply_markup=keyboards.admin_reply_keyboard())
-    await show_city_selection(message, state, api, telegram_id)
+    await show_moderation_hub(message, state)

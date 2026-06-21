@@ -16,6 +16,6 @@
     </PackageReference>
   </ItemGroup>
 <ItemGroup>
-  <Protobuf Include="Proto\*.proto" GrpcServices="Both" />
+  <Protobuf Include="Proto\*.proto" GrpcServices="Both" ProtoRoot="Proto" />
 </ItemGroup>
 </Project>

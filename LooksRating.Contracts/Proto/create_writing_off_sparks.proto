@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service CreateWritingOffSparksService {
+    rpc CreateWritingOffSparks(CreateWritingOffSparksRequest) returns (CreateWritingOffSparksResponse);
+}
+
+message CreateWritingOffSparksRequest {
+    int64 telegram_id = 1;
+    int32 sparks_count = 2;
+    int32 stars_count = 3;
+    string key = 4;
+}
+
+message CreateWritingOffSparksResponse {
+    bool success = 1;
+    string message = 2;
+}

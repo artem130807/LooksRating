@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+import "update_status_writing_off_sparks.proto";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+message WritingOffSparksItem {
+    string id = 1;
+    OutputStatusEnum status = 2;
+    string user_id = 3;
+    int64 telegram_id = 4;
+    string city = 5;
+    int32 sparks_count = 6;
+    int32 stars = 7;
+    int64 created_at_unix_seconds = 8;
+}

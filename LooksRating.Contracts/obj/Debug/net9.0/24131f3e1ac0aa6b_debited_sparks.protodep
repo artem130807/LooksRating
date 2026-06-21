@@ -1,2 +1,2 @@
-obj/Debug/net9.0/Proto/DebitedSparks.cs \
-obj/Debug/net9.0/Proto/DebitedSparksGrpc.cs: Proto/debited_sparks.proto
+obj/Debug/net9.0/DebitedSparks.cs \
+obj/Debug/net9.0/DebitedSparksGrpc.cs: Proto/debited_sparks.proto

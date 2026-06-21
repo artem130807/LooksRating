@@ -138,7 +138,11 @@ services:
       API_GRPC_ADDRESS: api:8081
       TGIFTS_GRPC_ADDRESS: tgifts-buyer:50051
       API_KEY: ${API_KEY:-default_secret_api_key}
+      INTERNAL_NOTIFY_API_KEY: ${INTERNAL_NOTIFY_API_KEY:-${API_KEY:-default_secret_api_key}}
+      INTERNAL_NOTIFY_PORT: 8092
       BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
+    ports:
+      - "8092:8092"
 
   ticket-postgres:
     image: postgres:16-alpine
@@ -220,6 +224,10 @@ services:
     depends_on:
       ticket-api:
         condition: service_healthy
+      api:
+        condition: service_healthy
+      bot:
+        condition: service_started
     env_file:
       - .env
     environment:
@@ -227,6 +235,10 @@ services:
       LOOKS_RATING_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:?Set TELEGRAM_BOT_TOKEN in .env}
       TELEGRAM_PROXY: ${TELEGRAM_PROXY:-}
       TICKET_API_BASE_URL: http://ticket-api:8090
+      LOOKS_RATING_API_GRPC_ADDRESS: api:8081
+      LOOKS_RATING_API_KEY: ${API_KEY:-default_secret_api_key}
+      LOOKS_RATING_BOT_NOTIFY_BASE_URL: http://bot:8092
+      INTERNAL_NOTIFY_API_KEY: ${INTERNAL_NOTIFY_API_KEY:-${API_KEY:-default_secret_api_key}}
       TICKET_API_KEY: ${TICKET_API_KEY:?Set TICKET_API_KEY in .env}
 
   tgifts-buyer:

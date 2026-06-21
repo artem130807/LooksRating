@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1drollback_debited_sparks.proto\"X\n\x1cRollBackDebitedSparksRequest\x12\x13\n\x0btelegram_id\x18\x01 \x01(\x03\x12\x13\n\x0bstars_count\x18\x02 \x01(\x05\x12\x0e\n\x06reason\x18\x03 \x01(\t\"A\n\x1dRollBackDebitedSparksResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2v\n\x1cRollBackDebitedSparksService\x12V\n\x15RollBackDebitedSparks\x12\x1d.RollBackDebitedSparksRequest\x1a\x1e.RollBackDebitedSparksResponseB\x12\xaa\x02\x0fLooksRatingGrpcb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1drollback_debited_sparks.proto\"e\n\x1cRollBackDebitedSparksRequest\x12\x13\n\x0btelegram_id\x18\x01 \x01(\x03\x12\x13\n\x0bstars_count\x18\x02 \x01(\x05\x12\x0e\n\x06reason\x18\x03 \x01(\t\x12\x0b\n\x03key\x18\x04 \x01(\t\"A\n\x1dRollBackDebitedSparksResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2v\n\x1cRollBackDebitedSparksService\x12V\n\x15RollBackDebitedSparks\x12\x1d.RollBackDebitedSparksRequest\x1a\x1e.RollBackDebitedSparksResponseB\x12\xaa\x02\x0fLooksRatingGrpcb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -33,9 +33,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
   _globals['DESCRIPTOR']._serialized_options = b'\252\002\017LooksRatingGrpc'
   _globals['_ROLLBACKDEBITEDSPARKSREQUEST']._serialized_start=33
-  _globals['_ROLLBACKDEBITEDSPARKSREQUEST']._serialized_end=121
-  _globals['_ROLLBACKDEBITEDSPARKSRESPONSE']._serialized_start=123
-  _globals['_ROLLBACKDEBITEDSPARKSRESPONSE']._serialized_end=188
-  _globals['_ROLLBACKDEBITEDSPARKSSERVICE']._serialized_start=190
-  _globals['_ROLLBACKDEBITEDSPARKSSERVICE']._serialized_end=308
+  _globals['_ROLLBACKDEBITEDSPARKSREQUEST']._serialized_end=134
+  _globals['_ROLLBACKDEBITEDSPARKSRESPONSE']._serialized_start=136
+  _globals['_ROLLBACKDEBITEDSPARKSRESPONSE']._serialized_end=201
+  _globals['_ROLLBACKDEBITEDSPARKSSERVICE']._serialized_start=203
+  _globals['_ROLLBACKDEBITEDSPARKSSERVICE']._serialized_end=321
 # @@protoc_insertion_point(module_scope)

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+import "writing_off_sparks_common.proto";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service GetWritingOffSparksService {
+    rpc GetWritingOffSparks(GetWritingOffSparksRequest) returns (GetWritingOffSparksResponse);
+}
+
+message GetWritingOffSparksRequest {
+    string writing_off_sparks_id = 1;
+}
+
+message GetWritingOffSparksResponse {
+    bool success = 1;
+    string message = 2;
+    WritingOffSparksItem item = 3;
+}

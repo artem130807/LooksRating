@@ -18,8 +18,12 @@ router = Router()
 
 # Все состояния, в которых админ может пользоваться нижней панелью.
 ADMIN_PANEL_STATES = (
-    ModerationStates.moderating,
+    ModerationStates.selecting_moderation_type,
     ModerationStates.selecting_city,
+    ModerationStates.selecting_withdrawal_city,
+    ModerationStates.viewing_withdrawal_list,
+    ModerationStates.viewing_withdrawal_detail,
+    ModerationStates.moderating,
     ModerationStates.confirming_delete_profile,
     ModerationStates.confirming_delete_account,
     OpsStates.viewing_hub,

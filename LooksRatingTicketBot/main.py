@@ -12,12 +12,20 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.types import User
 
 from api.client import ApiError, TicketApiClient
+from api.main_bot_notify_client import MainBotNotifyClient
+from api.writing_off_sparks_client import WritingOffSparksGrpcClient
 from bot.alert_delivery import AlertDeliveryService
 from bot.http_session import create_client_session
 from bot.telegram_media import MainBotMediaService
 from config import Settings
 from handlers import log_errors, setup_routers
-from middlewares import ApiClientMiddleware, MainBotMediaMiddleware, SessionRecoveryMiddleware
+from middlewares import (
+    ApiClientMiddleware,
+    MainBotMediaMiddleware,
+    MainBotNotifyMiddleware,
+    SessionRecoveryMiddleware,
+    WritingOffSparksMiddleware,
+)
 
 logging.basicConfig(level=logging.INFO, stream=sys.stdout)
 
@@ -118,6 +126,16 @@ async def main() -> None:
         proxy=settings.telegram_proxy,
         timeout_seconds=settings.media_timeout_seconds,
     )
+    writing_off_sparks = WritingOffSparksGrpcClient(
+        settings.api_grpc_address,
+        timeout=settings.api_timeout_seconds,
+        api_key=settings.looks_rating_api_key,
+    )
+    main_bot_notify = MainBotNotifyClient(
+        settings.main_bot_notify_base_url,
+        settings.main_bot_notify_api_key,
+        timeout_seconds=settings.main_bot_notify_timeout_seconds,
+    )
     await api.start()
     await main_bot_media.start()
     await _verify_main_bot_token(settings)
@@ -142,6 +160,8 @@ async def main() -> None:
     alert_delivery = AlertDeliveryService(api, bot, interval_seconds=30)
     dp = Dispatcher(storage=MemoryStorage())
     dp.update.outer_middleware(ApiClientMiddleware(api))
+    dp.update.outer_middleware(WritingOffSparksMiddleware(writing_off_sparks))
+    dp.update.outer_middleware(MainBotNotifyMiddleware(main_bot_notify))
     dp.update.outer_middleware(MainBotMediaMiddleware(main_bot_media))
     dp.update.outer_middleware(SessionRecoveryMiddleware())
     dp.errors.register(log_errors)

@@ -341,8 +341,9 @@ async def handle_moderation_panel_action(
     telegram_id = message.from_user.id
 
     if text == keyboards.BTN_CITIES:
-        await state.set_state(ModerationStates.selecting_city)
-        await show_city_selection(message, state, api, telegram_id)
+        from handlers.withdrawals import show_moderation_hub
+
+        await show_moderation_hub(message, state)
         return
 
     if text == keyboards.BTN_CURRENT:
@@ -408,10 +409,12 @@ async def on_moderating_unknown_text(message: Message) -> None:
 
 
 @router.callback_query(F.data == keyboards.CALLBACK_CHANGE_CITY)
-async def on_change_city(callback: CallbackQuery, state: FSMContext, api: TicketApiClient) -> None:
+async def on_change_city(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     if callback.message:
-        await show_city_selection(callback.message, state, api, callback.from_user.id)
+        from handlers.withdrawals import show_moderation_hub
+
+        await show_moderation_hub(callback.message, state)
 
 
 @router.callback_query(F.data == keyboards.CALLBACK_CURRENT)

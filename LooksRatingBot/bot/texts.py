@@ -374,15 +374,27 @@ SHOP_GIFTS_VIP_REQUIRED_ALERT = (
     "Оформите VIP в разделе «✨ Привилегии» → «⭐ VIP-статус»."
 )
 SHOP_GIFT_CONFIRM = (
-    "🎁 <b>Подтвердите покупку</b>\n\n"
-    "Подарок: <b>{stars}★</b>\n"
+    "🎁 <b>Подтвердите обмен</b>\n\n"
+    "Номинал: <b>{stars}★</b>\n"
     "Стоимость: <b>{cost}</b> искр\n"
     "Ваш баланс: <b>{balance}</b> искр\n\n"
-    "После подтверждения искры спишутся, а подарок будет отправлен вам в Telegram."
+    "После подтверждения искры спишутся, а звёзды будут начислены в Telegram в течение дня."
 )
-SHOP_GIFT_PROCESSING = "⏳ Отправляем подарок… Это может занять до минуту."
-SHOP_GIFT_SUCCESS = "🎉 Подарок на <b>{stars}★</b> успешно отправлен!"
-SHOP_GIFT_FAILED = "❌ <b>Не удалось отправить подарок</b>\n\n{details}"
+SHOP_GIFT_PROCESSING = "⏳ Создаём заявку на вывод…"
+SHOP_GIFT_SUCCESS = (
+    "✅ <b>Заявка принята!</b>\n\n"
+    "Звёзды на <b>{stars}★</b> будут начислены вам в Telegram в течение дня."
+)
+WRITING_OFF_SPARKS_STARS_CREDITED = (
+    "⭐ <b>Звёзды начислены!</b>\n\n"
+    "Вам начислены Telegram Stars на <b>{stars}★</b>."
+)
+WRITING_OFF_SPARKS_WITHDRAWAL_CANCELLED = (
+    "❌ <b>Заявка на вывод отменена</b>\n\n"
+    "Обмен на <b>{stars}★</b> отклонён. "
+    "<b>{sparks}</b> искр возвращены на ваш баланс."
+)
+SHOP_GIFT_FAILED = "❌ <b>Не удалось оформить обмен</b>\n\n{details}"
 GIFT_EXCHANGE_UNAVAILABLE = (
     "Сейчас обмен искр на Telegram Stars временно недоступен. "
     "Попробуйте позже."

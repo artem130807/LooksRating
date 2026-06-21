@@ -14,16 +14,18 @@ from bot.services import (
     format_insufficient_sparks_alert,
     format_sparks_amount,
 )
+from bot.sparks_exchange import ALLOWED_STAR_TIERS, sparks_costs
+from bot.writing_off_sparks_idempotency import build_writing_off_sparks_idempotency_key
 from handlers.privileges import show_vip_shop
-from services.gift_purchase_saga import (
-    GiftPurchaseSagaOrchestrator,
-    GiftPurchaseStep,
-    STAR_SPARKS_COSTS,
+from services.writing_off_sparks_saga import (
+    WritingOffSparksSagaOrchestrator,
+    WritingOffSparksStep,
 )
-from bot.sparks_exchange import ALLOWED_STAR_TIERS
 
 router = Router()
 logger = logging.getLogger(__name__)
+
+STAR_SPARKS_COSTS: dict[int, int] = sparks_costs()
 
 
 def _parse_stars_count(callback_data: str, prefix: str) -> int | None:
@@ -108,7 +110,7 @@ async def shop_gift_select(callback: CallbackQuery, api: LooksRatingApiClient) -
 async def shop_gift_confirm(
     callback: CallbackQuery,
     api: LooksRatingApiClient,
-    gift_purchase_saga: GiftPurchaseSagaOrchestrator,
+    sparks_exchange_saga: WritingOffSparksSagaOrchestrator,
 ) -> None:
     stars_count = _parse_stars_count(callback.data or "", "shop:gift:confirm:")
     if stars_count is None:
@@ -136,14 +138,20 @@ async def shop_gift_confirm(
     if callback.message:
         await callback.message.edit_text(texts.SHOP_GIFT_PROCESSING)
 
+    idempotency_key = build_writing_off_sparks_idempotency_key(
+        telegram_id=callback.from_user.id,
+        callback_id=callback.id or "",
+    )
+
     try:
         result = await asyncio.to_thread(
-            gift_purchase_saga.execute,
+            sparks_exchange_saga.execute,
             callback.from_user.id,
             stars_count,
+            idempotency_key=idempotency_key,
         )
     except Exception:
-        logger.exception("Gift purchase saga failed for user %s", callback.from_user.id)
+        logger.exception("Sparks exchange saga failed for user %s", callback.from_user.id)
         if callback.message:
             await callback.message.edit_text(
                 texts.SHOP_GIFT_FAILED.format(
@@ -166,9 +174,9 @@ async def shop_gift_confirm(
             reply_markup=shop_gifts_keyboard(),
         )
 
-    if result.step == GiftPurchaseStep.COMPENSATION and not result.success:
+    if result.step == WritingOffSparksStep.COMPENSATION and not result.success:
         logger.info(
-            "Gift compensated for user %s stars=%s: %s",
+            "Sparks exchange compensated for user %s stars=%s: %s",
             callback.from_user.id,
             stars_count,
             result.message,

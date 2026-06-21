@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service ListWritingOffSparksCitiesService {
+    rpc ListWritingOffSparksCities(ListWritingOffSparksCitiesRequest) returns (ListWritingOffSparksCitiesResponse);
+}
+
+message ListWritingOffSparksCitiesRequest {}
+
+message ListWritingOffSparksCitiesResponse {
+    bool success = 1;
+    string message = 2;
+    repeated string cities = 3;
+}

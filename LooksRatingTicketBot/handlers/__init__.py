@@ -9,7 +9,7 @@ from bot import keyboards, texts
 from bot.session_sync import is_authenticated, restore_fsm_from_api, session_state
 from bot.states import AuthStates
 from bot.telegram_media import MainBotMediaService
-from handlers import admin_panel, auth, moderation, monitoring, start
+from handlers import admin_panel, auth, moderation, monitoring, start, withdrawals
 from handlers.common import (
     load_session,
     process_login_text,
@@ -18,7 +18,8 @@ from handlers.common import (
     route_guest_message,
     show_guest_home,
 )
-from handlers.moderation import present_current_ticket, show_city_selection
+from handlers.moderation import present_current_ticket
+from handlers.withdrawals import show_moderation_hub
 from middlewares import ApiClientMiddleware, ApiErrorMiddleware, SessionRecoveryMiddleware
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ def setup_routers(api: TicketApiClient) -> Router:
     root.include_router(auth.router)
     root.include_router(admin_panel.router)
     root.include_router(moderation.router)
+    root.include_router(withdrawals.router)
     root.include_router(monitoring.router)
 
     @root.message(F.text, ~F.text.startswith("/"), StateFilter(None))
@@ -64,7 +66,7 @@ def setup_routers(api: TicketApiClient) -> Router:
                 )
                 return
             await message.answer(texts.START_AUTH, reply_markup=keyboards.admin_reply_keyboard())
-            await show_city_selection(message, state, api, telegram_id)
+            await show_moderation_hub(message, state)
             return
 
         if session and session_state(session) == "awaiting_login":
