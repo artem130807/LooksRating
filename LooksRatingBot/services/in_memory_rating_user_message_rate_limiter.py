@@ -4,7 +4,10 @@ import time
 from dataclasses import dataclass
 
 from services.rating_user_message_rate_limit_keys import pair_rate_key, sender_rate_key
-from services.rating_user_message_rate_limit_protocol import RatingUserMessageRateLimiter
+from services.rating_user_message_rate_limit_protocol import (
+    RatingMessageRateLimitBlock,
+    RatingUserMessageRateLimiter,
+)
 
 
 @dataclass
@@ -29,18 +32,26 @@ class InMemoryRatingUserMessageRateLimiter(RatingUserMessageRateLimiter):
         self._sender_buckets: dict[str, _RateBucket] = {}
         self._pair_buckets: dict[str, _RateBucket] = {}
 
-    async def is_allowed(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> bool:
+    async def check_delivery(
+        self,
+        *,
+        sender_telegram_id: int,
+        recipient_telegram_id: int,
+    ) -> RatingMessageRateLimitBlock | None:
         now = time.monotonic()
-        sender_count = self._read_count(self._sender_buckets, str(sender_telegram_id), now)
-        if sender_count >= self._sender_limit:
-            return False
-
         pair_count = self._read_count(
             self._pair_buckets,
             pair_rate_key(sender_telegram_id, recipient_telegram_id),
             now,
         )
-        return pair_count < self._pair_limit
+        if pair_count >= self._pair_limit:
+            return RatingMessageRateLimitBlock.PAIR
+
+        sender_count = self._read_count(self._sender_buckets, str(sender_telegram_id), now)
+        if sender_count >= self._sender_limit:
+            return RatingMessageRateLimitBlock.SENDER
+
+        return None
 
     async def record_delivery(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> None:
         now = time.monotonic()

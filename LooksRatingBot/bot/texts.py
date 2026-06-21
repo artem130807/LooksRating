@@ -172,8 +172,11 @@ RATING_MESSAGE_RECIPIENT_BLOCKED_BOT = (
 RATING_MESSAGE_DELIVERY_FAILED = "Не удалось доставить сообщение. Попробуйте позже."
 RATING_MESSAGE_NOT_FOUND = "Сообщение устарело или уже удалено."
 RATING_MESSAGE_DISMISSED = "Сообщение скрыто."
-RATING_MESSAGE_RATE_LIMITED = (
-    "Слишком много сообщений за короткое время. Попробуйте позже."
+RATING_MESSAGE_PAIR_RATE_LIMITED = (
+    "Лимит сообщений для этого участника исчерпан. Попробуйте написать чуть позже."
+)
+RATING_MESSAGE_SENDER_RATE_LIMITED = (
+    "Лимит личных сообщений на этот час исчерпан. Попробуйте чуть позже."
 )
 
 VIP_FEATURES = (

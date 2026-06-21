@@ -3,7 +3,10 @@ from __future__ import annotations
 import redis.asyncio as redis
 
 from services.rating_user_message_rate_limit_keys import pair_rate_key, sender_rate_key
-from services.rating_user_message_rate_limit_protocol import RatingUserMessageRateLimiter
+from services.rating_user_message_rate_limit_protocol import (
+    RatingMessageRateLimitBlock,
+    RatingUserMessageRateLimiter,
+)
 
 
 class RedisRatingUserMessageRateLimiter(RatingUserMessageRateLimiter):
@@ -22,15 +25,23 @@ class RedisRatingUserMessageRateLimiter(RatingUserMessageRateLimiter):
         self._pair_limit = pair_limit
         self._window_seconds = window_seconds
 
-    async def is_allowed(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> bool:
-        sender_count = await self._read_count(sender_rate_key(sender_telegram_id))
-        if sender_count >= self._sender_limit:
-            return False
-
+    async def check_delivery(
+        self,
+        *,
+        sender_telegram_id: int,
+        recipient_telegram_id: int,
+    ) -> RatingMessageRateLimitBlock | None:
         pair_count = await self._read_count(
             pair_rate_key(sender_telegram_id, recipient_telegram_id),
         )
-        return pair_count < self._pair_limit
+        if pair_count >= self._pair_limit:
+            return RatingMessageRateLimitBlock.PAIR
+
+        sender_count = await self._read_count(sender_rate_key(sender_telegram_id))
+        if sender_count >= self._sender_limit:
+            return RatingMessageRateLimitBlock.SENDER
+
+        return None
 
     async def record_delivery(self, *, sender_telegram_id: int, recipient_telegram_id: int) -> None:
         await self._increment_with_window(sender_rate_key(sender_telegram_id))

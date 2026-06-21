@@ -3,6 +3,7 @@ from __future__ import annotations
 import pytest
 
 from services.in_memory_rating_user_message_rate_limiter import InMemoryRatingUserMessageRateLimiter
+from services.rating_user_message_rate_limit_protocol import RatingMessageRateLimitBlock
 
 
 @pytest.mark.asyncio
@@ -14,10 +15,13 @@ async def test_allows_messages_up_to_pair_limit() -> None:
     )
 
     for _ in range(3):
-        assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_001) is True
+        assert await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001) is None
         await limiter.record_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001)
 
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_001) is False
+    assert (
+        await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001)
+        is RatingMessageRateLimitBlock.PAIR
+    )
 
 
 @pytest.mark.asyncio
@@ -29,26 +33,32 @@ async def test_allows_messages_to_different_recipients_within_sender_limit() -> 
     )
 
     for recipient_id in (20_001, 20_002, 20_003):
-        assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=recipient_id) is True
+        assert await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=recipient_id) is None
         await limiter.record_delivery(sender_telegram_id=10_001, recipient_telegram_id=recipient_id)
 
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_004) is False
+    assert (
+        await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_004)
+        is RatingMessageRateLimitBlock.SENDER
+    )
 
 
 @pytest.mark.asyncio
 async def test_rejected_checks_do_not_consume_quota() -> None:
     limiter = InMemoryRatingUserMessageRateLimiter(
-        sender_limit=1,
+        sender_limit=10,
         pair_limit=1,
         window_seconds=3600,
     )
 
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_001) is True
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_001) is True
+    assert await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001) is None
+    assert await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001) is None
 
     await limiter.record_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001)
 
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_001) is False
+    assert (
+        await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001)
+        is RatingMessageRateLimitBlock.PAIR
+    )
 
 
 @pytest.mark.asyncio
@@ -67,10 +77,13 @@ async def test_redis_rate_limiter_blocks_after_sender_limit() -> None:
     )
 
     for recipient_id in (20_001, 20_002):
-        assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=recipient_id) is True
+        assert await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=recipient_id) is None
         await limiter.record_delivery(sender_telegram_id=10_001, recipient_telegram_id=recipient_id)
 
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_003) is False
+    assert (
+        await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_003)
+        is RatingMessageRateLimitBlock.SENDER
+    )
 
 
 @pytest.mark.asyncio
@@ -92,6 +105,6 @@ async def test_redis_rate_limiter_repairs_keys_without_ttl() -> None:
         window_seconds=3600,
     )
 
-    assert await limiter.is_allowed(sender_telegram_id=10_001, recipient_telegram_id=20_001) is True
+    assert await limiter.check_delivery(sender_telegram_id=10_001, recipient_telegram_id=20_001) is None
     ttl = await redis_client.ttl(stale_key)
     assert ttl > 0

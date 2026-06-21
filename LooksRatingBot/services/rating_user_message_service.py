@@ -14,6 +14,7 @@ from services.rating_user_message_models import PendingRatingUserMessage
 from services.rating_user_message_protocol import RatingUserMessageStore
 from services.rating_user_message_rate_limit_protocol import (
     AllowAllRatingUserMessageRateLimiter,
+    RatingMessageRateLimitBlock,
     RatingUserMessageRateLimiter,
 )
 
@@ -98,11 +99,14 @@ class RatingUserMessageService:
                 max_length=MAX_MESSAGE_LENGTH,
             )
 
-        if not await self._rate_limiter.is_allowed(
+        block_reason = await self._rate_limiter.check_delivery(
             sender_telegram_id=sender_telegram_id,
             recipient_telegram_id=recipient_telegram_id,
-        ):
-            return False, texts.RATING_MESSAGE_RATE_LIMITED
+        )
+        if block_reason is RatingMessageRateLimitBlock.PAIR:
+            return False, texts.RATING_MESSAGE_PAIR_RATE_LIMITED
+        if block_reason is RatingMessageRateLimitBlock.SENDER:
+            return False, texts.RATING_MESSAGE_SENDER_RATE_LIMITED
 
         sender_display_name = await resolve_sender_display_name(
             api,

@@ -111,7 +111,7 @@ async def test_send_message_rejects_when_rate_limited() -> None:
     api = MagicMock()
     api.get_user = AsyncMock(return_value={"displayName": "Иван"})
     rate_limiter = InMemoryRatingUserMessageRateLimiter(
-        sender_limit=1,
+        sender_limit=10,
         pair_limit=1,
         window_seconds=3600,
     )
@@ -138,8 +138,45 @@ async def test_send_message_rejects_when_rate_limited() -> None:
 
     assert first[0] is True
     assert second[0] is False
-    assert "много сообщений" in second[1].lower()
+    assert "этого участника" in second[1].lower()
     assert bot.send_message.await_count == 1
+
+
+@pytest.mark.asyncio
+async def test_send_message_rejects_when_sender_rate_limited() -> None:
+    bot = MagicMock()
+    bot.send_message = AsyncMock()
+    api = MagicMock()
+    api.get_user = AsyncMock(return_value={"displayName": "Иван"})
+    rate_limiter = InMemoryRatingUserMessageRateLimiter(
+        sender_limit=1,
+        pair_limit=10,
+        window_seconds=3600,
+    )
+    service = RatingUserMessageService(
+        bot,
+        InMemoryRatingUserMessageStore(),
+        rate_limiter,
+    )
+
+    first = await service.send_message(
+        api,
+        sender_telegram_id=10_001,
+        sender_username="ivan",
+        recipient_telegram_id=20_001,
+        text="Первое",
+    )
+    second = await service.send_message(
+        api,
+        sender_telegram_id=10_001,
+        sender_username="ivan",
+        recipient_telegram_id=20_002,
+        text="Второе",
+    )
+
+    assert first[0] is True
+    assert second[0] is False
+    assert "личных сообщений" in second[1].lower()
 
 
 @pytest.mark.asyncio

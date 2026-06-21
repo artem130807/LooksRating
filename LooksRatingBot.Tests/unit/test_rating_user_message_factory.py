@@ -40,7 +40,7 @@ def _settings(*, redis_url: str | None) -> Settings:
         redis_url=redis_url,
         rating_message_ttl_seconds=604800,
         rating_message_sender_limit_per_window=15,
-        rating_message_pair_limit_per_window=10,
+        rating_message_pair_limit_per_window=20,
         rating_message_rate_limit_window_seconds=3600,
     )
 
