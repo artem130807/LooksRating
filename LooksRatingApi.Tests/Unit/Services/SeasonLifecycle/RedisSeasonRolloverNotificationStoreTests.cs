@@ -16,10 +16,30 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
         _redis = redis;
     }
 
+    private async Task ResetStoreAsync()
+    {
+        var connection = _redis.Connection;
+        var db = connection.GetDatabase();
+        foreach (var endpoint in connection.GetEndPoints())
+        {
+            var server = connection.GetServer(endpoint);
+            if (!server.IsConnected || server.IsReplica)
+            {
+                continue;
+            }
+
+            foreach (var key in server.Keys(pattern: "season-rollover:*", pageSize: 250))
+            {
+                await db.KeyDeleteAsync(key);
+            }
+        }
+    }
+
     [SkippableFact]
     public async Task Enqueue_AddsMetaAndPendingIds()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        await ResetStoreAsync();
         var (closedId, newId, eventId) = CreateEventIds();
         var store = CreateStore();
 
@@ -38,6 +58,7 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
     public async Task Enqueue_ActiveEventsSet_HasNoExpiry()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        await ResetStoreAsync();
         var (closedId, newId, _) = CreateEventIds();
         var store = CreateStore();
 
@@ -54,7 +75,8 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
     public async Task GetPending_ReturnsBatchWithoutRemoving()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
-        var (closedId, newId, _) = CreateEventIds();
+        await ResetStoreAsync();
+        var (closedId, newId, eventId) = CreateEventIds();
         var store = CreateStore();
         await store.TryEnqueueBatchAsync(
             CreateRequest(closedId, newId, recipientIds: [2001, 2002, 2003]),
@@ -62,7 +84,8 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
 
         var pending = await store.GetPendingBatchesAsync(limit: 2);
 
-        pending.Should().HaveCount(1);
+        pending.Should().ContainSingle();
+        pending[0].EventId.Should().Be(eventId);
         pending[0].RecipientTelegramIds.Should().BeEquivalentTo(new long[] { 2001, 2002 });
         var db = _redis.Connection.GetDatabase();
         (await db.SetLengthAsync(PhotoRedisKeys.SeasonRolloverEventPending(pending[0].EventId))).Should().Be(3);
@@ -72,6 +95,7 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
     public async Task Ack_RemovesDeliveredIds()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        await ResetStoreAsync();
         var (closedId, newId, _) = CreateEventIds();
         var store = CreateStore();
         await store.TryEnqueueBatchAsync(
@@ -90,6 +114,7 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
     public async Task Ack_WhenPendingEmpty_RemovesActiveEvent()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        await ResetStoreAsync();
         var (closedId, newId, eventId) = CreateEventIds();
         var store = CreateStore();
         await store.TryEnqueueBatchAsync(
@@ -108,6 +133,7 @@ public sealed class RedisSeasonRolloverNotificationStoreTests
     public async Task Enqueue_IsIdempotent_ForSameEventId()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_redis);
+        await ResetStoreAsync();
         var (closedId, newId, eventId) = CreateEventIds();
         var store = CreateStore();
         var request = CreateRequest(closedId, newId, recipientIds: [5001, 5002]);
