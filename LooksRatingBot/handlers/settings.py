@@ -27,8 +27,8 @@ from bot.keyboards import (
     delete_account_keyboard,
     feed_gender_keyboard,
 )
+from bot.age_rules import parse_feed_age_text
 from bot.services import (
-    AGE_ALL,
     SessionState,
     feed_gender_from_text,
     format_api_error,
@@ -265,15 +265,8 @@ async def edit_age_save(
         await state.set_state(ProfileEditStates.field)
         await send_feed_view(message, api, message.from_user.id)
         return
-    try:
-        if message.text.strip() == BTN_AGE_ALL:
-            age = AGE_ALL
-        else:
-            age = int(message.text.strip())
-    except ValueError:
-        await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
-        return
-    if age != AGE_ALL and (age < 14 or age > 100):
+    age = parse_feed_age_text(message.text, all_ages_button=BTN_AGE_ALL)
+    if age is None:
         await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
         return
     try:

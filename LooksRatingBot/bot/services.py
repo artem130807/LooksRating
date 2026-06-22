@@ -5,27 +5,13 @@ from typing import Any
 
 from api.client import ApiError, LooksRatingApiClient
 from bot import texts
+from bot.age_rules import AGE_ALL, feed_age_group
 from bot.errors import _is_http_status_message, translate_error
 from bot.gender_api import gender_to_api
 
 GENDER_MALE = 1
 GENDER_FEMALE = 2
 GENDER_BOTH = 3
-AGE_ALL = 0
-TOP_AGE_GROUPS = (
-    (11, 12, 13),
-    (14, 15, 16),
-    (17, 18, 19),
-    (20, 21, 22),
-    (23, 24, 25),
-    (26, 27, 28),
-    (28, 30, 31),
-    (32, 33, 34),
-    (35, 36, 37),
-    (38, 39, 40),
-    (41, 42, 43),
-    (44, 45, 46),
-)
 
 def format_sparks_amount(value: Any) -> str:
     try:
@@ -256,15 +242,6 @@ def format_set_photo_saved_text(result: dict[str, Any]) -> str:
             extract_rating_count(result),
         ),
     )
-
-
-def feed_age_group(age: int | None) -> tuple[int, int, int] | None:
-    if not isinstance(age, int):
-        return None
-    for group in TOP_AGE_GROUPS:
-        if age in group:
-            return group
-    return None
 
 
 def format_feed_age_range(age: int | None) -> str:

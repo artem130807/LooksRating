@@ -22,7 +22,7 @@ namespace LooksRatingApi.CQRS.Users.Command.UpdateUserAge
                 return Result.Failure<string>(UpdateUserAgeErrors.TelegramIdIsRequired);
             }
 
-            if (command.Age is < TopService.AllAges or > 100)
+            if (!TopService.IsValidFeedAge(command.Age))
             {
                 return Result.Failure<string>(UpdateUserAgeErrors.InvalidAge);
             }

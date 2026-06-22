@@ -1,6 +1,10 @@
+from bot.age_rules import AGE_BRACKET_INPUT_LABEL
+
 ERROR_MESSAGES: dict[str, str] = {
     "TelegramIdIsRequired": "Некорректный идентификатор Telegram.",
-    "InvalidAge": "Возраст должен быть от 14 до 100 лет или «Все возраста».",
+    "InvalidAge": (
+        f"Возраст должен быть от {AGE_BRACKET_INPUT_LABEL} лет или «Все возраста»."
+    ),
     "InvalidGender": "Выберите пол: мужской, женский или оба.",
     "InvalidCity": "Город не найден в списке. Проверьте написание.",
     "UserAlreadyExists": "Вы уже зарегистрированы.",
@@ -24,7 +28,7 @@ ERROR_MESSAGES: dict[str, str] = {
     "RecomendationSettingsIncomplete": "Настройте ленту: город, возраст и пол. Нажмите «⭐ Оценить».",
     "RecomendationSettingsNotFound": "Сначала настройте ленту через «⭐ Оценить» или «⚙️ Настройки → Моя лента».",
     "InvalidNominationCity": "Укажите корректный город для номинации.",
-    "InvalidNominationAge": "Возраст номинации должен быть от 14 до 100.",
+    "InvalidNominationAge": f"Возраст номинации должен быть от {AGE_BRACKET_INPUT_LABEL}.",
     "InvalidNominationGender": "Укажите пол для номинации.",
     "ReviewerNotFound": "Пользователь не найден.",
     "PhotoProfileNotFound": "Профиль с фото не найден.",

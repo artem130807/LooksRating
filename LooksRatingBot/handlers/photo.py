@@ -18,6 +18,7 @@ from bot.keyboards import (
     replace_photo_picker_keyboard,
     yes_no_photo_keyboard,
 )
+from bot.age_rules import parse_nomination_age_text
 from bot.services import (
     SessionState,
     custom_nomination,
@@ -244,12 +245,8 @@ async def nomination_custom_age(
     if message.text == MENU_CANCEL:
         await _finish_photo_flow(message, state, api, message.from_user.id, texts.PHOTO_CANCEL)
         return
-    try:
-        age = int(message.text.strip())
-    except ValueError:
-        await message.answer(texts.REG_AGE_INVALID)
-        return
-    if age < 14 or age > 100:
+    age = parse_nomination_age_text(message.text)
+    if age is None:
         await message.answer(texts.REG_AGE_INVALID)
         return
     await state.update_data(nom_age=age)

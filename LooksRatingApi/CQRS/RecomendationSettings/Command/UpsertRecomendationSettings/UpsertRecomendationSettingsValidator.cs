@@ -40,7 +40,7 @@ namespace LooksRatingApi.CQRS.RecomendationSettings.Command.UpsertRecomendationS
                 return Result.Failure<string>(RecomendationSettingsErrors.TelegramIdIsRequired);
             }
 
-            if (command.Age is < TopService.AllAges or > 100)
+            if (!TopService.IsValidFeedAge(command.Age))
             {
                 return Result.Failure<string>(RecomendationSettingsErrors.InvalidAge);
             }

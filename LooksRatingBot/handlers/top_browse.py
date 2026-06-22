@@ -8,8 +8,8 @@ from api.client import ApiError, LooksRatingApiClient
 from bot import texts
 from bot.filters import NOT_DURING_RATING_OR_TICKET
 from bot.keyboards import MENU_TOP, top_gender_pick_keyboard, tops_menu_keyboard, weekly_scope_keyboard
+from bot.age_rules import is_valid_feed_age
 from bot.services import (
-    AGE_ALL,
     format_api_error,
     format_city_display,
     gender_label,
@@ -257,7 +257,7 @@ async def show_top_page(
         await target.answer(texts.TOP_SETUP_REQUIRED)
         return
     age = user.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await target.answer(texts.TOP_AGE_REQUIRED)
         return
     if gender not in {1, 2}:
@@ -333,7 +333,7 @@ async def top_vip_pick(callback: CallbackQuery, api: LooksRatingApiClient) -> No
         return
 
     age = settings.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 
@@ -360,7 +360,7 @@ async def top_weekly_current_pick(callback: CallbackQuery, api: LooksRatingApiCl
         return
 
     age = settings.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 
@@ -377,7 +377,7 @@ async def top_weekly_previous_pick(callback: CallbackQuery, api: LooksRatingApiC
         return
 
     age = settings.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 
@@ -400,7 +400,7 @@ async def top_season_pick(callback: CallbackQuery, api: LooksRatingApiClient) ->
         return
 
     age = user.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 
@@ -423,7 +423,7 @@ async def top_vip_now(callback: CallbackQuery, state: FSMContext, api: LooksRati
         await callback.answer(texts.TOP_SETUP_REQUIRED, show_alert=True)
         return
     age = settings.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 
@@ -468,7 +468,7 @@ async def top_weekly_now(callback: CallbackQuery, state: FSMContext, api: LooksR
         await callback.answer(texts.TOP_SETUP_REQUIRED, show_alert=True)
         return
     age = settings.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 
@@ -510,7 +510,7 @@ async def top_weekly_previous_now(callback: CallbackQuery, state: FSMContext, ap
         await callback.answer(texts.TOP_SETUP_REQUIRED, show_alert=True)
         return
     age = settings.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 

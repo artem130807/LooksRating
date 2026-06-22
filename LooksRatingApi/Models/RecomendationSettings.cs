@@ -33,7 +33,8 @@ namespace LooksRatingApi.Models
         public void UpdateCity(CityVo city) => City = city;
 
         public bool IsComplete =>
-            Age is >= TopService.AllAges and <= 100
+            Age is int ageValue
+            && TopService.IsValidFeedAge(ageValue)
             && Enum.IsDefined(typeof(GenderEnum), Gender)
             && Gender != GenderEnum.Unknown
             && !string.IsNullOrWhiteSpace(City?.Value);

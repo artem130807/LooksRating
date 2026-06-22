@@ -14,8 +14,8 @@ from bot.keyboards import (
     feed_gender_keyboard,
     remove_keyboard,
 )
+from bot.age_rules import parse_feed_age_text
 from bot.services import (
-    AGE_ALL,
     SessionState,
     feed_gender_from_text,
     format_api_error,
@@ -121,15 +121,8 @@ async def feed_age_entered(
         await message.answer(texts.FEED_SETUP_CANCEL, reply_markup=remove_keyboard())
         return
 
-    try:
-        if message.text.strip() == BTN_AGE_ALL:
-            age = AGE_ALL
-        else:
-            age = int(message.text.strip())
-    except ValueError:
-        await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
-        return
-    if age != AGE_ALL and (age < 14 or age > 100):
+    age = parse_feed_age_text(message.text, all_ages_button=BTN_AGE_ALL)
+    if age is None:
         await message.answer(texts.REG_AGE_INVALID, reply_markup=age_input_keyboard())
         return
 

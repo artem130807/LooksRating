@@ -3,6 +3,7 @@ using LooksRatingApi.Contracts;
 using LooksRatingApi.Domain.Vo;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
+using LooksRatingApi.Services;
 
 namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
 {
@@ -14,7 +15,7 @@ namespace LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto
             ICityService cityService,
             INormalizeCityNameService normalizeCityNameService)
         {
-            if (nomination.Age is not >= 14 and <= 100)
+            if (nomination.Age is null || !TopService.IsValidNominationAge(nomination.Age.Value))
             {
                 return Result.Failure<(int, GenderEnum, CityVo)>(SetUserPhotoErrors.InvalidNominationAge);
             }

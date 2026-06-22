@@ -35,7 +35,7 @@ namespace LooksRatingApi.CQRS.TheBestWeeks.Query.GetTheBestWeeks
                 return Result.Failure<List<GetTheBestWeeksResponse>>(SetUserPhotoErrors.TelegramIdIsRequired);
             }
 
-            if (query.Age is < TopService.AllAges or > 100)
+            if (!TopService.IsValidFeedAge(query.Age))
             {
                 return Result.Failure<List<GetTheBestWeeksResponse>>(GetTopUserPhotosErrors.InvalidAge);
             }

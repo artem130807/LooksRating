@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 
 from api.client import LooksRatingApiClient
 from bot import texts
-from bot.services import AGE_ALL
+from bot.age_rules import is_valid_feed_age
 from handlers.photo import start_nomination_flow
 from handlers.top_browse import _restore_tops_menu, _send_gender_pick
 
@@ -27,7 +27,7 @@ async def season_rollover_results(callback: CallbackQuery, api: LooksRatingApiCl
         return
 
     age = user.get("age")
-    if not isinstance(age, int) or age < AGE_ALL or age > 100:
+    if not isinstance(age, int) or not is_valid_feed_age(age):
         await callback.answer(texts.TOP_AGE_REQUIRED, show_alert=True)
         return
 

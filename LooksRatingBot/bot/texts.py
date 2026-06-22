@@ -1,3 +1,5 @@
+from bot.age_rules import AGE_BRACKET_INPUT_LABEL
+
 WELCOME_BACK = (
     "С возвращением в <b>LooksRating</b> 👋\n\n"
     "Оценивайте участников, следите за рейтингом и поднимайте своё фото в топ."
@@ -17,7 +19,9 @@ REG_CITIES_EMPTY = (
     "⚠️ Список городов временно недоступен.\n"
     "Убедитесь, что API запущен, и попробуйте /start снова."
 )
-REG_AGE_INVALID = "Укажите целое число от 14 до 100 или выберите «🌐 Все возраста»."
+REG_AGE_INVALID = (
+    f"Укажите целое число от {AGE_BRACKET_INPUT_LABEL} или выберите «🌐 Все возраста»."
+)
 REG_GENDER_INVALID = "Выберите: «Мужской», «Женский» или «Оба»."
 REG_DISPLAY_TELEGRAM = (
     "<b>Регистрация</b> Показывать другим пользователям ваш Telegram?\n\n"
@@ -41,7 +45,7 @@ FEED_SETUP_CITY = (
 FEED_SETUP_AGE = (
     "<b>Настройка ленты</b> · <b>{city}</b>\n\n"
     "🎂 Какой <b>возраст</b> участников показывать?\n"
-    "Введите число 14–100 или выберите «🌐 Все возраста»."
+    f"Введите число {AGE_BRACKET_INPUT_LABEL} или выберите «🌐 Все возраста»."
 )
 FEED_SETUP_AGE_RANGE = "В ленте будут показываться фото: <b>{age_range}</b>."
 FEED_SETUP_GENDER = (
@@ -66,7 +70,7 @@ PHOTO_OFFER = (
 )
 PHOTO_LATER = "Хорошо. Добавить фото можно в «⚙️ Настройки»."
 PHOTO_NOM_CITY = "🏙 Ваш город для номинации:"
-PHOTO_NOM_AGE = "🎂 Ваш возраст для номинации (14–100):"
+PHOTO_NOM_AGE = f"🎂 Ваш возраст для номинации ({AGE_BRACKET_INPUT_LABEL}):"
 PHOTO_NOM_GENDER = "👤 Ваш пол для номинации:"
 PHOTO_UPLOAD = "Отправьте <b>одно фото</b> (селфи). Альбомы и файлы не принимаются."
 PHOTO_VIDEO_NOT_ALLOWED = (
@@ -513,7 +517,7 @@ DELETE_ACCOUNT_CONFIRM = (
 )
 DELETE_ACCOUNT_DONE = "✅ Аккаунт удалён. Пройдите регистрацию заново."
 EDIT_CITY = "🏙 Город для ленты (чьи фото показывать):"
-EDIT_AGE = "🎂 Возраст для ленты: 14–100 или «🌐 Все возраста»."
+EDIT_AGE = f"🎂 Возраст для ленты: {AGE_BRACKET_INPUT_LABEL} или «🌐 Все возраста»."
 EDIT_GENDER = "👤 Пол для ленты:"
 EDIT_SAVED_CITY = "✅ Город обновлён: <b>{city}</b>"
 EDIT_SAVED_AGE = "✅ Возраст обновлён: <b>{age}</b>"

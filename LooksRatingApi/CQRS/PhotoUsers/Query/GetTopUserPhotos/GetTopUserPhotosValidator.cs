@@ -30,7 +30,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetTopUserPhotos
                     SetUserPhotoErrors.TelegramIdIsRequired);
             }
 
-            if (query.Age is < TopService.AllAges or > 100)
+            if (!TopService.IsValidFeedAge(query.Age))
             {
                 return Result.Failure<GetTopUserPhotosValidatedContext>(
                     GetTopUserPhotosErrors.InvalidAge);

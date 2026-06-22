@@ -1,53 +1,59 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace LooksRatingApi.Services
 {
     public class TopService
     {
         public const int AllAges = 0;
-        private static List<int[]> intsList = new List<int[]>()
+        public const int MinBracketAge = 14;
+        public const int MaxBracketAge = 46;
+
+        private static readonly int[][] AgeBrackets =
         {
-            new int[] {11, 12, 13},
-            new int[] {14, 15, 16},
-            new int[] {17, 18, 19},
-            new int[] {20, 21, 22},
-            new int[] {23, 24, 25},
-            new int[] {26, 27, 28},
-            new int[] {28, 30, 31},
-            new int[] {32, 33, 34},
-            new int[] {35, 36, 37},
-            new int[] {38, 39, 40},
-            new int[] {41, 42, 43},
-            new int[] {44, 45, 46},
+            new[] { 14, 15, 16 },
+            new[] { 17, 18, 19 },
+            new[] { 20, 21, 22 },
+            new[] { 23, 24, 25 },
+            new[] { 26, 27, 28 },
+            new[] { 28, 30, 31 },
+            new[] { 32, 33, 34 },
+            new[] { 35, 36, 37 },
+            new[] { 38, 39, 40 },
+            new[] { 41, 42, 43 },
+            new[] { 44, 45, 46 },
         };
+
         public static int[] GetTop(int age)
         {
             if (age == AllAges)
             {
                 return Array.Empty<int>();
             }
-            foreach (var ints in intsList)
+
+            foreach (var bracket in AgeBrackets)
             {
-                if (ints.Contains(age))
+                if (bracket.Contains(age))
                 {
-                    return ints;
+                    return bracket;
                 }
             }
+
             return Array.Empty<int>();
         }
-        public static List<int[]> GetIntsList()
-        {
-            return intsList;
-        }
+
+        public static IReadOnlyList<int[]> GetIntsList() => AgeBrackets;
+
+        public static bool IsValidBracketAge(int age) => GetTop(age).Length > 0;
+
+        public static bool IsValidFeedAge(int age) => age == AllAges || IsValidBracketAge(age);
+
+        public static bool IsValidNominationAge(int age) => IsValidBracketAge(age);
+
         public static bool MatchesAge(int viewerAge, int photoAge)
         {
             if (viewerAge == AllAges)
             {
                 return true;
             }
+
             var topAge = GetTop(viewerAge);
             if (topAge.Length == 0)
             {
