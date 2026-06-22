@@ -27,6 +27,7 @@ def _settings(*, redis_url: str | None) -> Settings:
         telegram_proxy=None,
         top_notify_interval_seconds=60,
         review_notify_interval_seconds=60,
+        season_rollover_notify_interval_seconds=60,
         internal_notify_host="0.0.0.0",
         internal_notify_port=8092,
         internal_notify_api_key="key",

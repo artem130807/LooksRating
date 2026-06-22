@@ -21,6 +21,7 @@ def _settings(**overrides) -> Settings:
         telegram_proxy=None,
         top_notify_interval_seconds=60,
         review_notify_interval_seconds=60,
+        season_rollover_notify_interval_seconds=60,
         stars_provider_token="",
         channel_username="LooksRatingBotOfficial",
         channel_url="https://t.me/LooksRatingBotOfficial",
