@@ -203,6 +203,16 @@ namespace LooksRatingApi.Services
                     unviewableProfileIds,
                     skipProfileIds))
             {
+                if (skipProfileIds.Count > 0)
+                {
+                    _logger.LogWarning(
+                        "Feed empty with transient skip list for reviewer {ReviewerUserId}: rated={RatedCount}, skipped={SkippedCount}",
+                        context.ReviewerUserId,
+                        ratedProfileIds.Count,
+                        skipProfileIds.Count);
+                    return null;
+                }
+
                 return await RestartCycleAndGetNextAsync(
                     context,
                     unviewableProfileIds,

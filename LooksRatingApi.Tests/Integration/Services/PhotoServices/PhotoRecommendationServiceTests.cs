@@ -89,7 +89,7 @@ public sealed class PhotoRecommendationServiceTests
     }
 
     [SkippableFact]
-    public async Task RestartsCycleWhenRemainingCandidatesAreSkipped()
+    public async Task DoesNotRestartCycleWhenRemainingCandidatesAreSkipped()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres, _redis);
         await using var context = _postgres.CreateContext();
@@ -110,8 +110,7 @@ public sealed class PhotoRecommendationServiceTests
             city: "moscow",
             skipProfileIds: new[] { profiles[1].Id, profiles[2].Id });
 
-        result.Should().ContainSingle();
-        result[0].Should().Be(profiles[0].Id);
+        result.Should().BeEmpty();
 
         var ratedAfter = await GetRatedSetAsync(reviewer.Id, season.Id);
         ratedAfter.Should().ContainSingle().Which.Should().Be(profiles[0].Id);

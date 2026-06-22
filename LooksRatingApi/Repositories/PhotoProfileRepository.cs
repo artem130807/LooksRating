@@ -495,7 +495,7 @@ namespace LooksRatingApi.Repositories
                 .Where(p => p.Status == StatusEnum.Active)
                 .Where(p => p.UserId != reviewerUserId)
                 .Where(p => p.CityNomination.Value == cityNomination)
-                .Where(p => p.Photos.Any(photo => !string.IsNullOrEmpty(photo.TelegramFileId)));
+                .Where(p => p.Photos.Any(photo => !string.IsNullOrWhiteSpace(photo.TelegramFileId)));
 
             if (vipOnly)
             {
