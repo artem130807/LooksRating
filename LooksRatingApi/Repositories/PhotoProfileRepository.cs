@@ -258,9 +258,37 @@ namespace LooksRatingApi.Repositories
             return await _context.PhotoProfiles
                 .AsNoTracking()
                 .Where(p => p.UserId == userId)
+                .Where(p => p.Status == StatusEnum.Active || p.Status == StatusEnum.Archived)
                 .Select(p => p.SeasonId)
                 .Distinct()
                 .CountAsync(cancellationToken);
+        }
+
+        public async Task<IReadOnlyList<long>> GetParticipantTelegramIdsBatchAsync(
+            Guid seasonId,
+            int skip,
+            int take,
+            CancellationToken cancellationToken = default)
+        {
+            if (take <= 0)
+            {
+                return Array.Empty<long>();
+            }
+
+            return await _context.PhotoProfiles
+                .AsNoTracking()
+                .Where(p => p.SeasonId == seasonId)
+                .Where(p => p.Status == StatusEnum.Active || p.Status == StatusEnum.Archived)
+                .Join(
+                    _context.Users.AsNoTracking(),
+                    profile => profile.UserId,
+                    user => user.Id,
+                    (_, user) => user.TelegramId)
+                .Distinct()
+                .OrderBy(telegramId => telegramId)
+                .Skip(skip)
+                .Take(take)
+                .ToListAsync(cancellationToken);
         }
 
         public async Task<IReadOnlyDictionary<Guid, int>> GetParticipantCountsBySeasonIdsAsync(

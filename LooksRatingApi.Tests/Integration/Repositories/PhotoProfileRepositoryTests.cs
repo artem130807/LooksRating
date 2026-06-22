@@ -91,6 +91,30 @@ public sealed class PhotoProfileRepositoryTests
     }
 
     [SkippableFact]
+    public async Task CountSeasonsWithProfileAsync_ExcludesRejectedProfiles()
+    {
+        IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);
+        await using var context = _postgres.CreateContext();
+        await DatabaseCleaner.ResetAsync(context);
+
+        var (_, season1) = await TestDataBuilder.SeedOpenSeasonAsync(context, seasonNumber: 1);
+        var chapter2 = ListSeasons.Create().Value;
+        var season2 = Season.Create("Season 2", 2, chapter2.Id).Value;
+        context.ListSeasons.Add(chapter2);
+        context.Seasons.Add(season2);
+        await context.SaveChangesAsync();
+
+        var user = await TestDataBuilder.SeedUserAsync(context, 3002);
+        await TestDataBuilder.SeedPhotoProfileAsync(context, user, season1);
+        await TestDataBuilder.SeedPhotoProfileAsync(context, user, season2, StatusEnum.Rejected);
+
+        var repository = new PhotoProfileRepository(context);
+        var count = await repository.CountSeasonsWithProfileAsync(user.Id);
+
+        count.Should().Be(1);
+    }
+
+    [SkippableFact]
     public async Task ArchiveProfilesAsync_UpdatesStatusInDatabase()
     {
         IntegrationTestGuards.SkipUnlessDockerIsAvailable(_postgres);

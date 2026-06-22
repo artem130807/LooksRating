@@ -23,6 +23,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
         private readonly INormalizeCityNameService _normalizeCityName;
         private readonly ArchivingLockService _lockService;
         private readonly ISeasonTopSparksRewardProcessor _seasonTopSparksRewardProcessor;
+        private readonly ISeasonRolloverNotifier _seasonRolloverNotifier;
         private readonly ApplicationClock _clock;
         private readonly IConnectionMultiplexer _redis;
         private readonly ILogger<NewSeasonProcessor> _logger;
@@ -35,6 +36,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             INormalizeCityNameService normalizeCityName,
             ArchivingLockService lockService,
             ISeasonTopSparksRewardProcessor seasonTopSparksRewardProcessor,
+            ISeasonRolloverNotifier seasonRolloverNotifier,
             ApplicationClock clock,
             IConnectionMultiplexer redis,
             ILogger<NewSeasonProcessor> logger)
@@ -46,6 +48,7 @@ namespace LooksRatingApi.Services.SeasonLifecycle
             _normalizeCityName = normalizeCityName;
             _lockService = lockService;
             _seasonTopSparksRewardProcessor = seasonTopSparksRewardProcessor;
+            _seasonRolloverNotifier = seasonRolloverNotifier;
             _clock = clock;
             _redis = redis;
             _logger = logger;
@@ -160,6 +163,14 @@ namespace LooksRatingApi.Services.SeasonLifecycle
                 newSeasonResult.Value.Id,
                 newSeasonResult.Value.Number,
                 listForNewSeason.Id);
+
+            if (seasonToClose is not null)
+            {
+                await _seasonRolloverNotifier.EnqueueForRolloverAsync(
+                    seasonToClose,
+                    newSeasonResult.Value,
+                    cancellationToken);
+            }
         }
 
         private async Task<int> ArchivePhotosAsync(

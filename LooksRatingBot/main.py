@@ -14,6 +14,7 @@ from api.client import ApiError, LooksRatingApiClient
 from api.grpc_clients import LooksRatingGrpcClient
 from bot.internal_notify_server import start_internal_notify_server
 from bot.review_milestone_notifications import ReviewMilestoneNotificationsService
+from bot.season_rollover_notifications import SeasonRolloverNotificationsService
 from bot.top_notifications import TopNotificationsService
 from bot.writing_off_sparks_user_notifier import WritingOffSparksUserNotifier
 from config import Settings
@@ -109,6 +110,11 @@ async def main() -> None:
         bot=bot,
         interval_seconds=settings.review_notify_interval_seconds,
     )
+    season_rollover_notifications = SeasonRolloverNotificationsService(
+        api=api,
+        bot=bot,
+        interval_seconds=settings.season_rollover_notify_interval_seconds,
+    )
     writing_off_user_notifier = WritingOffSparksUserNotifier(bot)
     channel_promo = ChannelSubscribePromoService(settings=settings, bot=bot)
     if settings.telegram_proxy:
@@ -140,6 +146,7 @@ async def main() -> None:
 
         await notifications.start()
         await review_notifications.start()
+        await season_rollover_notifications.start()
         internal_notify_runner = await start_internal_notify_server(
             writing_off_user_notifier,
             host=settings.internal_notify_host,
@@ -153,6 +160,7 @@ async def main() -> None:
             await internal_notify_runner.cleanup()
         await channel_promo.stop()
         await review_notifications.stop()
+        await season_rollover_notifications.stop()
         await notifications.stop()
         await close_redis_client(redis_client)
         await api.close()

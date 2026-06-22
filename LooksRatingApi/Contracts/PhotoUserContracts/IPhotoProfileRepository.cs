@@ -79,6 +79,11 @@ namespace LooksRatingApi.Contracts.PhotoUserContracts
             bool vipOnly = false,
             CancellationToken cancellationToken = default);
         Task<int> CountSeasonsWithProfileAsync(Guid userId, CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<long>> GetParticipantTelegramIdsBatchAsync(
+            Guid seasonId,
+            int skip,
+            int take,
+            CancellationToken cancellationToken = default);
         Task<IReadOnlyDictionary<Guid, int>> GetParticipantCountsBySeasonIdsAsync(
             IEnumerable<Guid> seasonIds,
             CancellationToken cancellationToken = default);

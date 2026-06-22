@@ -17,6 +17,7 @@ class Settings:
     telegram_proxy: str | None
     top_notify_interval_seconds: int
     review_notify_interval_seconds: int
+    season_rollover_notify_interval_seconds: int
     internal_notify_host: str
     internal_notify_port: int
     internal_notify_api_key: str
@@ -48,6 +49,7 @@ class Settings:
         proxy = os.getenv("TELEGRAM_PROXY", "").strip() or None
         interval_raw = os.getenv("TOP_NOTIFY_INTERVAL_SECONDS", "60").strip()
         review_interval_raw = os.getenv("REVIEW_NOTIFY_INTERVAL_SECONDS", "60").strip()
+        season_rollover_interval_raw = os.getenv("SEASON_ROLLOVER_NOTIFY_INTERVAL_SECONDS", "60").strip()
         internal_notify_host = os.getenv("INTERNAL_NOTIFY_HOST", "0.0.0.0").strip() or "0.0.0.0"
         internal_notify_port_raw = os.getenv("INTERNAL_NOTIFY_PORT", "8092").strip()
         internal_notify_api_key = (
@@ -68,6 +70,10 @@ class Settings:
             review_interval = max(10, int(review_interval_raw))
         except ValueError:
             review_interval = 60
+        try:
+            season_rollover_interval = max(10, int(season_rollover_interval_raw))
+        except ValueError:
+            season_rollover_interval = 60
         try:
             internal_notify_port = max(1, min(65535, int(internal_notify_port_raw)))
         except ValueError:
@@ -122,6 +128,7 @@ class Settings:
             telegram_proxy=proxy,
             top_notify_interval_seconds=interval,
             review_notify_interval_seconds=review_interval,
+            season_rollover_notify_interval_seconds=season_rollover_interval,
             internal_notify_host=internal_notify_host,
             internal_notify_port=internal_notify_port,
             internal_notify_api_key=internal_notify_api_key,

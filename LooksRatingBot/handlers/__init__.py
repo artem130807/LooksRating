@@ -26,6 +26,7 @@ def setup_routers(api: LooksRatingApiClient) -> Router:
     from handlers.registration import router as registration_router
     from handlers.seasons import router as seasons_router
     from handlers.review_milestone import router as review_milestone_router
+    from handlers.season_rollover import router as season_rollover_router
     from handlers.top_browse import router as top_browse_router
     from handlers.channel_subscribe import router as channel_subscribe_router
     from handlers.session_recovery import (
@@ -65,6 +66,7 @@ def setup_routers(api: LooksRatingApiClient) -> Router:
     root.include_router(rating_messages_router)
     root.include_router(top_browse_router)
     root.include_router(review_milestone_router)
+    root.include_router(season_rollover_router)
     root.include_router(seasons_router)
     root.include_router(photo_router)
     root.include_router(settings_router)

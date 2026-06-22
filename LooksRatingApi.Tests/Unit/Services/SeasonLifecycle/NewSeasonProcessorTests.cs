@@ -113,11 +113,14 @@ public sealed class NewSeasonProcessorTests
             .GetProfileIdsBatchAsync(currentSeason.Id, 5000, 5000, Arg.Any<CancellationToken>())
             .Returns(new List<Guid>());
 
+        var rolloverNotifier = Substitute.For<ISeasonRolloverNotifier>();
+
         var processor = CreateProcessor(
             clock: new FakeApplicationClock(new DateTime(2026, 2, 1)),
             photoProfiles: photoProfiles,
             seasons: seasons,
-            lists: lists);
+            lists: lists,
+            seasonRolloverNotifier: rolloverNotifier);
 
         await processor.ProcessMonthlyRolloverAsync(CancellationToken.None);
 
@@ -127,6 +130,44 @@ public sealed class NewSeasonProcessorTests
         currentSeason.IsClosed.Should().BeTrue();
         await seasons.Received(1).Update(currentSeason);
         await seasons.Received(1).Create(Arg.Is<Season>(season => season.Number == 2 && season.ListSeasonsId == chapterId));
+        await rolloverNotifier.Received(1).EnqueueForRolloverAsync(
+            currentSeason,
+            Arg.Is<Season>(season => season.Number == 2),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ProcessMonthlyRolloverAsync_WhenSeasonCreationSkipped_DoesNotEnqueueNotifications()
+    {
+        var chapterId = Guid.NewGuid();
+        var lists = Substitute.For<IListSeasonsRepository>();
+        lists.GetLatest(includeSeasons: false).Returns(new ListSeasons { Id = chapterId });
+
+        var january = Season.Create("January", 1, chapterId).Value;
+        var february = Season.Create("February", 2, chapterId).Value;
+        var seasons = Substitute.For<ISeasonRepository>();
+        seasons.GetCurrentByList(chapterId).Returns(january, february);
+
+        var photoProfiles = Substitute.For<IPhotoProfileRepository>();
+        photoProfiles
+            .GetProfileIdsBatchAsync(january.Id, 0, 5000, Arg.Any<CancellationToken>())
+            .Returns(new List<Guid>());
+
+        var rolloverNotifier = Substitute.For<ISeasonRolloverNotifier>();
+
+        var processor = CreateProcessor(
+            clock: new FakeApplicationClock(new DateTime(2026, 2, 1)),
+            photoProfiles: photoProfiles,
+            seasons: seasons,
+            lists: lists,
+            seasonRolloverNotifier: rolloverNotifier);
+
+        await processor.ProcessMonthlyRolloverAsync(CancellationToken.None);
+
+        await rolloverNotifier.DidNotReceive().EnqueueForRolloverAsync(
+            Arg.Any<Season>(),
+            Arg.Any<Season>(),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -205,7 +246,8 @@ public sealed class NewSeasonProcessorTests
         ISeasonRepository seasons,
         IListSeasonsRepository lists,
         ArchivingLockService? lockService = null,
-        ISeasonTopSparksRewardProcessor? seasonRewards = null)
+        ISeasonTopSparksRewardProcessor? seasonRewards = null,
+        ISeasonRolloverNotifier? seasonRolloverNotifier = null)
     {
         var loadingCities = Substitute.For<ILoadingCityService>();
         loadingCities.GetCityNames().Returns(new HashSet<string> { "Moscow" });
@@ -215,6 +257,7 @@ public sealed class NewSeasonProcessorTests
         redis.GetDatabase(Arg.Any<int>(), Arg.Any<object>()).Returns(database);
 
         var rewards = seasonRewards ?? CreateDefaultSeasonRewardsMock();
+        var rolloverNotifier = seasonRolloverNotifier ?? Substitute.For<ISeasonRolloverNotifier>();
 
         return new NewSeasonProcessor(
             photoProfiles,
@@ -224,6 +267,7 @@ public sealed class NewSeasonProcessorTests
             new NormalizeCityNameService(),
             lockService ?? CreateLockService(),
             rewards,
+            rolloverNotifier,
             clock,
             redis,
             NullLogger<NewSeasonProcessor>.Instance);

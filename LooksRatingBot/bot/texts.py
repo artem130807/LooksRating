@@ -305,6 +305,20 @@ REVIEW_MILESTONE_REVIEWERS_HEADER = (
     "👥 <b>Последние 10 оценивших</b>\n"
     "Нажмите на участника, чтобы открыть его профиль."
 )
+SEASON_ROLLOVER_NOTIFY_TEMPLATE = (
+    "🍂 <b>Сезон «{closed_name}» завершён</b>\n\n"
+    "Итоги сезона уже доступны — посмотрите, как вы выступили в рейтинге.\n\n"
+    "🌱 Начался новый сезон <b>«{new_name}»</b>. Добавьте фото, чтобы попасть в топ!"
+)
+
+
+def format_season_rollover_notify_text(closed_name: str, new_name: str) -> str:
+    return SEASON_ROLLOVER_NOTIFY_TEMPLATE.format(
+        closed_name=closed_name.strip() or "прошлый сезон",
+        new_name=new_name.strip() or "новый сезон",
+    )
+
+
 TOP_HEADER = (
     "🏆 <b>{season_name}</b> №{season_number}{current}{closed}\n"
     "Страница <b>{page}</b> из <b>{total_pages}</b> · всего в топе: <b>{total}</b>\n"

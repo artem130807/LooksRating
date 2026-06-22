@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
+using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Cqrs.PhotoUsers.Command.SetUserPhoto;
 using MediatR;
@@ -10,13 +11,16 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
     {
         private readonly IUserRepository _userRepository;
         private readonly IPhotoProfileRepository _photoProfileRepository;
+        private readonly ITheBestWeekTopStatsService _theBestWeekTopStatsService;
 
         public GetUserStatsHandler(
             IUserRepository userRepository,
-            IPhotoProfileRepository photoProfileRepository)
+            IPhotoProfileRepository photoProfileRepository,
+            ITheBestWeekTopStatsService theBestWeekTopStatsService)
         {
             _userRepository = userRepository;
             _photoProfileRepository = photoProfileRepository;
+            _theBestWeekTopStatsService = theBestWeekTopStatsService;
         }
 
         public async Task<Result<GetUserStatsResponse>> Handle(
@@ -39,10 +43,14 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserStats
                 user.Id,
                 cancellationToken);
 
+            var countInTop = await _theBestWeekTopStatsService.CountWeekAppearancesForTelegramIdAsync(
+                user.TelegramId,
+                cancellationToken);
+
             return Result.Success(new GetUserStatsResponse
             {
                 TelegramId = user.TelegramId,
-                CountInTop = user.CountInTop,
+                CountInTop = countInTop,
                 SeasonsWithPhoto = seasonsWithPhoto,
             });
         }

@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.SeasonContracts;
 using LooksRatingApi.Contracts.SparksLedgerContracts;
+using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
@@ -17,17 +18,20 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly ISeasonRepository _seasonRepository;
         private readonly ISparksLedgerRepository _sparksLedgerRepository;
+        private readonly ITheBestWeekTopStatsService _theBestWeekTopStatsService;
 
         public GetUserByTelegramIdHandler(
             IUserRepository userRepository,
             IPhotoProfileRepository photoProfileRepository,
             ISeasonRepository seasonRepository,
-            ISparksLedgerRepository sparksLedgerRepository)
+            ISparksLedgerRepository sparksLedgerRepository,
+            ITheBestWeekTopStatsService theBestWeekTopStatsService)
         {
             _userRepository = userRepository;
             _photoProfileRepository = photoProfileRepository;
             _seasonRepository = seasonRepository;
             _sparksLedgerRepository = sparksLedgerRepository;
+            _theBestWeekTopStatsService = theBestWeekTopStatsService;
         }
 
         public async Task<Result<GetUserByTelegramIdResponse>> Handle(
@@ -58,13 +62,16 @@ namespace LooksRatingApi.CQRS.Users.Query.GetUserByTelegramId
             var settings = user.RecomendationSettings;
             var hasSettings = settings?.IsComplete == true;
             var sparksBalance = await _sparksLedgerRepository.GetBalanceAsync(user.Id, cancellationToken);
+            var countInTop = await _theBestWeekTopStatsService.CountWeekAppearancesForTelegramIdAsync(
+                user.TelegramId,
+                cancellationToken);
 
             return Result.Success(new GetUserByTelegramIdResponse
             {
                 UserId = user.Id,
                 TelegramId = user.TelegramId,
                 TelegramUsername = user.TelegramUsername,
-                CountInTop = user.CountInTop,
+                CountInTop = countInTop,
                 DisplayName = UserPublicDisplayName.Resolve(user),
                 UsesTelegramUsernameAsDisplay = UserPublicDisplayName.UsesTelegramUsernameAsDisplay(user),
                 Age = hasSettings ? settings!.Age : null,

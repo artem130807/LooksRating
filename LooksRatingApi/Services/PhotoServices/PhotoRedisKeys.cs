@@ -25,5 +25,14 @@ namespace LooksRatingApi.Services
 
         public static string PhotoHash(Guid photoId) =>
             ProfileHash(photoId);
+
+        public static string SeasonRolloverEventMeta(string eventId) =>
+            $"season-rollover:event:{eventId}:meta";
+
+        public static string SeasonRolloverEventPending(string eventId) =>
+            $"season-rollover:event:{eventId}:pending";
+
+        public static string SeasonRolloverActiveEvents() =>
+            "season-rollover:active-events";
     }
 }

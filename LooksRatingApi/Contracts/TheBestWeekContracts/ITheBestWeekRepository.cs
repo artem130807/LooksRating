@@ -1,4 +1,5 @@
 using LooksRatingApi.Models;
+using LooksRatingApi.Services.TheBestWeek;
 
 namespace LooksRatingApi.Contracts.TheBestWeekContracts
 {
@@ -13,5 +14,9 @@ namespace LooksRatingApi.Contracts.TheBestWeekContracts
         Task<List<TheBestWeek>> GetByCityAsync(string city, int? year, int? weekOfYear, int limit, CancellationToken cancellationToken);
         Task<List<long>> GetIds();
         Task<TheBestWeek?> GetCurrentWeek();
+        Task<List<TheBestWeekWeekRecord>> GetLatestWeekSnapshotRecordsAsync(
+            CancellationToken cancellationToken = default);
+        Task<List<List<TheBestWeekWeekRecord>>> GetAllWeekSnapshotRecordsGroupedAsync(
+            CancellationToken cancellationToken = default);
     }
 }

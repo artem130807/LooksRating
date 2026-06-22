@@ -518,3 +518,24 @@ class LooksRatingApiClient:
             f"/api/reviews/milestone-notifications/{notification_id}/reviewers",
         )
         return data if isinstance(data, dict) else {}
+
+    async def get_pending_season_rollover_notifications(self) -> list[dict[str, Any]]:
+        data = await self._request("GET", "/api/seasons/rollover-notifications/pending")
+        if isinstance(data, list):
+            return data
+        return []
+
+    async def ack_season_rollover_notification(
+        self,
+        *,
+        event_id: str,
+        recipient_telegram_ids: list[int],
+    ) -> None:
+        await self._request(
+            "POST",
+            "/api/seasons/rollover-notifications/ack",
+            json={
+                "eventId": event_id,
+                "recipientTelegramIds": recipient_telegram_ids,
+            },
+        )

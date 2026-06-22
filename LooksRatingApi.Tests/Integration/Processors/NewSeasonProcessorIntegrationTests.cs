@@ -1,16 +1,20 @@
 using LooksRatingApi.Contracts;
+using LooksRatingApi.Contracts.SeasonLifecycle;
 using LooksRatingApi.Enums;
 using LooksRatingApi.Infrastructure.DistributedLock;
+using LooksRatingApi.Infrastructure.SeasonNotifications;
 using LooksRatingApi.Repositories;
 using LooksRatingApi.Services;
 using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.SeasonLifecycle;
+using LooksRatingApi.Services.SparksWallet;
 using LooksRatingApi.Tests.Infrastructure.Builders;
 using LooksRatingApi.Tests.Infrastructure.Fakes;
 using LooksRatingApi.Tests.Infrastructure.Fixtures;
 using LooksRatingApi.Tests.Infrastructure.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using StackExchange.Redis;
 
 namespace LooksRatingApi.Tests.Integration.Processors;
@@ -74,6 +78,11 @@ public sealed class NewSeasonProcessorIntegrationTests
                 Substitute.For<ISeasonTopCategoryService>(),
                 Substitute.For<ISparksRewardCreditingService>(),
                 NullLogger<SeasonTopSparksRewardProcessor>.Instance),
+            new SeasonRolloverNotifier(
+                new PhotoProfileRepository(context),
+                new RedisSeasonRolloverNotificationStore(_redis.Connection),
+                Options.Create(new SeasonRolloverNotificationOptions { Enabled = true }),
+                NullLogger<SeasonRolloverNotifier>.Instance),
             new FakeApplicationClock(new DateTime(2026, 2, 1)),
             _redis.Connection,
             NullLogger<NewSeasonProcessor>.Instance);

@@ -1,7 +1,5 @@
 using LooksRatingApi.Contracts.TheBestWeekContracts;
 using LooksRatingApi.Models;
-using LooksRatingApi.Services;
-using LooksRatingApi.Services.CityServices;
 using LooksRatingApi.Services.TheBestWeek;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -92,62 +90,53 @@ namespace LooksRatingApi.Repositories
         }
         public async Task<List<long>> GetIds()
         {
-            var ids = new List<long>();
-            const string CityNamesCacheKey = CityNamesCacheKeys.Names;
-            if (!_memoryCache.TryGetValue<HashSet<string>>(CityNamesCacheKey, out var cityNames) || cityNames is null)
+            var weekRecords = await GetLatestWeekSnapshotRecordsAsync();
+            return TheBestWeekTopTelegramIdsCollector
+                .CollectForWeekRecords(weekRecords)
+                .OrderBy(x => x)
+                .ToList();
+        }
+
+        public async Task<List<TheBestWeekWeekRecord>> GetLatestWeekSnapshotRecordsAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var latest = await GetCurrentWeek();
+            if (latest is null)
             {
-                return new List<long>();
+                return [];
             }
-            var currentTheBestWeek = await _context.TheBestWeeks.OrderByDescending(w => w.CreatedDate).FirstOrDefaultAsync();
-            if(currentTheBestWeek == null)
-                return new List<long>();
-            var snapshotItems = TheBestWeekSnapshotSerializer.Deserialize(currentTheBestWeek.SnapshotJson);
-            if (snapshotItems.Count == 0)
-                return new List<long>();
-            
-            var profilesM = snapshotItems.Where(x => x.GenderNomination == Enums.GenderEnum.Male).ToList();
-            var profilesG = snapshotItems.Where(x => x.GenderNomination == Enums.GenderEnum.Female).ToList();
-            var ageList = TopService.GetIntsList();
-            foreach(var city in cityNames)
-            {
-                foreach(var age in ageList)
-                {
-                     var filteredM = profilesM
-                    .Where(p => p.City == city && age.Contains(p.AgeNomination))
-                    .ToList();
-                
-                    var filteredG = profilesG
-                        .Where(p => p.City == city && age.Contains(p.AgeNomination))
-                        .ToList();
-                    
-                    var top10M = filteredM
-                        .OrderByDescending(p => p.RatingCount > 0 ? 1 : 0)
-                        .ThenByDescending(p => PhotoRankingScore.ToRankScore(p.Rating, p.RatingCount))
-                        .ThenByDescending(p => p.Rating)
-                        .ThenByDescending(p => p.RatingCount)
-                        .ThenByDescending(p => p.CreatedAt)
-                        .Take(10)
-                        .ToList();
-                    
-                    var top10G = filteredG
-                        .OrderByDescending(p => p.RatingCount > 0 ? 1 : 0)
-                        .ThenByDescending(p => PhotoRankingScore.ToRankScore(p.Rating, p.RatingCount))
-                        .ThenByDescending(p => p.Rating)
-                        .ThenByDescending(p => p.RatingCount)
-                        .ThenByDescending(p => p.CreatedAt)
-                        .Take(10)
-                        .ToList();
-                    
-                    ids.AddRange(top10M
-                        .Select(p => p.TelegramId)
-                        .Where(x => x > 0));
-                    ids.AddRange(top10G
-                        .Select(p => p.TelegramId)
-                        .Where(x => x > 0));
-                }
-            }
-            var uniqueIds = ids.Distinct().ToList();
-            return uniqueIds;
+
+            var records = await _context.TheBestWeeks
+                .AsNoTracking()
+                .Where(w => w.Year == latest.Year && w.WeekOfYear == latest.WeekOfYear)
+                .ToListAsync(cancellationToken);
+
+            return ToWeekRecords(records);
+        }
+
+        public async Task<List<List<TheBestWeekWeekRecord>>> GetAllWeekSnapshotRecordsGroupedAsync(
+            CancellationToken cancellationToken = default)
+        {
+            var records = await _context.TheBestWeeks
+                .AsNoTracking()
+                .OrderBy(w => w.Year)
+                .ThenBy(w => w.WeekOfYear)
+                .ThenBy(w => w.City)
+                .ToListAsync(cancellationToken);
+
+            return records
+                .GroupBy(w => (w.Year, w.WeekOfYear))
+                .Select(group => ToWeekRecords(group.ToList()))
+                .ToList();
+        }
+
+        private static List<TheBestWeekWeekRecord> ToWeekRecords(IReadOnlyList<TheBestWeek> records)
+        {
+            return records
+                .Select(record => new TheBestWeekWeekRecord(
+                    record.City,
+                    TheBestWeekSnapshotSerializer.Deserialize(record.SnapshotJson)))
+                .ToList();
         }
 
         public async Task<TheBestWeek?> GetCurrentWeek()

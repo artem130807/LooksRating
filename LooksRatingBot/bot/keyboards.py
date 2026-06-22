@@ -323,6 +323,25 @@ def review_milestone_notification_keyboard(notification_id: str) -> InlineKeyboa
     )
 
 
+def season_rollover_notification_keyboard(closed_season_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📊 Итоги прошлого сезона",
+                    callback_data=f"season_rollover:results:{closed_season_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="📸 Добавить фото",
+                    callback_data="season_rollover:add_photo",
+                )
+            ],
+        ]
+    )
+
+
 def weekly_scope_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
