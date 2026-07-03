@@ -78,6 +78,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 
             Review review;
             var isNewReview = false;
+            PhotoRatedEvent? domainEvent = null;
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -120,20 +121,12 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 await _photoProfileRepository.UpdateAsync(photoProfile, cancellationToken);
 
                 var city = photoProfile.CityNomination.Value ?? string.Empty;
-                var domainEvent = new PhotoRatedEvent(
+                domainEvent = new PhotoRatedEvent(
                     photoProfile.Id,
                     photoProfile.Rating,
                     photoProfile.RatingCount,
                     city,
                     photoProfile.SeasonId);
-
-                await _photoRatingCacheService.MarkProfileAsRatedAsync(
-                    reviewer.Id,
-                    photoProfile.SeasonId,
-                    photoProfile.Id,
-                    cancellationToken);
-                await _photoRatingCacheService.SyncPhotoRatingAsync(domainEvent, cancellationToken);
-                await _producer.ProduceAsync(domainEvent, cancellationToken);
 
                 await transaction.CommitAsync(cancellationToken);
             }
@@ -141,6 +134,38 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             {
                 await transaction.RollbackAsync(cancellationToken);
                 throw;
+            }
+
+            if (domainEvent is not null)
+            {
+                try
+                {
+                    await _photoRatingCacheService.MarkProfileAsRatedAsync(
+                        reviewer.Id,
+                        photoProfile.SeasonId,
+                        photoProfile.Id,
+                        cancellationToken);
+                    await _photoRatingCacheService.SyncPhotoRatingAsync(domainEvent, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to sync review cache for profile {PhotoProfileId}",
+                        photoProfile.Id);
+                }
+
+                try
+                {
+                    await _producer.ProduceAsync(domainEvent, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Failed to publish PhotoRatedEvent for profile {PhotoProfileId}",
+                        photoProfile.Id);
+                }
             }
 
             try
