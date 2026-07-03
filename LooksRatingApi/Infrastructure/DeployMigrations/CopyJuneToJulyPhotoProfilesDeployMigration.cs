@@ -76,7 +76,6 @@ namespace LooksRatingApi.Infrastructure.DeployMigrations
             while (true)
             {
                 var sourceProfiles = await _context.PhotoProfiles
-                    .AsNoTracking()
                     .Include(p => p.User)
                     .Include(p => p.Photos)
                     .Where(p => p.SeasonId == SourceSeasonId)

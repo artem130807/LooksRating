@@ -6,6 +6,7 @@ using LooksRatingApi.Infrastructure.DeployMigrations;
 using LooksRatingApi.Models;
 using LooksRatingApi.Services;
 using LooksRatingApi.Tests.Infrastructure.Builders;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
@@ -166,11 +167,16 @@ public sealed class CopyJuneToJulyPhotoProfilesDeployMigrationTests
 
     private static LooksRatingDbContext CreateContext()
     {
+        var connection = new SqliteConnection("DataSource=:memory:");
+        connection.Open();
+
         var options = new DbContextOptionsBuilder<LooksRatingDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString("N"))
+            .UseSqlite(connection)
             .Options;
 
-        return new LooksRatingDbContext(options);
+        var context = new LooksRatingDbContext(options);
+        context.Database.EnsureCreated();
+        return context;
     }
 
     private static PhotoProfile CreateSourceProfile(

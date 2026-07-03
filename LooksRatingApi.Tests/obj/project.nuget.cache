@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "R/Xju9/EifY=",
+  "dgSpecHash": "5lP6ea080bI=",
   "success": true,
   "projectFilePath": "/home/shade/LooksRating/LooksRatingApi.Tests/LooksRatingApi.Tests.csproj",
   "expectedPackageFiles": [
@@ -39,11 +39,14 @@
     "/home/shade/.nuget/packages/microsoft.csharp/4.7.0/microsoft.csharp.4.7.0.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.data.sqlclient/5.1.6/microsoft.data.sqlclient.5.1.6.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.data.sqlclient.sni.runtime/5.1.1/microsoft.data.sqlclient.sni.runtime.5.1.1.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.data.sqlite.core/9.0.1/microsoft.data.sqlite.core.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.entityframeworkcore/9.0.1/microsoft.entityframeworkcore.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.entityframeworkcore.abstractions/9.0.1/microsoft.entityframeworkcore.abstractions.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.entityframeworkcore.analyzers/9.0.1/microsoft.entityframeworkcore.analyzers.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.entityframeworkcore.inmemory/9.0.1/microsoft.entityframeworkcore.inmemory.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.entityframeworkcore.relational/9.0.1/microsoft.entityframeworkcore.relational.9.0.1.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.entityframeworkcore.sqlite/9.0.1/microsoft.entityframeworkcore.sqlite.9.0.1.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.entityframeworkcore.sqlite.core/9.0.1/microsoft.entityframeworkcore.sqlite.core.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.entityframeworkcore.sqlserver/9.0.1/microsoft.entityframeworkcore.sqlserver.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
     "/home/shade/.nuget/packages/microsoft.extensions.caching.abstractions/10.0.7/microsoft.extensions.caching.abstractions.10.0.7.nupkg.sha512",
@@ -98,6 +101,10 @@
     "/home/shade/.nuget/packages/serilog.sinks.debug/3.0.0/serilog.sinks.debug.3.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/serilog.sinks.file/7.0.0/serilog.sinks.file.7.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/sharpziplib/1.4.2/sharpziplib.1.4.2.nupkg.sha512",
+    "/home/shade/.nuget/packages/sqlitepclraw.bundle_e_sqlite3/2.1.10/sqlitepclraw.bundle_e_sqlite3.2.1.10.nupkg.sha512",
+    "/home/shade/.nuget/packages/sqlitepclraw.core/2.1.10/sqlitepclraw.core.2.1.10.nupkg.sha512",
+    "/home/shade/.nuget/packages/sqlitepclraw.lib.e_sqlite3/2.1.10/sqlitepclraw.lib.e_sqlite3.2.1.10.nupkg.sha512",
+    "/home/shade/.nuget/packages/sqlitepclraw.provider.e_sqlite3/2.1.10/sqlitepclraw.provider.e_sqlite3.2.1.10.nupkg.sha512",
     "/home/shade/.nuget/packages/ssh.net/2024.2.0/ssh.net.2024.2.0.nupkg.sha512",
     "/home/shade/.nuget/packages/stackexchange.redis/2.12.14/stackexchange.redis.2.12.14.nupkg.sha512",
     "/home/shade/.nuget/packages/swashbuckle.aspnetcore/7.2.0/swashbuckle.aspnetcore.7.2.0.nupkg.sha512",
@@ -142,8 +149,8 @@
     "/home/shade/.nuget/packages/xunit.extensibility.execution/2.9.3/xunit.extensibility.execution.2.9.3.nupkg.sha512",
     "/home/shade/.nuget/packages/xunit.runner.visualstudio/2.8.2/xunit.runner.visualstudio.2.8.2.nupkg.sha512",
     "/home/shade/.nuget/packages/xunit.skippablefact/1.5.23/xunit.skippablefact.1.5.23.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.netcore.app.ref/9.0.17/microsoft.netcore.app.ref.9.0.17.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.17/microsoft.aspnetcore.app.ref.9.0.17.nupkg.sha512"
+    "/home/shade/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.17/microsoft.aspnetcore.app.ref.9.0.17.nupkg.sha512",
+    "/home/shade/.nuget/packages/microsoft.netcore.app.ref/9.0.17/microsoft.netcore.app.ref.9.0.17.nupkg.sha512"
   ],
   "logs": []
 }
