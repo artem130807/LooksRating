@@ -78,7 +78,7 @@ namespace LooksRatingApi.Infrastructure.DeployMigrations
                 var sourceProfiles = await _context.PhotoProfiles
                     .AsNoTracking()
                     .Include(p => p.User)
-                    .Include(p => p.Photos.OrderBy(photo => photo.SortOrder))
+                    .Include(p => p.Photos)
                     .Where(p => p.SeasonId == SourceSeasonId)
                     .Where(p => p.Status == StatusEnum.Active || p.Status == StatusEnum.Archived)
                     .OrderBy(p => p.Id)
@@ -182,7 +182,7 @@ namespace LooksRatingApi.Infrastructure.DeployMigrations
                 CreatedAt = now,
             };
 
-            foreach (var sourcePhoto in source.Photos)
+            foreach (var sourcePhoto in source.Photos.OrderBy(photo => photo.SortOrder))
             {
                 newProfile.Photos.Add(new PhotoProfilePhoto
                 {
