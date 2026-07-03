@@ -7,6 +7,8 @@ using LooksRatingApi.Contracts.UserContracts;
 using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 {
@@ -130,6 +132,11 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 
                 await transaction.CommitAsync(cancellationToken);
             }
+            catch (DbUpdateException ex) when (IsUniqueReviewConflict(ex))
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return Result.Failure<CreateReviewResult>(CreateReviewErrors.ReviewAlreadyExists);
+            }
             catch
             {
                 await transaction.RollbackAsync(cancellationToken);
@@ -223,6 +230,16 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 UpdatedProfileRating = photoProfile.Rating,
                 UpdatedProfileRatingCount = photoProfile.RatingCount
             });
+        }
+
+        private static bool IsUniqueReviewConflict(DbUpdateException exception)
+        {
+            if (exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation })
+            {
+                return true;
+            }
+
+            return exception.Message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase);
         }
     }
 }
