@@ -30,6 +30,8 @@ namespace LooksRatingApi.Infrastructure.DeployMigrations
 
         public async Task RunPendingAsync(CancellationToken cancellationToken = default)
         {
+            await EnsureHistoryTableAsync(cancellationToken);
+
             foreach (var migration in _migrations.OrderBy(m => m.Name, StringComparer.Ordinal))
             {
                 if (await IsAppliedAsync(migration.Name, cancellationToken))
@@ -111,6 +113,19 @@ namespace LooksRatingApi.Infrastructure.DeployMigrations
             await _context.DeployMigrationHistories
                 .AsNoTracking()
                 .AnyAsync(x => x.Name == name, cancellationToken);
+
+        private async Task EnsureHistoryTableAsync(CancellationToken cancellationToken)
+        {
+            const string sql = """
+                CREATE TABLE IF NOT EXISTS "DeployMigrationHistory" (
+                    "Name" character varying(256) NOT NULL,
+                    "AppliedAt" timestamp with time zone NOT NULL,
+                    CONSTRAINT "PK_DeployMigrationHistory" PRIMARY KEY ("Name")
+                );
+                """;
+
+            await _context.Database.ExecuteSqlRawAsync(sql, cancellationToken);
+        }
 
         /// <returns>true when migration was applied by a peer instance.</returns>
         private async Task<bool> WaitForPeerAsync(string name, CancellationToken cancellationToken)
