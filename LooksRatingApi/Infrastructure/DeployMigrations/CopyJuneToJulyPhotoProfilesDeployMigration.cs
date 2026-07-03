@@ -155,7 +155,7 @@ namespace LooksRatingApi.Infrastructure.DeployMigrations
                 return null;
             }
 
-            var cityResult = CityVo.Create(source.CityNomination.Value ?? string.Empty);
+            var cityResult = CityVo.Create(source.CityNomination?.Value ?? string.Empty);
             if (cityResult.IsFailure)
             {
                 _logger.LogWarning(

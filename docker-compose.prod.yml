@@ -133,7 +133,9 @@ services:
     mem_limit: 768m
     logging: *default-logging
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      # During startup we run DB migrations and one-off deploy migrations.
+      # Liveness is enough for compose wait; readiness is verified separately in scripts.
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/live || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 20
