@@ -35,6 +35,9 @@ internal sealed class SparksFlowUserRepository : IUserRepository
 
     public Task<List<User>> GetUsers() => _inner.GetUsers();
 
+    public Task<PagedResult<User>> GetUsersToPagedAsync(PageParams pageParams) =>
+        _inner.GetUsersToPagedAsync(pageParams);
+
     public Task<PagedResult<long>> GetTelegramIdsPagedAsync(
         int page,
         int pageSize,

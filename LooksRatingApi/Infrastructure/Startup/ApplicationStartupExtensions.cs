@@ -1,6 +1,7 @@
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Infrastructure.Auth;
 using LooksRatingApi.Infrastructure.Health;
+using LooksRatingApi.Infrastructure.DeployMigrations;
 using LooksRatingApi.Infrastructure.Quartz;
 using LooksRatingApi.Infrastructure.RateLimiting;
 using LooksRatingApi.Models;
@@ -51,6 +52,8 @@ namespace LooksRatingApi.Infrastructure.Startup
             services.AddRedisRateLimiting(configuration);
             services.AddInfrastructureHealthChecks(configuration);
             services.AddScoped<ISeasonDataSeeder, SeasonDataSeeder>();
+            services.AddScoped<IDeployMigration, CopyJuneToJulyPhotoProfilesDeployMigration>();
+            services.AddScoped<DeployMigrationRunner>();
 
             services.AddSwaggerGen(options =>
             {
@@ -117,6 +120,10 @@ namespace LooksRatingApi.Infrastructure.Startup
 
             logger.LogInformation("Seeding seasons...");
             await services.GetRequiredService<ISeasonDataSeeder>().SeedAsync();
+
+            logger.LogInformation("Running deploy migrations...");
+            await services.GetRequiredService<DeployMigrationRunner>().RunPendingAsync();
+
             logger.LogInformation("Application initialization completed");
         }
 

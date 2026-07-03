@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using LooksRatingApi;
+using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.ReviewContracts;
 using LooksRatingApi.Contracts.SparksLedgerContracts;
@@ -89,6 +90,7 @@ public sealed class CreateReviewCommandHandlerTests
         var photoRatingCache = Substitute.For<IPhotoRatingCacheService>();
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
+        var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -101,7 +103,8 @@ public sealed class CreateReviewCommandHandlerTests
             new RankService(),
             photoRatingCache,
             reviewSparksReward,
-            ratedProfileSparksReward);
+            ratedProfileSparksReward,
+            addLastActiveUser);
 
         var result = await handler.Handle(
             new CreateReviewCommand(1001, profile.Id, 8),
@@ -184,6 +187,7 @@ public sealed class CreateReviewCommandHandlerTests
         var photoRatingCache = Substitute.For<IPhotoRatingCacheService>();
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
+        var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -196,7 +200,8 @@ public sealed class CreateReviewCommandHandlerTests
             new RankService(),
             photoRatingCache,
             reviewSparksReward,
-            ratedProfileSparksReward);
+            ratedProfileSparksReward,
+            addLastActiveUser);
 
         var result = await handler.Handle(
             new CreateReviewCommand(1001, profile.Id, 8),
@@ -281,6 +286,7 @@ public sealed class CreateReviewCommandHandlerTests
         var photoRatingCache = Substitute.For<IPhotoRatingCacheService>();
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
+        var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -293,7 +299,8 @@ public sealed class CreateReviewCommandHandlerTests
             new RankService(),
             photoRatingCache,
             reviewSparksReward,
-            ratedProfileSparksReward);
+            ratedProfileSparksReward,
+            addLastActiveUser);
 
         var result = await handler.Handle(
             new CreateReviewCommand(1001, profile.Id, 8),

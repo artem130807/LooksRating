@@ -548,3 +548,9 @@ CHANNEL_SUBSCRIBE_SUCCESS = "🎉 <b>+50 искр</b> начислено за п
 CHANNEL_SUBSCRIBE_FAILED = "❌ Не удалось начислить бонус. Попробуйте позже."
 CHANNEL_SUBSCRIBE_USER_NOT_FOUND = "Сначала пройдите регистрацию через /start."
 CHANNEL_SUBSCRIBE_SKIPPED = "Хорошо. Подписку и бонус можно получить позже из этого сообщения."
+
+INACTIVE_USERS_REENGAGEMENT_TEXT = (
+    "👋 Давно вас не было видно в LooksRating.\n\n"
+    "Возвращайтесь к оценкам: в ленте уже появились новые участники, "
+    "которых вы ещё не оценивали."
+)

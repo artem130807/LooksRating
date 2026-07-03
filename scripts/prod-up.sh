@@ -30,6 +30,11 @@ docker compose -f "$COMPOSE_FILE" build api
 docker compose -f "$COMPOSE_FILE" up -d --force-recreate --scale "api=1" api
 docker compose -f "$COMPOSE_FILE" up -d --wait api
 
+if [[ -x scripts/once-copy-june-photo-profiles.sh ]]; then
+  echo "==> One-time photo profile season migration..."
+  ./scripts/once-copy-june-photo-profiles.sh
+fi
+
 if [[ "$API_REPLICAS" -gt 1 ]]; then
   echo "==> API: scale to ${API_REPLICAS} replicas..."
   docker compose -f "$COMPOSE_FILE" up -d --force-recreate --scale "api=${API_REPLICAS}" api

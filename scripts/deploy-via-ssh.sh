@@ -87,7 +87,7 @@ git checkout "\$GIT_REF"
 git pull --ff-only origin "\$GIT_REF"
 
 chmod 600 .env TGgifts-buyer/.env
-chmod +x scripts/prod-up.sh scripts/prod-down.sh scripts/deploy-via-ssh.sh 2>/dev/null || true
+chmod +x scripts/prod-up.sh scripts/prod-down.sh scripts/deploy-via-ssh.sh scripts/once-copy-june-photo-profiles.sh 2>/dev/null || true
 
 ./scripts/prod-up.sh
 

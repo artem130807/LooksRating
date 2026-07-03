@@ -1,2 +1,2 @@
-obj/Release/net9.0/Proto/GetTelegramIds.cs \
-obj/Release/net9.0/Proto/GetTelegramIdsGrpc.cs: Proto/get_telegramIds.proto
+obj/Release/net9.0/GetTelegramIds.cs \
+obj/Release/net9.0/GetTelegramIdsGrpc.cs: Proto/get_telegramIds.proto

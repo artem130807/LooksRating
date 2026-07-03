@@ -98,5 +98,10 @@ namespace LooksRatingApi.Repositories
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<PagedResult<User>> GetUsersToPagedAsync(PageParams pageParams)
+        {
+            return await _context.Users.ToPagedAsync(pageParams);
+        }
     }
 }

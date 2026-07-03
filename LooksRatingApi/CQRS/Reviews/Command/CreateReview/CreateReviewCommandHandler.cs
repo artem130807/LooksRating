@@ -23,6 +23,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         private readonly IPhotoRatingCacheService _photoRatingCacheService;
         private readonly IReviewSparksRewardService _reviewSparksRewardService;
         private readonly IRatedProfileSparksRewardService _ratedProfileSparksRewardService;
+        private IAddLastActiveUser _addLastActiveUser;
 
         public CreateReviewCommandHandler(
             LooksRatingDbContext context,
@@ -35,7 +36,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             IRankService rankService,
             IPhotoRatingCacheService photoRatingCacheService,
             IReviewSparksRewardService reviewSparksRewardService,
-            IRatedProfileSparksRewardService ratedProfileSparksRewardService)
+            IRatedProfileSparksRewardService ratedProfileSparksRewardService,
+            IAddLastActiveUser addLastActiveUser)
         {
             _context = context;
             _userRepository = userRepository;
@@ -48,6 +50,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             _photoRatingCacheService = photoRatingCacheService;
             _reviewSparksRewardService = reviewSparksRewardService;
             _ratedProfileSparksRewardService = ratedProfileSparksRewardService;
+            _addLastActiveUser = addLastActiveUser;
         }
 
         public async Task<Result<CreateReviewResult>> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -154,6 +157,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 photoProfile.User.TelegramId,
                 photoProfile.UserId,
                 cancellationToken);
+
+            await _addLastActiveUser.Add(reviewer.Id, reviewer.TelegramId);
 
             return Result.Success(new CreateReviewResult
             {

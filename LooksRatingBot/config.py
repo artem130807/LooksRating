@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+_SECONDS_PER_DAY = 86_400
 
 @dataclass(frozen=True)
 class Settings:
@@ -58,7 +59,10 @@ class Settings:
         stars_provider_token = os.getenv("STARS_PROVIDER_TOKEN", "").strip()
         channel_username = os.getenv("CHANNEL_USERNAME", "LooksRatingBotOfficial").strip().lstrip("@")
         channel_url = os.getenv("CHANNEL_URL", "https://t.me/LooksRatingBotOfficial").strip()
-        channel_promo_interval_raw = os.getenv("CHANNEL_PROMO_INTERVAL_SECONDS", "7200").strip()
+        channel_promo_interval_raw = os.getenv(
+            "CHANNEL_PROMO_INTERVAL_SECONDS",
+            str(_SECONDS_PER_DAY),
+        ).strip()
         channel_promo_page_size_raw = os.getenv("CHANNEL_PROMO_PAGE_SIZE", "100").strip()
         channel_promo_send_delay_raw = os.getenv("CHANNEL_PROMO_SEND_DELAY_SECONDS", "0.05").strip()
         channel_promo_enabled_raw = os.getenv("CHANNEL_PROMO_ENABLED", "true").strip().lower()
@@ -85,7 +89,7 @@ class Settings:
         try:
             channel_promo_interval = max(60, int(channel_promo_interval_raw))
         except ValueError:
-            channel_promo_interval = 7200
+            channel_promo_interval = _SECONDS_PER_DAY
         try:
             channel_promo_page_size = max(1, min(500, int(channel_promo_page_size_raw)))
         except ValueError:

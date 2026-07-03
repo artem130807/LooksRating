@@ -28,6 +28,7 @@ from middlewares import (
     build_sparks_exchange_saga,
 )
 from services.channel_subscribe_promo import ChannelSubscribePromoService
+from services.inactive_users_reengagement import InactiveUsersReengagementService
 from services.rating_user_message_factory import (
     build_rating_user_message_rate_limiter,
     build_rating_user_message_store,
@@ -117,6 +118,7 @@ async def main() -> None:
     )
     writing_off_user_notifier = WritingOffSparksUserNotifier(bot)
     channel_promo = ChannelSubscribePromoService(settings=settings, bot=bot)
+    inactive_users_reengagement = InactiveUsersReengagementService(settings=settings, bot=bot)
     if settings.telegram_proxy:
         logging.info("Telegram proxy: %s", settings.telegram_proxy)
     else:
@@ -154,11 +156,13 @@ async def main() -> None:
             api_key=settings.internal_notify_api_key,
         )
         await channel_promo.start()
+        await inactive_users_reengagement.start()
         await dp.start_polling(bot)
     finally:
         if internal_notify_runner is not None:
             await internal_notify_runner.cleanup()
         await channel_promo.stop()
+        await inactive_users_reengagement.stop()
         await review_notifications.stop()
         await season_rollover_notifications.stop()
         await notifications.stop()

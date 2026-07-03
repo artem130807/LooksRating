@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option csharp_namespace = "LooksRatingGrpc";
+
+service GetUnActiveUsersService {
+    rpc GetUnActiveUsers(GetUnActiveUsersRequest) returns (GetUnActiveUsersResponse);
+}
+
+message GetUnActiveUsersRequest {
+}
+
+message GetUnActiveUsersResponse {
+    repeated int64 telegram_ids = 1;
+}

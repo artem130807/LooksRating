@@ -8,6 +8,8 @@ from grpc_gen import current_sparks_for_user_pb2
 from grpc_gen import current_sparks_for_user_pb2_grpc
 from grpc_gen import debited_sparks_pb2
 from grpc_gen import debited_sparks_pb2_grpc
+from grpc_gen import get_unactive_users_pb2
+from grpc_gen import get_unactive_users_pb2_grpc
 from grpc_gen import get_users_for_message_pb2
 from grpc_gen import get_users_for_message_pb2_grpc
 from grpc_gen import rollback_debited_sparks_pb2
@@ -181,5 +183,23 @@ class LooksRatingGrpcClient:
                 message=response.message or "",
                 status=status_name,
             )
+        finally:
+            channel.close()
+
+    def get_unactive_users(self) -> list[int]:
+        channel = grpc.insecure_channel(
+            self._address,
+            options=(
+                ("grpc.enable_http_proxy", 0),
+                ("grpc.http2.scheme", "http"),
+            ),
+        )
+        try:
+            stub = get_unactive_users_pb2_grpc.GetUnActiveUsersServiceStub(channel)
+            response = stub.GetUnActiveUsers(
+                get_unactive_users_pb2.GetUnActiveUsersRequest(),
+                timeout=self._timeout,
+            )
+            return [int(item) for item in response.telegram_ids if int(item) > 0]
         finally:
             channel.close()

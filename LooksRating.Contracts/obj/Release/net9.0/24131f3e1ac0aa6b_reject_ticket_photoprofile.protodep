@@ -1,2 +1,2 @@
-obj/Release/net9.0/Proto/RejectTicketPhotoprofile.cs \
-obj/Release/net9.0/Proto/RejectTicketPhotoprofileGrpc.cs: Proto/reject_ticket_photoprofile.proto
+obj/Release/net9.0/RejectTicketPhotoprofile.cs \
+obj/Release/net9.0/RejectTicketPhotoprofileGrpc.cs: Proto/reject_ticket_photoprofile.proto

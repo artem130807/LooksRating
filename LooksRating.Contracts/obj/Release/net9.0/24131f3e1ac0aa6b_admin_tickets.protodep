@@ -1,2 +1,2 @@
-obj/Release/net9.0/Proto/AdminTickets.cs \
-obj/Release/net9.0/Proto/AdminTicketsGrpc.cs: Proto/admin_tickets.proto
+obj/Release/net9.0/AdminTickets.cs \
+obj/Release/net9.0/AdminTicketsGrpc.cs: Proto/admin_tickets.proto
