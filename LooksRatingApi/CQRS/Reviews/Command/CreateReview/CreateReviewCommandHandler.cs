@@ -23,7 +23,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         private readonly IPhotoRatingCacheService _photoRatingCacheService;
         private readonly IReviewSparksRewardService _reviewSparksRewardService;
         private readonly IRatedProfileSparksRewardService _ratedProfileSparksRewardService;
-        private IAddLastActiveUser _addLastActiveUser;
+        private readonly IAddLastActiveUser _addLastActiveUser;
+        private readonly ILogger<CreateReviewCommandHandler> _logger;
 
         public CreateReviewCommandHandler(
             LooksRatingDbContext context,
@@ -37,7 +38,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             IPhotoRatingCacheService photoRatingCacheService,
             IReviewSparksRewardService reviewSparksRewardService,
             IRatedProfileSparksRewardService ratedProfileSparksRewardService,
-            IAddLastActiveUser addLastActiveUser)
+            IAddLastActiveUser addLastActiveUser,
+            ILogger<CreateReviewCommandHandler> logger)
         {
             _context = context;
             _userRepository = userRepository;
@@ -51,6 +53,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             _reviewSparksRewardService = reviewSparksRewardService;
             _ratedProfileSparksRewardService = ratedProfileSparksRewardService;
             _addLastActiveUser = addLastActiveUser;
+            _logger = logger;
         }
 
         public async Task<Result<CreateReviewResult>> Handle(CreateReviewCommand request, CancellationToken cancellationToken)
@@ -140,12 +143,19 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 throw;
             }
 
-            if (isNewReview)
+            try
             {
-                await _createReviewEventPublisher.PublishAsync(
-                    reviewer.Id,
-                    photoProfile.Id,
-                    cancellationToken);
+                if (isNewReview)
+                {
+                    await _createReviewEventPublisher.PublishAsync(
+                        reviewer.Id,
+                        photoProfile.Id,
+                        cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to publish CreateReviewEvent for profile {PhotoProfileId}", photoProfile.Id);
             }
 
             await _reviewSparksRewardService.TryAwardForReviewAsync(
@@ -153,12 +163,31 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 reviewer.Id,
                 cancellationToken);
 
-            await _ratedProfileSparksRewardService.TryAwardForRatedProfileAsync(
-                photoProfile.User.TelegramId,
-                photoProfile.UserId,
-                cancellationToken);
+            if (photoProfile.User is not null)
+            {
+                await _ratedProfileSparksRewardService.TryAwardForRatedProfileAsync(
+                    photoProfile.User.TelegramId,
+                    photoProfile.UserId,
+                    cancellationToken);
+            }
+            else
+            {
+                _logger.LogWarning(
+                    "Skipping rated-profile sparks reward because profile {PhotoProfileId} has no loaded owner",
+                    photoProfile.Id);
+            }
 
-            await _addLastActiveUser.Add(reviewer.Id, reviewer.TelegramId);
+            try
+            {
+                await _addLastActiveUser.Add(reviewer.Id, reviewer.TelegramId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Failed to update last active timestamp for reviewer {ReviewerId}",
+                    reviewer.Id);
+            }
 
             return Result.Success(new CreateReviewResult
             {
