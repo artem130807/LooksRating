@@ -122,7 +122,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 photoProfile.UpdateRank(rank);
                 await _photoProfileRepository.UpdateAsync(photoProfile, cancellationToken);
 
-                var city = photoProfile.CityNomination.Value ?? string.Empty;
+                var city = photoProfile.CityNomination?.Value ?? string.Empty;
                 domainEvent = new PhotoRatedEvent(
                     photoProfile.Id,
                     photoProfile.Rating,
