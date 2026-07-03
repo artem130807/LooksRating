@@ -43,6 +43,11 @@ namespace LooksRatingApi.Controllers
                     return Conflict(new { error = result.Error });
                 }
 
+                if (result.Error == CreateReviewErrors.InternalError)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, new { error = result.Error });
+                }
+
                 return BadRequest(new { error = result.Error });
             }
 

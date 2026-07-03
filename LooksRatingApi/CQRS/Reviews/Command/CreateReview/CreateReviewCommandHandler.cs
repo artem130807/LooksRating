@@ -137,10 +137,15 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 await transaction.RollbackAsync(cancellationToken);
                 return Result.Failure<CreateReviewResult>(CreateReviewErrors.ReviewAlreadyExists);
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync(cancellationToken);
-                throw;
+                _logger.LogError(
+                    ex,
+                    "Failed to persist review for profile {PhotoProfileId} by reviewer {ReviewerTelegramId}",
+                    request.PhotoProfileId,
+                    request.ReviewerTelegramId);
+                return Result.Failure<CreateReviewResult>(CreateReviewErrors.InternalError);
             }
 
             if (domainEvent is not null)

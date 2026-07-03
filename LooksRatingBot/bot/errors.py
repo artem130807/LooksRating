@@ -46,6 +46,7 @@ ERROR_MESSAGES: dict[str, str] = {
     "Пользователь не найдён": "Пользователь не найден.",
     "SeasonNotFound": "Сезон не найден.",
     "TooManyRequests": "Вы превысили лимит сообщений. Подождите немного и попробуйте снова.",
+    "InternalError": "Не удалось сохранить оценку. Попробуйте ещё раз.",
 }
 
 SERVER_UNAVAILABLE_MESSAGE = (
@@ -67,10 +68,10 @@ def translate_error(
     *,
     status: int | None = None,
 ) -> str:
-    if status is not None and status >= 500:
-        return SERVER_UNAVAILABLE_MESSAGE
     if code and code in ERROR_MESSAGES:
         return ERROR_MESSAGES[code]
+    if status is not None and status >= 500:
+        return SERVER_UNAVAILABLE_MESSAGE
     if fallback:
         if _is_http_status_message(fallback):
             status_from_message = int(fallback.strip().split()[-1])

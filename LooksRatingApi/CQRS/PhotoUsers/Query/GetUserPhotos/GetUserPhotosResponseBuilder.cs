@@ -29,7 +29,7 @@ namespace LooksRatingApi.CQRS.PhotoUsers.Query.GetUserPhotos
                 RecipientTelegramId = profile.User.TelegramId,
                 Gender = GenderDisplay.GetGender(profile.GenderNomination),
                 Age = profile.AgeNomination,
-                City = profile.CityNomination.Value ?? string.Empty,
+                City = profile.CityNomination?.Value ?? string.Empty,
                 DisplayName = UserPublicDisplayName.Resolve(profile.User),
                 SeasonTopPlace = seasonTop?.Place,
                 SeasonTopTotal = seasonTop?.TotalCount,

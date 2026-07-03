@@ -9,5 +9,6 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         public const string PhotoProfileNotFound = "PhotoProfileNotFound";
         public const string SelfReviewIsNotAllowed = "SelfReviewIsNotAllowed";
         public const string ReviewAlreadyExists = "ReviewAlreadyExists";
+        public const string InternalError = "InternalError";
     }
 }
