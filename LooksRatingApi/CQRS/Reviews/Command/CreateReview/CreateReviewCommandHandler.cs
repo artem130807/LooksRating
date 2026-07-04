@@ -100,7 +100,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 
                     review = reviewResult.Value;
                     photoProfile.AddRating(request.Rating);
-                    await _reviewRepository.Create(review);
+                    _context.Reviews.Add(review);
                     isNewReview = true;
                 }
                 else
@@ -115,12 +115,11 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 
                     review = existingReview;
                     photoProfile.ChangeRating(previousRating, request.Rating);
-                    await _reviewRepository.Update(review);
+                    _context.Reviews.Update(review);
                 }
 
                 var rank = _rankService.GetRankEnum(photoProfile.Rating);
                 photoProfile.UpdateRank(rank);
-                await _photoProfileRepository.UpdateAsync(photoProfile, cancellationToken);
 
                 var city = photoProfile.CityNomination?.Value ?? string.Empty;
                 domainEvent = new PhotoRatedEvent(
@@ -130,6 +129,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                     city,
                     photoProfile.SeasonId);
 
+                await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
             }
             catch (DbUpdateException ex) when (IsUniqueReviewConflict(ex))
@@ -244,7 +244,9 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 return true;
             }
 
-            return exception.Message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase);
+            var message = exception.InnerException?.Message ?? exception.Message;
+            return message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("UNIQUE constraint failed", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

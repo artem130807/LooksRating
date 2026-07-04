@@ -275,6 +275,9 @@ async def rate_photo(
         if callback.message:
             await show_next_photo(callback.message, state, api, telegram_id)
         return
+
+    # Снимаем «часики» с кнопки сразу — иначе Telegram покажет ошибку при долгом API.
+    await callback.answer()
     try:
         await api.create_review(
             telegram_id,
@@ -282,11 +285,21 @@ async def rate_photo(
             photo_profile_id=profile_id,
         )
     except ApiError as exc:
-        await callback.answer(format_api_error(exc), show_alert=True)
+        logger.warning(
+            "create_review failed: user=%s profile=%s rating=%s status=%s code=%s message=%s",
+            telegram_id,
+            profile_id,
+            rating,
+            exc.status,
+            exc.code,
+            exc.message,
+        )
+        if callback.message:
+            await callback.message.answer(format_api_error(exc))
         return
 
-    await callback.answer(texts.RATING_SAVED.format(rating=rating))
     if callback.message:
+        await callback.message.answer(texts.RATING_SAVED.format(rating=rating))
         await show_next_photo(callback.message, state, api, telegram_id)
 
 
