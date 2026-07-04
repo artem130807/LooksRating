@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using Hangfire;
 using LooksRatingApi;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
@@ -17,6 +18,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Linq.Expressions;
 
 namespace LooksRatingApi.Tests.Unit.Cqrs.Reviews;
 
@@ -95,6 +97,7 @@ public sealed class CreateReviewCommandHandlerTests
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -102,13 +105,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -117,10 +115,8 @@ public sealed class CreateReviewCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
 
-        await createReviewPublisher.Received(1).PublishAsync(
-            reviewer.Id,
-            profile.Id,
-            Arg.Any<CancellationToken>());
+        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
+            Arg.Any<Expression<Action<IReviewBackgroundService>>>());
     }
 
     [Fact]
@@ -192,6 +188,7 @@ public sealed class CreateReviewCommandHandlerTests
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -199,13 +196,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -213,10 +205,8 @@ public sealed class CreateReviewCommandHandlerTests
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        await createReviewPublisher.DidNotReceive().PublishAsync(
-            Arg.Any<Guid>(),
-            Arg.Any<Guid>(),
-            Arg.Any<CancellationToken>());
+        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
+            Arg.Any<Expression<Action<IReviewBackgroundService>>>());
     }
 
     [Fact]
@@ -292,6 +282,7 @@ public sealed class CreateReviewCommandHandlerTests
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -299,13 +290,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -314,18 +300,12 @@ public sealed class CreateReviewCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
 
-        await reviewSparksReward.Received(1).TryAwardForReviewAsync(
-            reviewer.TelegramId,
-            reviewer.Id,
-            Arg.Any<CancellationToken>());
-        await ratedProfileSparksReward.Received(1).TryAwardForRatedProfileAsync(
-            profile.User.TelegramId,
-            profile.UserId,
-            Arg.Any<CancellationToken>());
+        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
+            Arg.Any<Expression<Action<IReviewBackgroundService>>>());
     }
 
     [Fact]
-    public async Task Handle_WhenCreateReviewEventPublishFails_ReturnsSuccess()
+    public async Task Handle_WhenBackgroundEnqueueFails_ReturnsSuccess()
     {
         var options = new DbContextOptionsBuilder<LooksRatingDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -389,14 +369,15 @@ public sealed class CreateReviewCommandHandlerTests
 
         var photoRatedProducer = Substitute.For<IKafkaPhotoRatedProducer<PhotoRatedEvent>>();
         var createReviewPublisher = Substitute.For<ICreateReviewEventPublisher>();
-        createReviewPublisher
-            .PublishAsync(reviewer.Id, profile.Id, Arg.Any<CancellationToken>())
-            .Returns<Task<CreateReviewEvent>>(_ => throw new InvalidOperationException("kafka down"));
 
         var photoRatingCache = Substitute.For<IPhotoRatingCacheService>();
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
+        backgroundJobClient
+            .Enqueue<IReviewBackgroundService>(Arg.Any<Expression<Action<IReviewBackgroundService>>>())
+            .Returns(_ => throw new InvalidOperationException("hangfire down"));
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -404,13 +385,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -497,6 +473,7 @@ public sealed class CreateReviewCommandHandlerTests
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -504,13 +481,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -592,6 +564,7 @@ public sealed class CreateReviewCommandHandlerTests
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -599,13 +572,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -685,6 +653,7 @@ public sealed class CreateReviewCommandHandlerTests
         var reviewSparksReward = Substitute.For<IReviewSparksRewardService>();
         var ratedProfileSparksReward = Substitute.For<IRatedProfileSparksRewardService>();
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -692,13 +661,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            photoRatedProducer,
-            createReviewPublisher,
             new RankService(),
-            photoRatingCache,
-            reviewSparksReward,
-            ratedProfileSparksReward,
-            addLastActiveUser,
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
@@ -763,6 +727,7 @@ public sealed class CreateReviewCommandHandlerTests
             .Returns(detachedProfile);
 
         var reviewRepository = new ReviewRepository(context);
+        var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
 
         var handler = new CreateReviewCommandHandler(
             context,
@@ -770,13 +735,8 @@ public sealed class CreateReviewCommandHandlerTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            Substitute.For<IKafkaPhotoRatedProducer<PhotoRatedEvent>>(),
-            Substitute.For<ICreateReviewEventPublisher>(),
             new RankService(),
-            Substitute.For<IPhotoRatingCacheService>(),
-            Substitute.For<IReviewSparksRewardService>(),
-            Substitute.For<IRatedProfileSparksRewardService>(),
-            Substitute.For<IAddLastActiveUser>(),
+            backgroundJobClient,
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(

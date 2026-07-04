@@ -24,5 +24,6 @@
     <Pkgxunit_analyzers Condition=" '$(Pkgxunit_analyzers)' == '' ">/home/shade/.nuget/packages/xunit.analyzers/1.18.0</Pkgxunit_analyzers>
     <PkgMicrosoft_Extensions_ApiDescription_Server Condition=" '$(PkgMicrosoft_Extensions_ApiDescription_Server)' == '' ">/home/shade/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5</PkgMicrosoft_Extensions_ApiDescription_Server>
     <PkgGrpc_Tools Condition=" '$(PkgGrpc_Tools)' == '' ">/home/shade/.nuget/packages/grpc.tools/2.67.0</PkgGrpc_Tools>
+    <PkgHangfire_SqlServer Condition=" '$(PkgHangfire_SqlServer)' == '' ">/home/shade/.nuget/packages/hangfire.sqlserver/1.8.23</PkgHangfire_SqlServer>
   </PropertyGroup>
 </Project>

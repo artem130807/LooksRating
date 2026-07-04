@@ -1,3 +1,4 @@
+using Hangfire;
 using LooksRatingApi;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
@@ -102,13 +103,8 @@ public sealed class CreateReviewAfterMigrationIntegrationTests
             photoProfileRepository,
             reviewRepository,
             validator,
-            Substitute.For<IKafkaPhotoRatedProducer<PhotoRatedEvent>>(),
-            Substitute.For<ICreateReviewEventPublisher>(),
             new RankService(),
-            Substitute.For<IPhotoRatingCacheService>(),
-            Substitute.For<IReviewSparksRewardService>(),
-            Substitute.For<IRatedProfileSparksRewardService>(),
-            Substitute.For<IAddLastActiveUser>(),
+            Substitute.For<IBackgroundJobClient>(),
             NullLogger<CreateReviewCommandHandler>.Instance);
 
         var result = await handler.Handle(
