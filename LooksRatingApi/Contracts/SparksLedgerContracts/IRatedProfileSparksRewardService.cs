@@ -2,7 +2,7 @@ namespace LooksRatingApi.Contracts.SparksLedgerContracts
 {
     public interface IRatedProfileSparksRewardService
     {
-        Task TryAwardForRatedProfileAsync(
+        Task<bool> TryAwardForRatedProfileAsync(
             long ratedUserTelegramId,
             Guid ratedUserId,
             CancellationToken cancellationToken = default);

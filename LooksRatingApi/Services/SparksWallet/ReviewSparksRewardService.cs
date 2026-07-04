@@ -26,14 +26,14 @@ namespace LooksRatingApi.Services.SparksLedger
             _logger = logger;
         }
 
-        public async Task TryAwardForReviewAsync(
+        public async Task<bool> TryAwardForReviewAsync(
             long reviewerTelegramId,
             Guid reviewerUserId,
             CancellationToken cancellationToken = default)
         {
             if (reviewerTelegramId <= 0 || reviewerUserId == Guid.Empty)
             {
-                return;
+                return true;
             }
 
             var counterKey = BuildDailyCounterKey(reviewerTelegramId);
@@ -48,12 +48,13 @@ namespace LooksRatingApi.Services.SparksLedger
                 var awardedToday = (int)await _redis.StringGetAsync(counterKey);
                 if (awardedToday >= DailyReviewSparksLimit)
                 {
-                    return;
+                    return true;
                 }
 
                 await _sparksWalletProvisioner.EnsureForUserAsync(reviewerUserId, cancellationToken);
                 await _currencySparksService.Credited(reviewerUserId, ReviewSparksReward, cancellationToken);
                 await _redis.StringIncrementAsync(counterKey);
+                return true;
             }
             catch (Exception ex)
             {
@@ -62,6 +63,7 @@ namespace LooksRatingApi.Services.SparksLedger
                     "Failed to award review sparks for user {UserId} (telegram {TelegramId})",
                     reviewerUserId,
                     reviewerTelegramId);
+                return false;
             }
         }
 

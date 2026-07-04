@@ -26,14 +26,14 @@ namespace LooksRatingApi.Services.SparksLedger
             _logger = logger;
         }
 
-        public async Task TryAwardForRatedProfileAsync(
+        public async Task<bool> TryAwardForRatedProfileAsync(
             long ratedUserTelegramId,
             Guid ratedUserId,
             CancellationToken cancellationToken = default)
         {
             if (ratedUserTelegramId <= 0 || ratedUserId == Guid.Empty)
             {
-                return;
+                return true;
             }
 
             var counterKey = BuildDailyCounterKey(ratedUserTelegramId);
@@ -48,7 +48,7 @@ namespace LooksRatingApi.Services.SparksLedger
                 var awardedToday = (int)await _redis.StringGetAsync(counterKey);
                 if (awardedToday >= DailyRatedProfileSparksLimit)
                 {
-                    return;
+                    return true;
                 }
 
                 await _sparksWalletProvisioner.EnsureForUserAsync(ratedUserId, cancellationToken);
@@ -57,6 +57,7 @@ namespace LooksRatingApi.Services.SparksLedger
                     RatedProfileSparksReward,
                     cancellationToken);
                 await _redis.StringIncrementAsync(counterKey);
+                return true;
             }
             catch (Exception ex)
             {
@@ -65,6 +66,7 @@ namespace LooksRatingApi.Services.SparksLedger
                     "Failed to award rated-profile sparks for user {UserId} (telegram {TelegramId})",
                     ratedUserId,
                     ratedUserTelegramId);
+                return false;
             }
         }
 

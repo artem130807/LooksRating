@@ -1,10 +1,9 @@
 using CSharpFunctionalExtensions;
+using Hangfire;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.ReviewContracts;
-using LooksRatingApi.Contracts.SparksLedgerContracts;
 using LooksRatingApi.Contracts.UserContracts;
-using LooksRatingApi.Domain.DomainEvents;
 using LooksRatingApi.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,13 +18,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
         private readonly IPhotoProfileRepository _photoProfileRepository;
         private readonly IReviewRepository _reviewRepository;
         private readonly ICreateReviewValidator _validator;
-        private readonly IKafkaPhotoRatedProducer<PhotoRatedEvent> _producer;
-        private readonly ICreateReviewEventPublisher _createReviewEventPublisher;
         private readonly IRankService _rankService;
-        private readonly IPhotoRatingCacheService _photoRatingCacheService;
-        private readonly IReviewSparksRewardService _reviewSparksRewardService;
-        private readonly IRatedProfileSparksRewardService _ratedProfileSparksRewardService;
-        private readonly IAddLastActiveUser _addLastActiveUser;
+        private readonly IBackgroundJobClient _backgroundJobClient;
         private readonly ILogger<CreateReviewCommandHandler> _logger;
 
         public CreateReviewCommandHandler(
@@ -34,13 +28,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             IPhotoProfileRepository photoProfileRepository,
             IReviewRepository reviewRepository,
             ICreateReviewValidator validator,
-            IKafkaPhotoRatedProducer<PhotoRatedEvent> producer,
-            ICreateReviewEventPublisher createReviewEventPublisher,
             IRankService rankService,
-            IPhotoRatingCacheService photoRatingCacheService,
-            IReviewSparksRewardService reviewSparksRewardService,
-            IRatedProfileSparksRewardService ratedProfileSparksRewardService,
-            IAddLastActiveUser addLastActiveUser,
+            IBackgroundJobClient backgroundJobClient,
             ILogger<CreateReviewCommandHandler> logger)
         {
             _context = context;
@@ -48,13 +37,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             _photoProfileRepository = photoProfileRepository;
             _reviewRepository = reviewRepository;
             _validator = validator;
-            _producer = producer;
-            _createReviewEventPublisher = createReviewEventPublisher;
             _rankService = rankService;
-            _photoRatingCacheService = photoRatingCacheService;
-            _reviewSparksRewardService = reviewSparksRewardService;
-            _ratedProfileSparksRewardService = ratedProfileSparksRewardService;
-            _addLastActiveUser = addLastActiveUser;
+            _backgroundJobClient = backgroundJobClient;
             _logger = logger;
         }
 
@@ -80,7 +64,8 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
 
             Review review;
             var isNewReview = false;
-            PhotoRatedEvent? domainEvent = null;
+            var city = string.Empty;
+            OutboxMessage? outboxRecord = null;
             await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
             try
             {
@@ -121,13 +106,29 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 var rank = _rankService.GetRankEnum(photoProfile.Rating);
                 photoProfile.UpdateRank(rank);
 
-                var city = photoProfile.CityNomination?.Value ?? string.Empty;
-                domainEvent = new PhotoRatedEvent(
-                    photoProfile.Id,
-                    photoProfile.Rating,
-                    photoProfile.RatingCount,
-                    city,
-                    photoProfile.SeasonId);
+                city = photoProfile.CityNomination?.Value ?? string.Empty;
+                var profileOwnerTelegramId = photoProfile.User is null
+                    ? (long?)null
+                    : photoProfile.User.TelegramId;
+
+                outboxRecord = OutboxMessage.Create(
+                    CreateReviewOutboxMessage.Type,
+                    new CreateReviewOutboxPayload
+                    {
+                        ReviewId = review.Id,
+                        ReviewerUserId = reviewer.Id,
+                        ReviewerTelegramId = reviewer.TelegramId,
+                        PhotoProfileId = photoProfile.Id,
+                        SeasonId = photoProfile.SeasonId,
+                        IsNewReview = isNewReview,
+                        UpdatedProfileRating = photoProfile.Rating,
+                        UpdatedProfileRatingCount = photoProfile.RatingCount,
+                        ProfileCity = city,
+                        ProfileOwnerUserId = photoProfile.UserId,
+                        ProfileOwnerTelegramId = profileOwnerTelegramId
+                    },
+                    CreateReviewOutboxState.Initial(isNewReview));
+                _context.OutboxMessages.Add(outboxRecord);
 
                 await _context.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -148,82 +149,17 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
                 return Result.Failure<CreateReviewResult>(CreateReviewErrors.InternalError);
             }
 
-            if (domainEvent is not null)
-            {
-                try
-                {
-                    await _photoRatingCacheService.MarkProfileAsRatedAsync(
-                        reviewer.Id,
-                        photoProfile.SeasonId,
-                        photoProfile.Id,
-                        cancellationToken);
-                    await _photoRatingCacheService.SyncPhotoRatingAsync(domainEvent, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Failed to sync review cache for profile {PhotoProfileId}",
-                        photoProfile.Id);
-                }
-
-                try
-                {
-                    await _producer.ProduceAsync(domainEvent, cancellationToken);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(
-                        ex,
-                        "Failed to publish PhotoRatedEvent for profile {PhotoProfileId}",
-                        photoProfile.Id);
-                }
-            }
-
             try
             {
-                if (isNewReview)
-                {
-                    await _createReviewEventPublisher.PublishAsync(
-                        reviewer.Id,
-                        photoProfile.Id,
-                        cancellationToken);
-                }
+                _backgroundJobClient.Enqueue<IReviewBackgroundService>(service =>
+                    service.ProcessOutboxAsync(outboxRecord!.Id, CancellationToken.None));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to publish CreateReviewEvent for profile {PhotoProfileId}", photoProfile.Id);
-            }
-
-            await _reviewSparksRewardService.TryAwardForReviewAsync(
-                reviewer.TelegramId,
-                reviewer.Id,
-                cancellationToken);
-
-            if (photoProfile.User is not null)
-            {
-                await _ratedProfileSparksRewardService.TryAwardForRatedProfileAsync(
-                    photoProfile.User.TelegramId,
-                    photoProfile.UserId,
-                    cancellationToken);
-            }
-            else
-            {
-                _logger.LogWarning(
-                    "Skipping rated-profile sparks reward because profile {PhotoProfileId} has no loaded owner",
-                    photoProfile.Id);
-            }
-
-            try
-            {
-                await _addLastActiveUser.Add(reviewer.Id, reviewer.TelegramId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(
+                _logger.LogError(
                     ex,
-                    "Failed to update last active timestamp for reviewer {ReviewerId}",
-                    reviewer.Id);
+                    "Failed to enqueue create-review side effects for profile {PhotoProfileId}",
+                    photoProfile.Id);
             }
 
             return Result.Success(new CreateReviewResult

@@ -32,6 +32,7 @@ namespace LooksRatingApi
         public DbSet<WritingOffSparks> WritingOffSparks {get; set;}
         public DbSet<SparksDebitIdempotency> SparksDebitIdempotency {get; set;}
         public DbSet<DeployMigrationHistory> DeployMigrationHistories {get; set;}
+        public DbSet<OutboxMessage> OutboxMessages { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new UserConfigurations());
@@ -55,6 +56,7 @@ namespace LooksRatingApi
             modelBuilder.ApplyConfiguration(new WritingOffSparksConfigurations());
             modelBuilder.ApplyConfiguration(new SparksDebitIdempotencyConfigurations());
             modelBuilder.ApplyConfiguration(new DeployMigrationHistoryConfigurations());
+            modelBuilder.ApplyConfiguration(new OutboxMessageConfigurations());
         }
     }
 }

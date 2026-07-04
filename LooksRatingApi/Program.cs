@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.PostgreSql;
 using LooksRatingApi;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
@@ -41,17 +43,25 @@ using LooksRatingApi.Services.SeasonLifecycle;
 using LooksRatingApi.Infrastructure.SeasonNotifications;
 using LooksRatingApi.Contracts.SeasonLifecycle;
 using LooksRatingApi.Services.SparksWallet;
-using LooksRatingApi.Contracts.PhotoUserContracts;
-using LooksRatingApi.Contracts.UserTicketContracts;
 using LooksRatingApi.Services.Orchestrators;
 using LooksRatingApi.Contracts.WritingOffSparks;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
+var defaultConnection = configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string DefaultConnection is required.");
 
 builder.ConfigureHost();
 
 builder.Services.AddDb(configuration);
+builder.Services.AddHangfire(config => config
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UsePostgreSqlStorage(options => options.UseNpgsqlConnection(defaultConnection)));
+builder.Services.AddHangfireServer(options =>
+{
+    options.Queues = ["default", "create-review"];
+});
 builder.Services.AddGrpc();
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -99,6 +109,8 @@ builder.Services.AddScoped<IUpdateUserCityValidator, UpdateUserCityValidator>();
 builder.Services.AddScoped<IUpdateUserAgeValidator, UpdateUserAgeValidator>();
 builder.Services.AddScoped<IUpsertRecomendationSettingsValidator, UpsertRecomendationSettingsValidator>();
 builder.Services.AddScoped<ICreateReviewValidator, CreateReviewValidator>();
+builder.Services.AddScoped<IReviewBackgroundService, CreateReviewBackgroundService>();
+builder.Services.AddHostedService<CreateReviewOutboxDispatcherBackgroundService>();
 builder.Services.AddScoped<ICreateUserTicketValidator, CreateUserTicketValidator>();
 builder.Services.AddScoped<IGetTopUserPhotosValidator, GetTopUserPhotosValidator>();
 builder.Services.AddScoped<IGetTheBestWeekPhotosNowValidator, GetTheBestWeekPhotosNowValidator>();

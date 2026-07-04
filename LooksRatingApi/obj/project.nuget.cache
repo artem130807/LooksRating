@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "r5ytBPRj8TI=",
+  "dgSpecHash": "LGwqZ310OmA=",
   "success": true,
   "projectFilePath": "/home/shade/LooksRating/LooksRatingApi/LooksRatingApi.csproj",
   "expectedPackageFiles": [
@@ -13,6 +13,8 @@
     "/home/shade/.nuget/packages/bcrypt.net-next/4.0.3/bcrypt.net-next.4.0.3.nupkg.sha512",
     "/home/shade/.nuget/packages/confluent.kafka/2.13.1/confluent.kafka.2.13.1.nupkg.sha512",
     "/home/shade/.nuget/packages/csharpfunctionalextensions/3.6.0/csharpfunctionalextensions.3.6.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/dapper/2.0.123/dapper.2.0.123.nupkg.sha512",
+    "/home/shade/.nuget/packages/dapper.aot/1.0.48/dapper.aot.1.0.48.nupkg.sha512",
     "/home/shade/.nuget/packages/google.protobuf/3.35.0/google.protobuf.3.35.0.nupkg.sha512",
     "/home/shade/.nuget/packages/grpc.aspnetcore/2.67.0/grpc.aspnetcore.2.67.0.nupkg.sha512",
     "/home/shade/.nuget/packages/grpc.aspnetcore.server/2.67.0/grpc.aspnetcore.server.2.67.0.nupkg.sha512",
@@ -22,6 +24,12 @@
     "/home/shade/.nuget/packages/grpc.net.clientfactory/2.67.0/grpc.net.clientfactory.2.67.0.nupkg.sha512",
     "/home/shade/.nuget/packages/grpc.net.common/2.67.0/grpc.net.common.2.67.0.nupkg.sha512",
     "/home/shade/.nuget/packages/grpc.tools/2.67.0/grpc.tools.2.67.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/hangfire/1.8.23/hangfire.1.8.23.nupkg.sha512",
+    "/home/shade/.nuget/packages/hangfire.aspnetcore/1.8.23/hangfire.aspnetcore.1.8.23.nupkg.sha512",
+    "/home/shade/.nuget/packages/hangfire.core/1.8.23/hangfire.core.1.8.23.nupkg.sha512",
+    "/home/shade/.nuget/packages/hangfire.netcore/1.8.23/hangfire.netcore.1.8.23.nupkg.sha512",
+    "/home/shade/.nuget/packages/hangfire.postgresql/1.21.1/hangfire.postgresql.1.21.1.nupkg.sha512",
+    "/home/shade/.nuget/packages/hangfire.sqlserver/1.8.23/hangfire.sqlserver.1.8.23.nupkg.sha512",
     "/home/shade/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/home/shade/.nuget/packages/librdkafka.redist/2.13.0/librdkafka.redist.2.13.0.nupkg.sha512",
     "/home/shade/.nuget/packages/mediatr/11.1.0/mediatr.11.1.0.nupkg.sha512",
@@ -104,7 +112,7 @@
     "/home/shade/.nuget/packages/swashbuckle.aspnetcore.swaggerui/7.2.0/swashbuckle.aspnetcore.swaggerui.7.2.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.clientmodel/1.0.0/system.clientmodel.1.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.codedom/6.0.0/system.codedom.6.0.0.nupkg.sha512",
-    "/home/shade/.nuget/packages/system.collections.immutable/7.0.0/system.collections.immutable.7.0.0.nupkg.sha512",
+    "/home/shade/.nuget/packages/system.collections.immutable/9.0.1/system.collections.immutable.9.0.1.nupkg.sha512",
     "/home/shade/.nuget/packages/system.composition/7.0.0/system.composition.7.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.composition.attributedmodel/7.0.0/system.composition.attributedmodel.7.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.composition.convention/7.0.0/system.composition.convention.7.0.0.nupkg.sha512",
@@ -134,10 +142,7 @@
     "/home/shade/.nuget/packages/system.text.json/10.0.0/system.text.json.10.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.threading.channels/7.0.0/system.threading.channels.7.0.0.nupkg.sha512",
     "/home/shade/.nuget/packages/system.threading.tasks.extensions/4.5.4/system.threading.tasks.extensions.4.5.4.nupkg.sha512",
-    "/home/shade/.nuget/packages/system.windows.extensions/6.0.0/system.windows.extensions.6.0.0.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.netcore.app.ref/9.0.17/microsoft.netcore.app.ref.9.0.17.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.aspnetcore.app.ref/9.0.17/microsoft.aspnetcore.app.ref.9.0.17.nupkg.sha512",
-    "/home/shade/.nuget/packages/microsoft.netcore.app.host.linux-x64/9.0.17/microsoft.netcore.app.host.linux-x64.9.0.17.nupkg.sha512"
+    "/home/shade/.nuget/packages/system.windows.extensions/6.0.0/system.windows.extensions.6.0.0.nupkg.sha512"
   ],
   "logs": []
 }
