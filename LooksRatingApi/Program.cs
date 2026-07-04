@@ -107,6 +107,7 @@ builder.Services.AddScoped<INormalizeCityNameService, NormalizeCityNameService>(
 builder.Services.AddScoped<IRankService, RankService>();
 builder.Services.AddScoped<IUpdateRatingPhotoService, UpdateRatingPhotoService>();
 builder.Services.AddScoped<IPhotoRatingCacheService, PhotoRatingCacheService>();
+builder.Services.AddScoped<IAddLastActiveUser, AddLastActiveUser>();
 builder.Services.AddScoped<IPhotoProfileRatingResetService, PhotoProfileRatingResetService>();
 builder.Services.AddScoped<IPhotoTopReadService, PhotoTopReadService>();
 builder.Services.AddScoped<IVipTopCategoryService, VipTopCategoryService>();
