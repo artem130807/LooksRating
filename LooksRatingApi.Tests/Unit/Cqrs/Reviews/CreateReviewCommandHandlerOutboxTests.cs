@@ -12,6 +12,7 @@ using LooksRatingApi.Enums;
 using LooksRatingApi.Models;
 using LooksRatingApi.Repositories;
 using LooksRatingApi.Services;
+using LooksRatingApi.Tests.Infrastructure.Builders;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -32,6 +33,7 @@ public sealed class CreateReviewCommandHandlerOutboxTests
 
         await using var context = new LooksRatingDbContext(options);
         await context.Database.EnsureCreatedAsync();
+        var (_, season) = await TestDataBuilder.SeedOpenSeasonAsync(context);
 
         var reviewer = new User
         {
@@ -54,7 +56,7 @@ public sealed class CreateReviewCommandHandlerOutboxTests
             Id = Guid.NewGuid(),
             UserId = owner.Id,
             User = owner,
-            SeasonId = Guid.NewGuid(),
+            SeasonId = season.Id,
             Rating = 0m,
             RatingCount = 0,
             Rank = RankEnum.Terrible,
