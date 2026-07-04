@@ -152,7 +152,7 @@ namespace LooksRatingApi.Cqrs.Reviews.Command.CreateReview
             try
             {
                 _backgroundJobClient.Enqueue<IReviewBackgroundService>(service =>
-                    service.ProcessOutboxAsync(outboxRecord!.Id, CancellationToken.None));
+                    service.ProcessOutboxAsync(outboxRecord!.Id, default(CancellationToken)));
             }
             catch (Exception ex)
             {

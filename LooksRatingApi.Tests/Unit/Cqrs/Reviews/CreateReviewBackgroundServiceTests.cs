@@ -1,4 +1,6 @@
 using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.ReviewContracts;
@@ -124,8 +126,9 @@ public sealed class CreateReviewBackgroundServiceTests
 
         await fixture.Service.EnqueuePendingOutboxAsync(CancellationToken.None);
 
-        fixture.BackgroundJobClient.Received(2).Enqueue<IReviewBackgroundService>(
-            Arg.Any<System.Linq.Expressions.Expression<Action<IReviewBackgroundService>>>());
+        fixture.BackgroundJobClient.Received(2).Create(
+            Arg.Any<Job>(),
+            Arg.Any<IState>());
     }
 
     [Fact]

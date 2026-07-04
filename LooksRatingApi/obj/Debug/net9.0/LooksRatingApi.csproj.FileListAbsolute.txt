@@ -498,3 +498,4 @@ E:/AAAAA1111222C#/LooksRating/LooksRatingApi/obj/Debug/net9.0/ref/LooksRatingApi
 /home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/tr-TR/Hangfire.Core.resources.dll
 /home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/zh-TW/Hangfire.Core.resources.dll
 /home/shade/LooksRating/LooksRatingApi/bin/Debug/net9.0/zh/Hangfire.Core.resources.dll
+/home/shade/LooksRating/LooksRatingApi/obj/Debug/net9.0/swae.build.ex.cache

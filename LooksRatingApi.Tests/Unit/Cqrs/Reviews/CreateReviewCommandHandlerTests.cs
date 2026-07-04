@@ -1,5 +1,7 @@
 using CSharpFunctionalExtensions;
 using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 using LooksRatingApi;
 using LooksRatingApi.Contracts;
 using LooksRatingApi.Contracts.PhotoUserContracts;
@@ -18,14 +20,13 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Linq.Expressions;
 
 namespace LooksRatingApi.Tests.Unit.Cqrs.Reviews;
 
 public sealed class CreateReviewCommandHandlerTests
 {
     [Fact]
-    public async Task Handle_WhenReviewCreated_PublishesCreateReviewEvent()
+    public async Task Handle_WhenReviewCreated_EnqueuesBackgroundJob()
     {
         var options = new DbContextOptionsBuilder<LooksRatingDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -115,8 +116,9 @@ public sealed class CreateReviewCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
 
-        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
-            Arg.Any<Expression<Action<IReviewBackgroundService>>>());
+        backgroundJobClient.Received(1).Create(
+            Arg.Any<Job>(),
+            Arg.Any<IState>());
     }
 
     [Fact]
@@ -205,8 +207,9 @@ public sealed class CreateReviewCommandHandlerTests
             CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
-            Arg.Any<Expression<Action<IReviewBackgroundService>>>());
+        backgroundJobClient.Received(1).Create(
+            Arg.Any<Job>(),
+            Arg.Any<IState>());
     }
 
     [Fact]
@@ -300,8 +303,9 @@ public sealed class CreateReviewCommandHandlerTests
 
         result.IsSuccess.Should().BeTrue();
 
-        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
-            Arg.Any<Expression<Action<IReviewBackgroundService>>>());
+        backgroundJobClient.Received(1).Create(
+            Arg.Any<Job>(),
+            Arg.Any<IState>());
     }
 
     [Fact]
@@ -376,7 +380,7 @@ public sealed class CreateReviewCommandHandlerTests
         var addLastActiveUser = Substitute.For<IAddLastActiveUser>();
         var backgroundJobClient = Substitute.For<IBackgroundJobClient>();
         backgroundJobClient
-            .Enqueue<IReviewBackgroundService>(Arg.Any<Expression<Action<IReviewBackgroundService>>>())
+            .Create(Arg.Any<Job>(), Arg.Any<IState>())
             .Returns(_ => throw new InvalidOperationException("hangfire down"));
 
         var handler = new CreateReviewCommandHandler(

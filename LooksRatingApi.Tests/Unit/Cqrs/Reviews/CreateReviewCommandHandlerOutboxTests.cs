@@ -1,5 +1,7 @@
 using CSharpFunctionalExtensions;
 using Hangfire;
+using Hangfire.Common;
+using Hangfire.States;
 using LooksRatingApi;
 using LooksRatingApi.Contracts.PhotoUserContracts;
 using LooksRatingApi.Contracts.ReviewContracts;
@@ -100,8 +102,9 @@ public sealed class CreateReviewCommandHandlerOutboxTests
         payload.PhotoProfileId.Should().Be(profile.Id);
         payload.ReviewerUserId.Should().Be(reviewer.Id);
 
-        backgroundJobClient.Received(1).Enqueue<IReviewBackgroundService>(
-            Arg.Any<System.Linq.Expressions.Expression<Action<IReviewBackgroundService>>>());
+        backgroundJobClient.Received(1).Create(
+            Arg.Any<Job>(),
+            Arg.Any<IState>());
 
         await connection.DisposeAsync();
     }
