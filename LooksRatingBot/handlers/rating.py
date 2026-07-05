@@ -299,7 +299,6 @@ async def rate_photo(
         return
 
     if callback.message:
-        await callback.message.answer(texts.RATING_SAVED.format(rating=rating))
         await show_next_photo(callback.message, state, api, telegram_id)
 
 

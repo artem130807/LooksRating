@@ -21,6 +21,7 @@ from config import Settings
 from handlers import log_errors, setup_routers
 from infrastructure.redis_client import close_redis_client, create_redis_client
 from middlewares import (
+    ChannelSubscribePromoMiddleware,
     LooksRatingGrpcMiddleware,
     RatingUserMessageMiddleware,
     SettingsMiddleware,
@@ -143,6 +144,7 @@ async def main() -> None:
         dp.update.outer_middleware(LooksRatingGrpcMiddleware(grpc_client))
         dp.update.outer_middleware(SparksExchangeMiddleware(api, sparks_exchange_saga))
         dp.update.outer_middleware(RatingUserMessageMiddleware(rating_user_message_service))
+        dp.update.outer_middleware(ChannelSubscribePromoMiddleware(channel_promo))
         dp.errors.register(log_errors)
         dp.include_router(setup_routers(api))
 

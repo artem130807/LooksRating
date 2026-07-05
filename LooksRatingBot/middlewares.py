@@ -14,6 +14,7 @@ from bot.services import format_api_error
 from bot.session_sync import restore_fsm_from_api
 from services.writing_off_sparks_saga import WritingOffSparksSagaOrchestrator
 from services.rating_user_message_service import RatingUserMessageService
+from services.channel_subscribe_promo import ChannelSubscribePromoService
 
 logger = logging.getLogger(__name__)
 
@@ -159,4 +160,18 @@ class RatingUserMessageMiddleware(BaseMiddleware):
         data: Dict[str, Any],
     ) -> Any:
         data["rating_user_message_service"] = self._rating_user_message_service
+        return await handler(event, data)
+
+
+class ChannelSubscribePromoMiddleware(BaseMiddleware):
+    def __init__(self, channel_promo: ChannelSubscribePromoService):
+        self._channel_promo = channel_promo
+
+    async def __call__(
+        self,
+        handler: Callable[[TelegramObject, Dict[str, Any]], Awaitable[Any]],
+        event: TelegramObject,
+        data: Dict[str, Any],
+    ) -> Any:
+        data["channel_promo"] = self._channel_promo
         return await handler(event, data)

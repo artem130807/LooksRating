@@ -140,7 +140,6 @@ RATING_CAPTION = (
     "{season_top_line}"
     "📊 {rating_line}"
 )
-RATING_SAVED = "Оценка {rating}/10 принята"
 COMPLAIN_PROMPT = (
     "🚩 <b>Жалоба</b>\n"
     "Опишите, что не так (одним сообщением).\n"

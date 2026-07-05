@@ -3,16 +3,19 @@ from __future__ import annotations
 import asyncio
 import logging
 import time
+from typing import Protocol
 
 from aiogram import Bot
-from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 
 from api.grpc_clients import LooksRatingGrpcClient, UsersForMessagePage
-from bot import texts
-from bot.keyboards import channel_subscribe_keyboard
 from config import Settings
+from services.channel_subscribe_promo_delivery import send_channel_subscribe_promo
 
 logger = logging.getLogger(__name__)
+
+
+class ChannelSubscribePromoSender(Protocol):
+    async def send_after_registration(self, telegram_id: int) -> bool: ...
 
 
 class ChannelSubscribePromoService:
@@ -51,6 +54,19 @@ class ChannelSubscribePromoService:
             except asyncio.CancelledError:
                 pass
             self._task = None
+
+    async def send_after_registration(self, telegram_id: int) -> bool:
+        if not self._enabled:
+            return False
+
+        sent = await send_channel_subscribe_promo(self._bot, self._settings, telegram_id)
+        if sent:
+            self._mark_sent(telegram_id)
+            logger.info(
+                "Channel subscribe promo sent after registration: telegram_id=%s",
+                telegram_id,
+            )
+        return sent
 
     async def _run(self) -> None:
         while not self._stop_event.is_set():
@@ -99,8 +115,6 @@ class ChannelSubscribePromoService:
             self._advance_page(page)
             return
 
-        promo_text = texts.CHANNEL_SUBSCRIBE_PROMO.format(channel_url=self._settings.channel_url)
-        keyboard = channel_subscribe_keyboard()
         sent_count = 0
         skipped_cooldown = 0
         now = time.time()
@@ -111,19 +125,15 @@ class ChannelSubscribePromoService:
             if self._is_on_cooldown(telegram_id, now=now):
                 skipped_cooldown += 1
                 continue
-            try:
-                await self._bot.send_message(
-                    chat_id=telegram_id,
-                    text=promo_text,
-                    reply_markup=keyboard,
-                    disable_web_page_preview=False,
-                )
+
+            sent = await send_channel_subscribe_promo(
+                self._bot,
+                self._settings,
+                telegram_id,
+            )
+            if sent:
                 self._mark_sent(telegram_id, now=now)
                 sent_count += 1
-            except (TelegramForbiddenError, TelegramBadRequest):
-                logger.debug("Channel promo skipped for telegram_id=%s", telegram_id)
-            except Exception:
-                logger.exception("Failed to send channel promo to telegram_id=%s", telegram_id)
 
             if self._send_delay > 0:
                 await asyncio.sleep(self._send_delay)

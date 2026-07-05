@@ -162,3 +162,28 @@ async def test_start_does_not_run_when_disabled() -> None:
     await service.start()
 
     assert service._task is None
+
+
+@pytest.mark.asyncio
+async def test_send_after_registration_marks_cooldown_on_success() -> None:
+    settings = _settings()
+    bot = AsyncMock()
+    service = ChannelSubscribePromoService(settings, bot)
+
+    sent = await service.send_after_registration(42_001)
+
+    assert sent is True
+    bot.send_message.assert_awaited_once()
+    assert service._is_on_cooldown(42_001)
+
+
+@pytest.mark.asyncio
+async def test_send_after_registration_skips_when_disabled() -> None:
+    settings = _settings(channel_promo_enabled=False)
+    bot = AsyncMock()
+    service = ChannelSubscribePromoService(settings, bot)
+
+    sent = await service.send_after_registration(42_001)
+
+    assert sent is False
+    bot.send_message.assert_not_called()

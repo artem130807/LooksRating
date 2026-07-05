@@ -32,19 +32,22 @@ from helpers.fakes import FakeApiClient
 class TestRegistrationHandlers:
     async def test_display_choice_uses_telegram_username(self) -> None:
         api = FakeApiClient()
+        channel_promo = AsyncMock()
         state = await make_fsm_context(data={"username": "cool_user"})
         await state.set_state(RegistrationStates.display_choice)
         message = make_message(BTN_DISPLAY_USE_TELEGRAM)
 
         with patch("handlers.registration.send_main_menu", new=AsyncMock()):
-            await display_choice_entered(message, state, api)
+            await display_choice_entered(message, state, api, channel_promo)
 
         assert len(api.register_calls) == 1
         assert api.register_calls[0]["use_telegram_username_as_display"] is True
         assert SessionState.REGISTERED in api.session_states
+        channel_promo.send_after_registration.assert_awaited_once_with(message.from_user.id)
 
     async def test_complete_registration_handles_user_already_exists(self) -> None:
         api = FakeApiClient(register_error=ApiError(409, code="UserAlreadyExists"))
+        channel_promo = AsyncMock()
         state = await make_fsm_context(data={"username": "dup"})
         message = make_message("ignored")
 
@@ -53,20 +56,64 @@ class TestRegistrationHandlers:
                 message,
                 state,
                 api,
+                channel_promo,
                 use_telegram_username_as_display=True,
             )
 
         menu.assert_awaited_once()
         assert await state.get_state() is None
         assert SessionState.IDLE in api.session_states
+        channel_promo.send_after_registration.assert_not_called()
+
+    async def test_display_name_registration_sends_channel_promo(self) -> None:
+        api = FakeApiClient()
+        channel_promo = AsyncMock()
+        state = await make_fsm_context()
+        await state.set_state(RegistrationStates.display_name)
+        message = make_message("Custom Name")
+
+        with patch("handlers.registration.send_main_menu", new=AsyncMock()):
+            with patch(
+                "handlers.registration.offer_photo_after_registration",
+                new=AsyncMock(),
+            ):
+                await display_name_entered(message, state, api, channel_promo)
+
+        assert len(api.register_calls) == 1
+        assert api.register_calls[0]["display_name"] == "Custom Name"
+        channel_promo.send_after_registration.assert_awaited_once_with(message.from_user.id)
+
+    async def test_registration_continues_when_channel_promo_fails(self) -> None:
+        api = FakeApiClient()
+        channel_promo = AsyncMock()
+        channel_promo.send_after_registration = AsyncMock(return_value=False)
+        state = await make_fsm_context(data={"username": "cool_user"})
+        message = make_message("ignored")
+
+        with patch("handlers.registration.send_main_menu", new=AsyncMock()):
+            with patch(
+                "handlers.registration.offer_photo_after_registration",
+                new=AsyncMock(),
+            ) as offer_photo:
+                await complete_registration(
+                    message,
+                    state,
+                    api,
+                    channel_promo,
+                    use_telegram_username_as_display=True,
+                )
+
+        channel_promo.send_after_registration.assert_awaited_once()
+        offer_photo.assert_awaited_once()
 
     async def test_display_name_rejects_invalid_values(self) -> None:
         api = FakeApiClient()
+        channel_promo = AsyncMock()
         state = await make_fsm_context()
         await state.set_state(RegistrationStates.display_name)
 
-        await display_name_entered(make_message(""), state, api)
-        await display_name_entered(make_message("x" * 33), state, api)
+        await display_name_entered(make_message(""), state, api, channel_promo)
+        await display_name_entered(make_message("x" * 33), state, api, channel_promo)
 
         assert api.register_calls == []
         assert await state.get_state() == RegistrationStates.display_name.state

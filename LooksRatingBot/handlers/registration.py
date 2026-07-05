@@ -22,6 +22,7 @@ from bot.services import (
 )
 from bot.states import RegistrationStates
 from handlers.photo import offer_photo_after_registration
+from services.channel_subscribe_promo import ChannelSubscribePromoSender
 
 logger = logging.getLogger(__name__)
 router = Router()
@@ -61,7 +62,10 @@ async def ask_custom_display_name(message: Message, state: FSMContext) -> None:
 
 @router.message(RegistrationStates.display_choice, F.text)
 async def display_choice_entered(
-    message: Message, state: FSMContext, api: LooksRatingApiClient
+    message: Message,
+    state: FSMContext,
+    api: LooksRatingApiClient,
+    channel_promo: ChannelSubscribePromoSender,
 ) -> None:
     if message.text == MENU_CANCEL:
         await state.clear()
@@ -69,7 +73,13 @@ async def display_choice_entered(
         return
 
     if message.text == BTN_DISPLAY_USE_TELEGRAM:
-        await complete_registration(message, state, api, use_telegram_username_as_display=True)
+        await complete_registration(
+            message,
+            state,
+            api,
+            channel_promo=channel_promo,
+            use_telegram_username_as_display=True,
+        )
         return
 
     if message.text == BTN_DISPLAY_CUSTOM:
@@ -86,7 +96,10 @@ async def display_choice_entered(
 
 @router.message(RegistrationStates.display_name, F.text)
 async def display_name_entered(
-    message: Message, state: FSMContext, api: LooksRatingApiClient
+    message: Message,
+    state: FSMContext,
+    api: LooksRatingApiClient,
+    channel_promo: ChannelSubscribePromoSender,
 ) -> None:
     if message.text == MENU_CANCEL:
         await state.clear()
@@ -102,6 +115,7 @@ async def display_name_entered(
         message,
         state,
         api,
+        channel_promo=channel_promo,
         use_telegram_username_as_display=False,
         display_name=display_name,
     )
@@ -111,6 +125,7 @@ async def complete_registration(
     message: Message,
     state: FSMContext,
     api: LooksRatingApiClient,
+    channel_promo: ChannelSubscribePromoSender,
     *,
     use_telegram_username_as_display: bool,
     display_name: str | None = None,
@@ -149,6 +164,7 @@ async def complete_registration(
         telegram_id,
         texts.REG_DONE.format(display_name=result.get("displayName", "—")),
     )
+    await channel_promo.send_after_registration(telegram_id)
     try:
         await offer_photo_after_registration(message, state, api, telegram_id)
     except ApiError as exc:
