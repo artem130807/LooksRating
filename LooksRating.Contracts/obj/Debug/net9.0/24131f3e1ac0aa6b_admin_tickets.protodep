@@ -1,2 +1,0 @@
-obj/Debug/net9.0/AdminTickets.cs \
-obj/Debug/net9.0/AdminTicketsGrpc.cs: Proto/admin_tickets.proto

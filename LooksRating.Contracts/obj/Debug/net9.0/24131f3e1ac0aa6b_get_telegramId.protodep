@@ -1,2 +1,0 @@
-obj/Debug/net9.0/Proto/GetTelegramId.cs \
-obj/Debug/net9.0/Proto/GetTelegramIdGrpc.cs: Proto/get_telegramId.proto

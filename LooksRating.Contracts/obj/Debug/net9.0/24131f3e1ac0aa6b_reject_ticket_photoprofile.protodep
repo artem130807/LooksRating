@@ -1,2 +1,0 @@
-obj/Debug/net9.0/RejectTicketPhotoprofile.cs \
-obj/Debug/net9.0/RejectTicketPhotoprofileGrpc.cs: Proto/reject_ticket_photoprofile.proto
